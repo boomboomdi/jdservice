@@ -603,6 +603,7 @@ def callback(ck, order_no, order_me, amount):
         'card_name': '',
         'card_password': ''
     }
+    proxy = None
     pc_client = pc_jd(ck)
     code, order_status, status_name = pc_client.get_order_status(order_no)
     if code != SUCCESS:
