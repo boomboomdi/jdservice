@@ -11,7 +11,7 @@ import flask
 import requests
 import threading
 from tools import LOG_D
-from pc_jd import create_order_appstore
+from pc_jd import order_appstore
 
 
 SUCCESS = 0
@@ -36,7 +36,7 @@ def queryResult():
     ck = str(param.get('cookie'))
     order_me = str(param.get('order_me'))
     amount = str(param.get('amount'))
-    threading.Thread(target=create_order_appstore, args=(ck, order_me, amount)).start()
+    threading.Thread(target=order_appstore, args=(ck, order_me, amount)).start()
     return 'success'
     # return '{"code": 0, "msg": "SUCCESS", "data": {"phone": "' + phone + '", "amount": 469.19}, "sign": "488864C0AB51AEA0AF551074446FBCEC"}'
 
