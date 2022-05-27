@@ -1,8 +1,4 @@
 # -*- coding: utf-8 -*-#
-from email.mime import image
-import imp
-import json
-import base64
 from random import randint
 from time import sleep
 from urllib.parse import quote
@@ -30,7 +26,7 @@ def index():
     b = flask.request.args.get('b')
     return a + b
 
-@app.route('/createOrder', methods=['POST'])
+@app.route('/createOrderAppstore', methods=['POST'])
 def queryResult():
     param = flask.request.get_json()
     ck = str(param.get('cookie'))
@@ -40,12 +36,13 @@ def queryResult():
     return 'success'
     # return '{"code": 0, "msg": "SUCCESS", "data": {"phone": "' + phone + '", "amount": 469.19}, "sign": "488864C0AB51AEA0AF551074446FBCEC"}'
 
-@app.route('/callBack', methods=['POST'])
+@app.route('/queryOrder', methods=['POST'])
 def callBack():
     param = flask.request.get_json()
-    order_no = param.get('order_no')
-    account = param.get('account')
-    pay_status = param.get('pay_status')
+    ck = str(param.get('cookie'))
+    order_me = str(param.get('order_me'))
+    order_pay = str(param.get('order_pay'))
+    amount = str(param.get('amount'))
     print('callback:', order_no, account, pay_status)
     return "success"
 
@@ -59,5 +56,4 @@ def callBackDv():
 if __name__ == '__main__':
     # threading.Thread(target=query_task).start()
     app.debug = False
-    # app.run(port=23943, threaded=True)
     app.run(port=23942)

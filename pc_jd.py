@@ -1,5 +1,4 @@
 import base64
-from email import header
 import json
 import requests
 from time import time
@@ -283,7 +282,11 @@ class pc_jd():
             'Referer': 'https://order.jd.com/',
             'Cookie': self.ck
         }
-        res = requests.get(url, headers=head, allow_redirects=False, proxies=self.proxy)
+        try:
+            res = requests.get(url, headers=head, allow_redirects=False, proxies=self.proxy)
+        except Exception as e:
+            tools.LOG_D(e)
+            return NETWOTK_ERROR, None, None
         ret = res.text.split('(')[1][0:-1]
         ret_json = json.loads(ret)
         print(ret_json['appOrderInfoList'][0]['orderStatus']['statusList'][0]['name'])
@@ -444,6 +447,19 @@ class pc_jd():
         else:
             return RET_CODE_ERROR, None
 
+    def clear_order(self, order_no):
+        tools.LOG_D(order_no)
+        passkey = self.get_passkey(order_no)
+        code, status = self.recycle_order(order_no, passkey)
+        if code != SUCCESS:
+            pass
+        if status == True:
+            code, passkey = self.get_recycle_passkey(order_no)
+            if code != SUCCESS:
+                pass
+            self.delete_order(order_no, passkey)
+
+
 
 amount = '200.00'
 
@@ -591,6 +607,44 @@ def test(ck):
     pc_client = pc_jd(ck)
     pc_client.get_order_url('247682795586')
 
+
+def query_order(ck, order_me, order_no, amount):
+    result = {
+        'check_status': '1',
+        'pay_status': '0',
+        'ck_status': '1',
+        'time': '',
+        'order_me': order_me,
+        'order_pay': order_no,
+        'amount': amount,
+        'card_name': '',
+        'card_password': ''
+    }
+    for i in range(3):
+        proxy = None
+        pc_client = pc_jd(ck, proxy)
+        code, order_status, status_name = pc_client.get_order_status(order_no)
+        if code == SUCCESS:
+            if order_status == True and status_name == '已完成':
+                code, card_id, card_key, pay_time = pc_client.get_kami(order_no)
+                result['time'] = pay_time
+                result['card_name'] = card_id
+                result['card_password'] = card_key
+                result['pay_status'] = '1'
+                tools.LOG_D(card_id, card_key, pay_time)
+                return json.dumps(result)
+            else:
+                return json.dumps(result)
+        elif code == NETWOTK_ERROR:
+            proxy = None
+        elif code == CK_UNVALUE:
+            result['ck_status'] = '0'
+            return json.dumps(result)
+        i += 1
+    result['check_status'] = '0'
+    return json.dumps(result)
+
+
 def callback(ck, order_no, order_me, amount):
     result = {
         'check_status': '',
@@ -610,7 +664,7 @@ def callback(ck, order_no, order_me, amount):
         pass
     if order_status == True and status_name == '已完成':
         code, card_id, card_key, pay_time = pc_client.get_kami(order_no)
-        print(card_id, card_key, pay_time)
+        tools.LOG_D(card_id, card_key, pay_time)
         result['check_status'] = '1'
         result['pay_status'] = '1'
         result['ck_status'] = '1'
@@ -627,26 +681,16 @@ def callback(ck, order_no, order_me, amount):
         result['order_pay'] = order_no
         pass
     result = json.dumps(result)
-    upload_callback_result(result)
-
-def clear_order(ck, order_no):
-    pc_client = pc_jd(ck)
-    passkey = pc_client.get_passkey(order_no)
-    tools.LOG_D(passkey)
-    code, status = pc_client.recycle_order(order_no, passkey)
-    if code != SUCCESS:
-        pass
-    if status == True:
-        code, passkey = pc_client.get_recycle_passkey(order_no)
-        if code != SUCCESS:
-            pass
-        pc_client.delete_order(order_no, passkey)
+    if upload_callback_result(result):
+        if order_status == True and status_name == '已完成':
+            pc_client.clear_order(order_no)
 
 
 if __name__=='__main__':
     # ck = 'pin=bb17108392702; wskey=AAJijhQVAEAUuK5yxaGAiLVqJz3vy2eDcw4Mbk13xp2KJWAMbw8Ni2ihRP8D9e-mIYOsLhbPWOLy8edS4GfgUOx6trKMts4f; __jdv=76161171|direct|-|none|-|1653475472625; __jdu=1653475472623645022175; areaId=5; ipLoc-djd=5-142-0-0; shshshfp=c8154d5c31b835b717a87e7197043139; shshshfpa=c4e699b6-78cd-5d72-fc82-0464edc0b499-1653475476; shshshfpb=dNdB1ULltKqRZUn3U3kSZ1g; TrackID=18oAEvWCESKwvCuZTMo9UEpieA7cIkc8fA4W6voDJHt2LMMaQXjGq49NKPbG3KRXgURDbZgVGIy_FOFTvSVYIe3X40H_Y0WRKQs-YGdTGUVCjIwSt8oIhXhw1fczaSzGr; pinId=hZVnPybRNrtIM016vp53LQ; pin=bb17108392702; unick=bb17108392702; ceshi3.com=000; _tp=LSfrzCZhIkpYM+Vd6iAGJQ==; _pst=bb17108392702; bjd.advert.popup=d34dd1b9cb1caaaad0c408ab72e7615d; qd_ad=-|-|-|-|0; qd_uid=L3LM5W8G-C09N0FN6RODT8GLSSTCG; qd_fs=1653484809324; qd_ts=1653484809324; qd_ls=1653484809324; qd_sq=2; qd_sid=L3LM5W8G-C09N0FN6RODT8GLSSTCG-2; _distM=247703057827; __jda=122270672.1653475472623645022175.1653475473.1653484717.1653498288.3; __jdb=122270672.7.1653475472623645022175|3.1653498288; __jdc=122270672; thor=5B960A72EDEABC412FA1D4E520C1BAE311222104FDB0B15D2E58892276E8C63CE4DE693C0C75A7449351710A7E23605E28CCA52B810D9167E8BB81CFB5CF89007E75EBEAE6737E0075B1486A656A9500BC332BAC42624A3C71E0491288E810BF86CBDF2DCC52F4BBAD1E2CCA2A689AC89183E2DE66E04A87897CFAF22615DECA421E391A0010E64D0DE1E67EAD55CA4C; 3AB9D23F7A4B3C9B=RI6THBNZSP72TJ56KEHDNOJWYNEOHHKWSYJDG2HCFCH5LHJBYSLIHQFOTUMOEGVVCPKBWM56QOYAETL5O3BOYIYDQ4'
     ck = '__jda=24961467.1653564699911433506861.1653564700.1653564700.1653564700.1; __jdc=24961467; __jdv=76161171|direct|-|none|-|1653564699911; __jdu=1653564699911433506861; areaId=5; ipLoc-djd=5-142-42547-54561; shshshfp=ce4ef42540f107788900abe5857d0831; shshshfpa=9b48a7ff-a5fe-ebd3-ae89-5ddc92ab7a40-1653564700; shshshfpb=uJucIkGjIbRrTIaRGiKbuoA; wlfstk_smdl=ael4j53f8927i4os0fym9dnt9x96mqwx; TrackID=1u1ZKFeg4WAejJoSajMtnrdM0yuJbawO4WLKgQQwbuqSvNatjC1q4wcABqdfTNp99FvLOzU5GAkKTOnWOXdj9SpEeKQt20gYJMBWYDxPkKunqhC49vf8nfpiV8Utc3-yakbc4mJo1xEdtBGtoL0v6Nw; thor=5BC3BA255AE4A8428C911AF1E3476BE39C8881EEC0396A93799EF09D029CF387D538361D559919B696CD28205C35E585CC1B4B0A03F09A6969DBE4536CA3E0D572D28F381202266CA06DD238921FA7223A7AC29E42653FE76397F6401E49E6F61726ED9DF1BEB4CC561BC4622BE873D0D937A621F9769BA00A3760D30D2C1EF0F7E1D1CAEDD0C3DF2B7132BBF587C7B4; pinId=m4W1ON9HdhVnOt3b2SjWeAVIxgkk_fOxHYBiJEn8G34; pin=%E8%AE%B7%E6%B2%B3%E5%B8%82%E8%8A%B1%E4%B9%8B%E9%9F%B5%E5%9B%AD%E8%89%BA%E6%9C%89; unick=%E8%AE%B7%E6%B2%B3%E5%B8%82%E8%8A%B1%E4%B9%8B%E9%9F%B5%E5%9B%AD%E8%89%BA%E6%9C%89; ceshi3.com=000; _tp=3QbDybAYBdiCsmqHk4hDu%2Fi5MtvWn3JmxO0ZYRfDzOmbwWBhYg%2Bsib2rqCduBPz%2FrwOqYY2RlIHypwBX5oMq2o608aHs6UeSJt3KOtaix8d0bYQ34i1KM2bDW%2FSC0JvC; _pst=%E8%AE%B7%E6%B2%B3%E5%B8%82%E8%8A%B1%E4%B9%8B%E9%9F%B5%E5%9B%AD%E8%89%BA%E6%9C%89; bjd.advert.popup=8f3d58ac337c2ee479ab1507fb67fd6a; ip_cityCode=142; _distM=247761187688; 3AB9D23F7A4B3C9B=UKTIOLLP753IGSUPUQHSSQBHBY2Y5KIO6RHGFCUW3VJUYI3XCRDBBKM6TBNO5HXP5IKJTEXZ6P6HOYG3LUVWVOOMF4;'
-    order_appstore(ck, '123', '100')
+    # order_appstore(ck, '123', '100')
+    query_order(ck, '247775877802')
     # create_order_qb(ck, '', '105', '123542321')
     # test(ck)
     # callback(ck, '247486125452', '123', '100')
