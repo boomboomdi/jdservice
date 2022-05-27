@@ -7,7 +7,7 @@ import flask
 import requests
 import threading
 from tools import LOG_D
-from pc_jd import order_appstore
+from pc_jd import order_appstore, query_order_appstore
 
 
 SUCCESS = 0
@@ -27,7 +27,7 @@ def index():
     return a + b
 
 @app.route('/createOrderAppstore', methods=['POST'])
-def queryResult():
+def createOrderAppstore():
     param = flask.request.get_json()
     ck = str(param.get('cookie'))
     order_me = str(param.get('order_me'))
@@ -36,14 +36,15 @@ def queryResult():
     return 'success'
     # return '{"code": 0, "msg": "SUCCESS", "data": {"phone": "' + phone + '", "amount": 469.19}, "sign": "488864C0AB51AEA0AF551074446FBCEC"}'
 
-@app.route('/queryOrder', methods=['POST'])
-def callBack():
+@app.route('/queryAppstore', methods=['POST'])
+def queryAppstore():
     param = flask.request.get_json()
     ck = str(param.get('cookie'))
     order_me = str(param.get('order_me'))
     order_pay = str(param.get('order_pay'))
     amount = str(param.get('amount'))
-    print('callback:', order_no, account, pay_status)
+    # print('callback:', order_no, account, pay_status)
+    threading.Thread(target=query_order_appstore, args=(ck, order_me, order_pay, amount)).start()
     return "success"
 
 @app.route('/callBackDv', methods=['POST'])

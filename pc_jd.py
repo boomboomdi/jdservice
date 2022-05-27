@@ -5,6 +5,7 @@ from time import time
 from urllib.parse import quote
 import tools
 from jingdong import LOG, jd
+from ip_sqlite import ip_sql
 
 SUCCESS = 1
 WEB_CK_UNVALUE = 2
@@ -478,7 +479,6 @@ QB_SKUIDS = {
 def create_order_appstore(ck, order_me, amount, proxy):
     pc_client = pc_jd(ck)
     app_client = jd(ck)
-    retry_time = 0
     code, win_id = pc_client.order_place(APPSTORE_SKUIDS[amount])
     if code != SUCCESS:
         return code, None, None
@@ -510,17 +510,28 @@ def create_order_appstore(ck, order_me, amount, proxy):
 def order_appstore(ck, order_me, amount):
     code = NETWOTK_ERROR
     ck_status = '1'
-    # for i in range(3):
-        # if code == NETWOTK_ERROR:
-            # proxy = None
-            # code, order_no, img_url = create_order_appstore(ck, order_me, amount, proxy)
-        # elif code == CK_UNVALUE:
-            # ck_status = '0'
-        # elif code == SUCCESS:
-            # break
-        # i += 1
-    # tools.LOG_D(img_url)
-    # upload_order_result(order_me, order_no, img_url, amount, ck_status)
+    account = tools.get_jd_account(ck)
+
+    proxy = ip_sql().search_ip(account)
+    if proxy == None:
+        proxy = tools.getip_uncheck()
+        if proxy == None:
+            return None
+        ip_sql().insert_ip(account, proxy)
+
+    for i in range(3):
+        code, order_no, img_url = create_order_appstore(ck, order_me, amount, proxy)
+        if code == NETWOTK_ERROR:
+            proxy = tools.getip_uncheck()
+            ip_sql().update_ip(account, proxy)
+        elif code == CK_UNVALUE:
+            ck_status = '0'
+            break
+        elif code == SUCCESS:
+            break
+        i += 1
+    tools.LOG_D(img_url)
+    upload_order_result(order_me, order_no, img_url, amount, ck_status)
     upload_order_result(order_me, '', '', amount, ck_status)
 
 def create_order_qb(ck, order_me, amount, qq):
@@ -573,7 +584,7 @@ def get_real_url(ck, weixin_page_url):
     print(pay_url)
 
 def upload_callback_result(result):
-    # url = '/api/ordernotify/notifyOrderStatus0069'
+    url = '/api/ordernotify/notifyOrderStatus0069'
     print(result)
     return True
 
@@ -588,7 +599,7 @@ def upload_order_result(order_me, order_no, img_url, amount, ck_status):
     # }
     # if img_url != None and order_no != None:
         # result['prepare_status'] = '1'
-    url = 'http://175.178.195.147:9191/api/preparenotify/notifyjdurl0069'
+    url = 'http://127.0.0.1:9191/api/preparenotify/notifyjdurl0069'
     head = {
         'content-type': 'application/json'
     }
@@ -608,7 +619,7 @@ def test(ck):
     pc_client.get_order_url('247682795586')
 
 
-def query_order(ck, order_me, order_no, amount):
+def query_order_appstore(ck, order_me, order_no, amount):
     result = {
         'check_status': '1',
         'pay_status': '0',
@@ -620,8 +631,13 @@ def query_order(ck, order_me, order_no, amount):
         'card_name': '',
         'card_password': ''
     }
+    account = tools.get_jd_account(ck)
+    proxy = ip_sql().search_ip(account)
+    if proxy == None:
+        proxy = tools.getip_uncheck()
+        ip_sql().delete_ip(account)
+        ip_sql().insert_ip(proxy)
     for i in range(3):
-        proxy = None
         pc_client = pc_jd(ck, proxy)
         code, order_status, status_name = pc_client.get_order_status(order_no)
         if code == SUCCESS:
@@ -636,7 +652,8 @@ def query_order(ck, order_me, order_no, amount):
             else:
                 return json.dumps(result)
         elif code == NETWOTK_ERROR:
-            proxy = None
+            proxy = tools.getip_uncheck()
+            ip_sql().update_ip(account, proxy)
         elif code == CK_UNVALUE:
             result['ck_status'] = '0'
             return json.dumps(result)

@@ -64,7 +64,23 @@ def LOG_E(log):
     t = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())) 
     print('[---]' + t, 'function', '[' + inspect.stack()[1][3] + ']' + ':', log)
 
+def getip_uncheck():
+    url = 'http://webapi.http.zhimacangku.com/getip?num=1&type=1&pro=0&city=0&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=&username=chukou01&spec=1'
+    response = requests.get(url)
+    if response.status_code == 200:
+        print(response.text)
+        if '请添加白名单' in response.text:
+            return None
+        ip = response.text
+        ip = ip.replace('\n', '')
+        ip = ip.replace('\r', '')
+        return ip
 
+def get_jd_account(ck):
+    for item in ck.split(';'):
+        if 'pin=' in item:
+            return item.split('=')[0]
+    return None
 
 if __name__ == '__main__':
     # parse_qrcode('https://qr.m.jd.com/show?appid=133&size=147&t=')
