@@ -510,28 +510,28 @@ def create_order_appstore(ck, order_me, amount, proxy):
 def order_appstore(ck, order_me, amount):
     code = NETWOTK_ERROR
     ck_status = '1'
-    account = tools.get_jd_account(ck)
-
-    proxy = ip_sql().search_ip(account)
-    if proxy == None:
-        proxy = tools.getip_uncheck()
-        if proxy == None:
-            return None
-        ip_sql().insert_ip(account, proxy)
-
-    for i in range(3):
-        code, order_no, img_url = create_order_appstore(ck, order_me, amount, proxy)
-        if code == NETWOTK_ERROR:
-            proxy = tools.getip_uncheck()
-            ip_sql().update_ip(account, proxy)
-        elif code == CK_UNVALUE:
-            ck_status = '0'
-            break
-        elif code == SUCCESS:
-            break
-        i += 1
-    tools.LOG_D(img_url)
-    upload_order_result(order_me, order_no, img_url, amount, ck_status)
+    # account = tools.get_jd_account(ck)
+# 
+    # proxy = ip_sql().search_ip(account)
+    # if proxy == None:
+        # proxy = tools.getip_uncheck()
+        # if proxy == None:
+            # return None
+        # ip_sql().insert_ip(account, proxy)
+# 
+    # for i in range(3):
+        # code, order_no, img_url = create_order_appstore(ck, order_me, amount, proxy)
+        # if code == NETWOTK_ERROR:
+            # proxy = tools.getip_uncheck()
+            # ip_sql().update_ip(account, proxy)
+        # elif code == CK_UNVALUE:
+            # ck_status = '0'
+            # break
+        # elif code == SUCCESS:
+            # break
+        # i += 1
+    # tools.LOG_D(img_url)
+    # upload_order_result(order_me, order_no, img_url, amount, ck_status)
     upload_order_result(order_me, '', '', amount, ck_status)
 
 def create_order_qb(ck, order_me, amount, qq):
@@ -589,16 +589,6 @@ def upload_callback_result(result):
     return True
 
 def upload_order_result(order_me, order_no, img_url, amount, ck_status):
-    # result = {
-        # 'prepare_status': '0',
-        # 'ck_status': ck_status,
-        # 'order_me': order_me,
-        # 'order_pay': order_no,
-        # 'amount': amount,
-        # 'qr_url': img_url
-    # }
-    # if img_url != None and order_no != None:
-        # result['prepare_status'] = '1'
     url = 'http://127.0.0.1:9191/api/preparenotify/notifyjdurl0069'
     head = {
         'content-type': 'application/json'
