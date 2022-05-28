@@ -58,8 +58,8 @@ class ip_sql:
 
 if __name__ == '__main__':
     sql = ip_sql()
-    sql.insert_ip('13456523', '127.0.0.2')
+    # sql.insert_ip('13456523', '127.0.0.2')
     # sql.delete_ip('13456523')
     # sql.update_ip('13456523', '1222.33.22.33')
-    # print(sql.search_ip('13456523'))
+    print(sql.search_ip('13456523'))
     pass
