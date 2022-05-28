@@ -672,7 +672,7 @@ def query_order_appstore(ck, order_me, order_no, amount):
     if proxy == None:
         proxy = tools.getip_uncheck()
         ip_sql().delete_ip(account)
-        ip_sql().insert_ip(proxy)
+        ip_sql().insert_ip(account, proxy)
     for i in range(3):
         pc_client = pc_jd(ck, proxy)
         code, order_status, status_name = pc_client.get_order_status(order_no)
