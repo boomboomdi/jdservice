@@ -79,7 +79,7 @@ def getip_uncheck():
 def get_jd_account(ck):
     for item in ck.split(';'):
         if 'pin=' in item:
-            return item.split('=')[0]
+            return item.split('=')[1]
     return None
 
 if __name__ == '__main__':
