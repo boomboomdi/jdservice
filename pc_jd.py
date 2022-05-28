@@ -611,8 +611,9 @@ def create_order_qb(ck, order_me, amount, qq):
 
 def get_real_url(ck, img_url):
     result = {
-        'code': '0',
-        'pay_url': ''
+        'code': '1',
+        'data': '',
+        'msg': ''
     }
     account = tools.get_jd_account(ck)
     proxy = ip_sql().search_ip(account)
@@ -628,11 +629,13 @@ def get_real_url(ck, img_url):
             proxy = tools.getip_uncheck()
             ip_sql().update_ip(account, proxy)
         elif code == CK_UNVALUE:
-            result['code'] = '1'
+            result['msg'] = 'ck unvalue'
             break
         elif code == SUCCESS:
             pay_url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=' + token
-            result['pay_url'] = pay_url
+            result['code'] = '0'
+            result['data'] = pay_url
+            result['msg'] = 'success'
         i += 1
     return json.dumps(result)
 
