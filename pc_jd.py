@@ -287,6 +287,7 @@ class pc_jd():
         }
         try:
             res = requests.get(url, headers=head, allow_redirects=False, proxies=self.proxy)
+            print(res.text)
         except Exception as e:
             tools.LOG_D(e)
             return NETWOTK_ERROR, None, None
