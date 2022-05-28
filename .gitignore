@@ -2,3 +2,4 @@ config/
 __pycache__/
 nohup.out
 jd.db
+ip.db

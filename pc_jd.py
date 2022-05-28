@@ -707,6 +707,7 @@ def query_order_appstore(ck, order_me, order_no, amount):
             else:
                 result = json.dumps(result)
                 upload_callback_result(result)
+            return
         elif code == NETWOTK_ERROR:
             proxy = tools.getip_uncheck()
             ip_sql().update_ip(account, proxy)
@@ -714,10 +715,8 @@ def query_order_appstore(ck, order_me, order_no, amount):
             result['ck_status'] = '0'
             result = json.dumps(result)
             upload_callback_result(result)
+            return
         i += 1
-    result['check_status'] = '0'
-    result = json.dumps(result)
-    upload_callback_result(result)
 
 
 def callback(ck, order_no, order_me, amount):
