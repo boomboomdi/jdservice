@@ -1,5 +1,4 @@
 config/
 __pycache__/
 nohup.out
-ip.db
 jd.db

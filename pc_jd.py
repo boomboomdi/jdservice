@@ -675,7 +675,7 @@ def query_order_appstore(ck, order_me, order_no, amount):
         'check_status': '1',
         'pay_status': '0',
         'ck_status': '1',
-        'time': '',
+        'time': str(int(time())),
         'order_me': order_me,
         'order_pay': order_no,
         'amount': amount,
@@ -696,7 +696,6 @@ def query_order_appstore(ck, order_me, order_no, amount):
         if code == SUCCESS:
             if order_status == True and status_name == '已完成':
                 code, card_id, card_key, pay_time = pc_client.get_kami(order_no)
-                result['time'] = pay_time
                 result['card_name'] = card_id
                 result['card_password'] = card_key
                 result['pay_status'] = '1'
@@ -744,7 +743,6 @@ def callback(ck, order_no, order_me, amount):
         result['check_status'] = '1'
         result['pay_status'] = '1'
         result['ck_status'] = '1'
-        result['time'] = pay_time
         result['order_me'] = order_me
         result['order_pay'] = order_no
         result['card_name'] = card_id
