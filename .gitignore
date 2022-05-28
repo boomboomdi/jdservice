@@ -1,5 +1,5 @@
-/config
-/__pycache__/*
-nohup.out
-ip.db
-jd.db
+./config
+./__pycache__/*
+./nohup.out
+./ip.db
+./jd.db
