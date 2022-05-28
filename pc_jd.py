@@ -495,8 +495,7 @@ QB_SKUIDS = {
 
 
 def create_order_appstore(ck, order_me, amount, proxy):
-    pc_client = pc_jd(ck)
-    app_client = jd(ck)
+    pc_client = pc_jd(ck, proxy)
     code, win_id = pc_client.order_place(APPSTORE_SKUIDS[amount])
     if code != SUCCESS:
         return code, None, None
@@ -610,22 +609,32 @@ def create_order_qb(ck, order_me, amount, qq):
     # print(pay_url)
 
 
-def get_real_url(ck, weixin_page_url):
-    pc_client = pc_jd(ck)
-    app_client = jd(ck)
-    for i in weixin_page_url.split('?')[1].split('&'):
-        if 'orderId' in i:
-            order_no = i.split('=')[1]
-        if 'paySign' in i:
-            pay_sign = i.split('=')[1]
-    code, image_url = pc_client.get_weixin_img(weixin_page_url, order_no, pay_sign)
-    if code != SUCCESS:
-        pass
-    code, token = app_client.gen_token(quote(image_url, safe=''))
-    if code != SUCCESS:
-        pass
-    pay_url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=' + token
-    print(pay_url)
+def get_real_url(ck, img_url):
+    result = {
+        'code': '0',
+        'pay_url': ''
+    }
+    account = tools.get_jd_account(ck)
+    proxy = ip_sql().search_ip(account)
+    if proxy == None:
+        proxy = tools.getip_uncheck()
+        if proxy == None:
+            return None
+        ip_sql().insert_ip(account, proxy)
+    for i in range(3):
+        app_client = jd(ck, proxy)
+        code, token = app_client.gen_token(quote(img_url))
+        if code == NETWOTK_ERROR:
+            proxy = tools.getip_uncheck()
+            ip_sql().update_ip(account, proxy)
+        elif code == CK_UNVALUE:
+            result['code'] = '1'
+            break
+        elif code == SUCCESS:
+            pay_url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=' + token
+            result['pay_url'] = pay_url
+        i += 1
+    return json.dumps(result)
 
 def upload_callback_result(result):
     url = 'http://127.0.0.1:9191/api/ordernotify/notifyorderstatus0069'

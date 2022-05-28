@@ -7,7 +7,7 @@ import flask
 import requests
 import threading
 from tools import LOG_D
-from pc_jd import order_appstore, query_order_appstore
+from pc_jd import order_appstore, query_order_appstore, get_real_url
 
 
 SUCCESS = 0
@@ -47,6 +47,15 @@ def queryAppstore():
     print('========')
     threading.Thread(target=query_order_appstore, args=(ck, order_me, order_pay, amount)).start()
     return "success"
+
+@app.route('/getRealurl', methods=['POST'])
+def getRealurl():
+    param = flask.request.get_json()
+    ck = str(param.get('cookie'))
+    url = str(param.get('url'))
+    print(param)
+    print('========')
+    return get_real_url(ck, url)
 
 @app.route('/callBackDv', methods=['POST'])
 def callBackDv():
