@@ -628,6 +628,7 @@ def get_real_url(ck, weixin_page_url):
     print(pay_url)
 
 def upload_callback_result(result):
+    tools.LOG_D(result)
     url = 'http://127.0.0.1:9191/api/ordernotify/notifyOrderStatus0069'
     head = {
         'content-type': 'application/json'
