@@ -946,7 +946,10 @@ if __name__ == '__main__':
     # ck = 'pin=jd_4d9b500034155; wskey=AAJiYEIdAED5b-Vp4EDWh0KvEwEIbqyh4GXv7EFT_FmuUwfVvqWRBxHw9h1S_CVOzcVyeIoghZG6qbhy7o_B455iPTM_cqaH'
     # ck = 'pin=%E7%BB%86%E5%85%AB%E5%AE%8C%E5%85%A5; wskey=AAJiNW1dAED4C_lIGM1bsmJQ8U5yBvkZ3O03FZl0-VyuBWqfspTeiEtOiMPtr7Rq4mquSrCznFtj6xaZlbwcgjcI8JWsaaPZ;'
     ck = 'pin=bb17108392702; wskey=AAJijhQVAEAUuK5yxaGAiLVqJz3vy2eDcw4Mbk13xp2KJWAMbw8Ni2ihRP8D9e-mIYOsLhbPWOLy8edS4GfgUOx6trKMts4f;'
-    ck = 'pin=%E8%AE%B7%E6%B2%B3%E5%B8%82%E8%8A%B1%E4%B9%8B%E9%9F%B5%E5%9B%AD%E8%89%BA%E6%9C%89; wskey=AAJij2V5AFBDC74mQXCVuZ2Fhxt7ZV5oxTsT1D0oJMIgyjg-Aq-A-_vE1pboEP6E0AsSxg1tmF9IIaUnpyC0qjl3J_0uZc5SUQ3vwov6IS0oHwpXyzQUMA;'
+    ck = 'pin=%E8%AE%B7%E6%B2%B3%E5%B8%82%E9%91%AB%E9%80%B8%E8%BE%BE%E7%89%A9%E4%B8%9A%E7%AE%A1%E7%90%86; wskey=AAJikRpnAEBSn56VNxXKM7FGynMVwUvaTCjZomnscFak0591ObICL6VOKuCBPfsfrkDwvf8uLau2utGH51MGR_MqiqribS8e;'
+    ck = 'pin=jd_JYAGIAzaLlWQ; wskey=AAJikS2nAEBWoqcfP9P0dQWfq4Y87A8LhEdaAlG-tt00ruaKXhnh2QzpNMfedSEVydE-y3OYmHYP0W7AzoR0dm9Ae4AvfDct;'
+    ck = 'pin=%E8%AE%B7%E6%B2%B3%E5%B8%82%E4%BD%B3%E6%89%AC%E8%A3%85%E9%A5%B0%E8%A3%85%E6%BD%A2%E6%9C%89;wskey=AAJikkYfAFAgXEakpQ3A5vKOv_XopdQHyNXwOgIyWzinpb4vJ4pEa5Ys-xdfUsiLo_eBT29DW0ZnrPoBmOlokxBZij94z8zPMvFLrI6HibdzBRaF5zv_UQ;'
+    ck = 'pin=%E8%AE%B7%E6%B2%B3%E5%B8%82%E9%B8%BF%E5%85%89%E7%83%AD%E5%8A%9B%E6%9C%89;wskey=AAJikkyeAFDY6a4fMRVCTVaFKsoHTAhCY1ufcASTPbKbz6MOYnJ3jDL44hfLhXuFW5gbns6Pb49g9uk-Je-S3wo7hJn11O9s0lBnReZx4z_cvN4mV1is_Q;'
     # ck = 'pin=aa17108392698; wskey=AAJiiSo3AEBJB-dWUsuCrAPJmoSgvQ0fVhJ6z5YTJ8TZLh2ZfXhQiLmwtgkG90h8Uq7tt-ydge_d2JwmyDuQ9JX_hpMOaeBK;'
     # ck = 'pin=%E7%BB%86%E5%9B%BA%E5%A8%9F%E8%8B%B1; wskey=AAJiNW1bAEDagQKqDECetiXtITfrWXlhk5Np-mL2RsRrGgsF0r_fs8ABYMKpfMxgTi5OrUhGUFIXPhp-oNRGCUIGVYt0tElE;'
     for i in ck.split(';'):
@@ -973,7 +976,7 @@ if __name__ == '__main__':
     # code, order_id_s = jd_client.submit_order(id, address)
     # url = 'weixin://wxpay/bizpayurl?pr=W0VhsEuzz'
     # url = 'https://wqs.jd.com/order/n_detail_jdm.shtml?deal_id=247761070918&sceneval=2'
-    url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=48c18f25d448764fa41ce8138a42c7d76c91bff55c0588e17069616d75f8b376effddfd64321df81febbe99b0816b6c97fbd03300ab7e2ace58ab06ead2a3128ca6ce6e5705410517c18220000f4be1334af41273e8fe32548929db9a7001d32'
+    url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=bd2fe12eff6427b6624729d62e2ef85ff4eac628c84c6b993dfb6825d5ff76428a0eb9bd627d16463b5fe8e6ba5ccd5b21d7b0b5ad16ec8249d36b681605f793df6d5c816042cd6e5533737f72ee711c'
     status, token = jd_client.gen_token(url)
     pay_url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=' + token 
     print(pay_url)
@@ -981,7 +984,9 @@ if __name__ == '__main__':
     # jd_client.submit_appstore('11183343342', '100')
 
     # code, order_id, pay_id = jd_client.yk_submit(user, phone, card_id, id)
+    # order_id = ''
     # code, pay_id = jd_client.gen_app_payid(order_id, '22', amount)
+    # pay_id = '49f7294cc42642e08a815b29f995fd8e'
     # jd_client.pay_index(pay_id)
     # code, pay_url = jd_client.df_pay(pay_id)
     # if code != SUCCESS:

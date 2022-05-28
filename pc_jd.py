@@ -1,4 +1,5 @@
 import base64
+from ctypes.wintypes import LONG
 import json
 import requests
 from time import time
@@ -225,6 +226,7 @@ class pc_jd():
         }
         try:
             res = requests.get(url, headers=head, proxies=self.proxy)
+            print(res.text)
         except Exception as e:
             tools.LOG_D(e)
             return NETWOTK_ERROR, None
@@ -529,10 +531,36 @@ def order_appstore(ck, order_me, amount):
             break
         elif code == SUCCESS:
             break
+        elif code == RET_CODE_ERROR:
+            return None
         i += 1
     tools.LOG_D(img_url)
     upload_order_result(order_me, order_no, img_url, amount, ck_status)
     # upload_order_result(order_me, '', '', amount, ck_status)
+
+def test_order_appstore(ck, order_me, amount):
+    code = NETWOTK_ERROR
+    ck_status = '1'
+    account = tools.get_jd_account(ck)
+    proxy = tools.getip_uncheck()
+    for i in range(3):
+        code, order_no, img_url = create_order_appstore(ck, order_me, amount, proxy)
+        if code == NETWOTK_ERROR:
+            proxy = tools.getip_uncheck()
+            ip_sql().update_ip(account, proxy)
+        elif code == CK_UNVALUE:
+            ck_status = '0'
+            break
+        elif code == SUCCESS:
+            break
+        elif code == RET_CODE_ERROR:
+            return None
+        i += 1
+    tools.LOG_D(img_url)
+    upload_order_result(order_me, order_no, img_url, amount, ck_status)
+    # upload_order_result(order_me, '', '', amount, ck_status)
+
+
 
 def create_order_qb(ck, order_me, amount, qq):
     pc_client = pc_jd(ck)
@@ -599,9 +627,19 @@ def upload_order_result(order_me, order_no, img_url, amount, ck_status):
     head = {
         'content-type': 'application/json'
     }
-    # print(json.dumps(result))
     data = '{"prepare_status": "1", "ck_status": "1", "order_me": "' + order_me + '", "order_pay": "247775877802", "amount": "' + amount + '", "qr_url": "https://pcashier.jd.com/image/virtualH5Pay?sign=d6e2869be73c243c560393c09a7182ca89a1ed515bb088cc3ca08658daa14a0a6d4f8399eb23e3c53f93c113731f840e7fbd03300ab7e2ace58ab06ead2a3128ca6ce6e5705410517c18220000f4be1334af41273e8fe32548929db9a7001d32"}'
-    # res = requests.post(url, headers=head, data=json.dumps(result))
+    data = {
+        'prepare_status': '1',
+        'ck_status': ck_status,
+        'order_me': order_me,
+        'order_pay': order_no,
+        'amount': amount,
+        'qr_url': img_url
+    }
+    if img_url == None:
+        data['prepare_status'] = '0'
+    data = json.dumps(data)
+    tools.LOG_D(data)
     res = requests.post(url, headers=head, data=data)
     print(res.text)
 
@@ -628,7 +666,9 @@ def query_order_appstore(ck, order_me, order_no, amount):
         'card_password': ''
     }
     account = tools.get_jd_account(ck)
+    tools.LOG_D(account)
     proxy = ip_sql().search_ip(account)
+    tools.LOG_D(proxy)
     if proxy == None:
         proxy = tools.getip_uncheck()
         ip_sql().delete_ip(account)
@@ -707,8 +747,10 @@ def callback(ck, order_no, order_me, amount):
 
 if __name__=='__main__':
     # ck = 'pin=bb17108392702; wskey=AAJijhQVAEAUuK5yxaGAiLVqJz3vy2eDcw4Mbk13xp2KJWAMbw8Ni2ihRP8D9e-mIYOsLhbPWOLy8edS4GfgUOx6trKMts4f; __jdv=76161171|direct|-|none|-|1653475472625; __jdu=1653475472623645022175; areaId=5; ipLoc-djd=5-142-0-0; shshshfp=c8154d5c31b835b717a87e7197043139; shshshfpa=c4e699b6-78cd-5d72-fc82-0464edc0b499-1653475476; shshshfpb=dNdB1ULltKqRZUn3U3kSZ1g; TrackID=18oAEvWCESKwvCuZTMo9UEpieA7cIkc8fA4W6voDJHt2LMMaQXjGq49NKPbG3KRXgURDbZgVGIy_FOFTvSVYIe3X40H_Y0WRKQs-YGdTGUVCjIwSt8oIhXhw1fczaSzGr; pinId=hZVnPybRNrtIM016vp53LQ; pin=bb17108392702; unick=bb17108392702; ceshi3.com=000; _tp=LSfrzCZhIkpYM+Vd6iAGJQ==; _pst=bb17108392702; bjd.advert.popup=d34dd1b9cb1caaaad0c408ab72e7615d; qd_ad=-|-|-|-|0; qd_uid=L3LM5W8G-C09N0FN6RODT8GLSSTCG; qd_fs=1653484809324; qd_ts=1653484809324; qd_ls=1653484809324; qd_sq=2; qd_sid=L3LM5W8G-C09N0FN6RODT8GLSSTCG-2; _distM=247703057827; __jda=122270672.1653475472623645022175.1653475473.1653484717.1653498288.3; __jdb=122270672.7.1653475472623645022175|3.1653498288; __jdc=122270672; thor=5B960A72EDEABC412FA1D4E520C1BAE311222104FDB0B15D2E58892276E8C63CE4DE693C0C75A7449351710A7E23605E28CCA52B810D9167E8BB81CFB5CF89007E75EBEAE6737E0075B1486A656A9500BC332BAC42624A3C71E0491288E810BF86CBDF2DCC52F4BBAD1E2CCA2A689AC89183E2DE66E04A87897CFAF22615DECA421E391A0010E64D0DE1E67EAD55CA4C; 3AB9D23F7A4B3C9B=RI6THBNZSP72TJ56KEHDNOJWYNEOHHKWSYJDG2HCFCH5LHJBYSLIHQFOTUMOEGVVCPKBWM56QOYAETL5O3BOYIYDQ4'
-    ck = '__jda=24961467.1653564699911433506861.1653564700.1653564700.1653564700.1; __jdc=24961467; __jdv=76161171|direct|-|none|-|1653564699911; __jdu=1653564699911433506861; areaId=5; ipLoc-djd=5-142-42547-54561; shshshfp=ce4ef42540f107788900abe5857d0831; shshshfpa=9b48a7ff-a5fe-ebd3-ae89-5ddc92ab7a40-1653564700; shshshfpb=uJucIkGjIbRrTIaRGiKbuoA; wlfstk_smdl=ael4j53f8927i4os0fym9dnt9x96mqwx; TrackID=1u1ZKFeg4WAejJoSajMtnrdM0yuJbawO4WLKgQQwbuqSvNatjC1q4wcABqdfTNp99FvLOzU5GAkKTOnWOXdj9SpEeKQt20gYJMBWYDxPkKunqhC49vf8nfpiV8Utc3-yakbc4mJo1xEdtBGtoL0v6Nw; thor=5BC3BA255AE4A8428C911AF1E3476BE39C8881EEC0396A93799EF09D029CF387D538361D559919B696CD28205C35E585CC1B4B0A03F09A6969DBE4536CA3E0D572D28F381202266CA06DD238921FA7223A7AC29E42653FE76397F6401E49E6F61726ED9DF1BEB4CC561BC4622BE873D0D937A621F9769BA00A3760D30D2C1EF0F7E1D1CAEDD0C3DF2B7132BBF587C7B4; pinId=m4W1ON9HdhVnOt3b2SjWeAVIxgkk_fOxHYBiJEn8G34; pin=%E8%AE%B7%E6%B2%B3%E5%B8%82%E8%8A%B1%E4%B9%8B%E9%9F%B5%E5%9B%AD%E8%89%BA%E6%9C%89; unick=%E8%AE%B7%E6%B2%B3%E5%B8%82%E8%8A%B1%E4%B9%8B%E9%9F%B5%E5%9B%AD%E8%89%BA%E6%9C%89; ceshi3.com=000; _tp=3QbDybAYBdiCsmqHk4hDu%2Fi5MtvWn3JmxO0ZYRfDzOmbwWBhYg%2Bsib2rqCduBPz%2FrwOqYY2RlIHypwBX5oMq2o608aHs6UeSJt3KOtaix8d0bYQ34i1KM2bDW%2FSC0JvC; _pst=%E8%AE%B7%E6%B2%B3%E5%B8%82%E8%8A%B1%E4%B9%8B%E9%9F%B5%E5%9B%AD%E8%89%BA%E6%9C%89; bjd.advert.popup=8f3d58ac337c2ee479ab1507fb67fd6a; ip_cityCode=142; _distM=247761187688; 3AB9D23F7A4B3C9B=UKTIOLLP753IGSUPUQHSSQBHBY2Y5KIO6RHGFCUW3VJUYI3XCRDBBKM6TBNO5HXP5IKJTEXZ6P6HOYG3LUVWVOOMF4;'
-    # order_appstore(ck, '123', '100')
+    ck = '__jdv=76161171|direct|-|none|-|1653749346999; cud=0730de7257939d3fd7461cbff9dfe95d; cvt=1; jdu=1653749346999445038783; areaId=5; ipLoc-djd=5-148-0-0; shshshfp=cd34b24a1665fd7b12e97eb7ed71868f; shshshfpa=fcf1641c-08b8-866f-a460-4c84b762dc99-1653749348; TrackID=1wUCxHob9ggkJeJtHkzZCVa5Tb1NX0-hCQ-1ysQLskFMEjV5gKFsoBSahhiTfQuPXxISuZmxqqUWI-1lRlHyuHq0RFd5-mJwD9FD8AB7Zkj1kY_BJUOPPz3eJdw63rGbK; thor=ACE0952A8F2157F5D040EB4A1880B15BC8004900DB7A874465C5D9C17160CD20C5AE1A38E33D7DBDDC4BDDF96EB0A30C4C707A20D3C43EC76F9011D8E01A47CDA7F6111C88FCCF746EC7FCE63BD5000B832BE0FA74842A0D765D07CD46669EFA3996448D5DAF61DFA8DCBB223CD8076E12201EB3229ED32855A5F837A0C423FC7A5C96C094D6AC77CD07638C4FF4773E; pinId=m4W1ON9HdhXhf853BbXirUuw8eocEJZIzcca-DjZFyE; pin=%E8%AE%B7%E6%B2%B3%E5%B8%82%E4%BD%B3%E6%89%AC%E8%A3%85%E9%A5%B0%E8%A3%85%E6%BD%A2%E6%9C%89; unick=%E8%AE%B7%E6%B2%B3%E5%B8%82%E4%BD%B3%E6%89%AC%E8%A3%85%E9%A5%B0%E8%A3%85%E6%BD%A2%E6%9C%89; ceshi3.com=000; _tp=3QbDybAYBdiCsmqHk4hDu8L8+kWidpUZSpfurkvvAJtAZmNbi6aX/ToTXRDPWc+j+x9HoMC4pmpejYnscNPcGjD82Uzx9T468WX88Z0AMSZBVWcJ6+CQGSWn+zoaSpDH; _pst=%E8%AE%B7%E6%B2%B3%E5%B8%82%E4%BD%B3%E6%89%AC%E8%A3%85%E9%A5%B0%E8%A3%85%E6%BD%A2%E6%9C%89; shshshsID=a78231a1c715154152ba173030d5cde1_2_1653749372588; bjd.advert.popup=e51b5713dba58eb0dee78e993c9288bf; jda=122270672.1653749346999445038783.1653749347.1653749347.1653749347.1; jdc=122270672; 3AB9D23F7A4B3C9B=YC3I4KBDT6NTFRCJAIDMNOQ5ORYTPPVEMQQFYHEL3KNEGSPHNWF3RYM4D5SZK7UM6Y5H3HP6D3XUUMFVXOAKIPLJYA; __jdb=122270672.7.1653749346999445038783|1.1653749347; csn=6'
+    ck = 'pin=%E8%AE%B7%E6%B2%B3%E5%B8%82%E9%B8%BF%E5%85%89%E7%83%AD%E5%8A%9B%E6%9C%89;wskey=AAJikkyeAFDY6a4fMRVCTVaFKsoHTAhCY1ufcASTPbKbz6MOYnJ3jDL44hfLhXuFW5gbns6Pb49g9uk-Je-S3wo7hJn11O9s0lBnReZx4z_cvN4mV1is_Q; __jdv=76161171|direct|-|none|-|1653755135844; cud=2e4b2206c61d1ff684de25a2d4346e93; cvt=1; __jdu=16537551358431249497367; ipLoc-djd=5-148-0-0; areaId=5; shshshfp=cd34b24a1665fd7b12e97eb7ed71868f; shshshfpa=92273255-0271-31c0-9cda-5b2fbcdb76a1-1653755137; shshshsID=35bbe3f9a95d42cc15ef87578365011d_1_1653755137483; shshshfpb=oekB9r83jqDqVTo_iagsJ1A; TrackID=1fH7umkqe9_kd00dmJdmQv8Ky_EWijKDD2CZN8qMQrcI_5stLnabGdcUDA1DoruaC1YnoBEjSoDQwohyBP3cQ_YYVj39ICom0LKIbzxsNmZxqUllQ0yGYcNhu93_0LUtH; thor=D730C4ACC232FCD9CB3472289B11675F1580AD76F2BE08203D251817F15522D27335CCE1A656E5D16BBC20A7F31D423BCBA6C0F5B6B7C2C5FF65DB978CAFB0435893103A89903FD2450C18DA949459BA7088F972C2E8D8CE92DCD59FE8443B9F5411E55CFE47A420C93818519EC24971CBC62161C34B7AD26B981243DF8C1841B73F8043CBA5F4749F14F1214041B5E6; pinId=m4W1ON9HdhVYm_4VNF1VJAppH81LKH3KtX37H5_fCPs; pin=%E8%AE%B7%E6%B2%B3%E5%B8%82%E9%B8%BF%E5%85%89%E7%83%AD%E5%8A%9B%E6%9C%89; unick=%E8%AE%B7%E6%B2%B3%E5%B8%82%E9%B8%BF%E5%85%89%E7%83%AD%E5%8A%9B%E6%9C%89; ceshi3.com=000; _tp=3QbDybAYBdiCsmqHk4hDuwh71rGCdI5K4oWwhwuxEICJYuuhYFKiMmZMbb4IoCVqW9yfthyxBQSD9g2itHmugNPuL/KW4kx1Yk5kqBGWuqI=; _pst=%E8%AE%B7%E6%B2%B3%E5%B8%82%E9%B8%BF%E5%85%89%E7%83%AD%E5%8A%9B%E6%9C%89; bjd.advert.popup=bb8e8cb52856ea93484956af23c41a89; __jda=122270672.16537551358431249497367.1653755136.1653755136.1653755136.1; __jdc=122270672; 3AB9D23F7A4B3C9B=YC3I4KBDT6NTFRCJAIDMNOQ5ORYTPPVEMQQFYHEL3KNEGSPHNWF3RYM4D5SZK7UM6Y5H3HP6D3XUUMFVXOAKIPLJYA; __jdb=122270672.7.16537551358431249497367|1.1653755136; csn=6'
+    # ck = '__jdv=122270672|direct|-|none|-|1653684678322; shshshfpa=54b03d9b-9e14-a6f8-a6a4-74bc09ff1d79-1653684688; shshshfpb=kaxjITozukJzQKR2yTHvVkQ; __jdu=1653684678321815288407; areaId=5; ipLoc-djd=5-142-0-0; shshshfp=c8154d5c31b835b717a87e7197043139; TrackID=1LuiQoeX1l2uYaXGl4pWdvnKv07C5Ze_pbxbupAQe_P4b2oWYyGf9RImyGbJawpljoeJ_BaNMQoNSDIsmyDAWvhyHnwkVSj1zS6ynjxYMOGqHxNs5YeSHYWKGTYCyLdFB; thor=63C48F15AFBF3EEB9A7FD8F3F7A9BF05D0817F049E308CC94A6938FF9A69A745F29F8513D02C2A15A9CCD823FCD255B11986E25C463239E99B7788EBDC564FD4C47115D458A2FC05AC7987D3EAAADB85ACC5A099C3500AF2A2973224784AE4781CAC2ADEA905C12B9FAE4E5BED4453097A2EF8126FCD6BAA865E00E5B6A3B206768F89D9EE140929D54137ACB5919123555CC657DA472D929DF0D0F26C96B0B0; pinId=tA352EW71edd9cU5JurDWrV9-x-f3wj7; pin=jd_4d9b500034155; unick=jd_4d9b500034155; ceshi3.com=201; _tp=VHnhiNi86OlY5d+SKBX0iW+Qy5xFBy0C7MU1+oxmN9c=; _pst=jd_4d9b500034155; shshshsID=9c7467be5e15b1258194cdadfc730cfa_2_1653750129706; user-key=74aab15f-c2ad-432d-a388-6fe482a10e4a; cn=1; __jda=122270672.1653684678321815288407.1653684678.1653684678.1653749827.2; __jdb=122270672.6.1653684678321815288407|2.1653749827; __jdc=122270672; 3AB9D23F7A4B3C9B=RI6THBNZSP72TJ56KEHDNOJWYNEOHHKWSYJDG2HCFCH5LHJBYSLIHQFOTUMOEGVVCPKBWM56QOYAETL5O3BOYIYDQ4'
+    test_order_appstore(ck, '123', '100')
     # query_order(ck, '247775877802')
     # create_order_qb(ck, '', '105', '123542321')
     # test(ck)

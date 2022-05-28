@@ -43,6 +43,10 @@ class Base64(object):
                     sb += '='
         return sb
 
+    @staticmethod
+    def deocde(text):
+        pass
+
 user = 'jd_4d9b500034155'
 # print(Base64.encode(user))
 # def update_ck(ck):
@@ -194,35 +198,10 @@ def update_ck_status(account, code):
 
 # conn = sqlite3.connect('/home/police/project/python/jd/jd.db') 
 if __name__ == '__main__':
-    # httpProxyWithPassRequest(targetUrl)
-
-# while(True):
-#     login()
-#     sleep(1)
-    # test
-# yanzhengma('https://jdcardsys.whkv.net/new_captcha.html?height=38&width=150&font_size=20')
-    # pri, city = ip2address('125.78.226.197')
-    # print(pri, city)
-    # proxy_ip = get_proxy('-1', '-1')
-
-    # proxy_ip = get_zhima_proxy('210000')
-    # print(proxy_ip)
-
-    # proxy_ip = get_liuguan_proxy()
-    # pri, city = ip2address(proxy_ip.split(':')[0])
-    # print(pri, city)
-
-    # query_near_city('北京')
-    # update_zhima_status('北京市', '8')
-    # update_zhima__by_id(conn, '3', '0')
-    # check_citys()
-    # check_zhima('510700')
-    # url = 'http://paypl.payplace.cn/orders?pageNo=1&pageSize=10&filters=%7B%22dateRange%22:%222022-3-12+00:00:00+-+2022-3-12+23:59:59%22,%22payment%22:6%7D'
-    # res = requests.get(url)
-    # print(res.text)
-    
-    # update_ck_status('jd_jfiXxBSnJvvz', 3)
-
-    req_info = 'eyJjYXRlZ29yeSI6IjEiLCJjb21wYW55SWQiOiI2Iiwib3JkZXJBbW91bnQiOiIxMDAuMDAiLCJvcmRlcklkIjoiMjQ3NTc0ODg3NjIwIiwib3JkZXJUeXBlIjoiMzQiLCJwYXlBbW91bnQiOiIxMDAuMDAiLCJ0b1R5cGUiOiIxMCIsInZlcnNpb24iOiIzLjAifQ=='
-    de = str(base64.b64decode(req_info), 'utf-8')
-    print(de)
+    a = {
+        'modile': '13283544122'
+    }
+    # s = Base64.encode(json.dumps(a))
+    # print(s)
+    s = base64.b64decode('yXHAF5mz3YNu7tCyIBXSWQ==')
+    print(str(s, 'utf-8'))

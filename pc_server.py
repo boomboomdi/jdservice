@@ -43,7 +43,7 @@ def queryAppstore():
     order_me = str(param.get('order_me'))
     order_pay = str(param.get('order_pay'))
     amount = str(param.get('amount'))
-    # print('callback:', order_no, account, pay_status)
+    print(param)
     threading.Thread(target=query_order_appstore, args=(ck, order_me, order_pay, amount)).start()
     return "success"
 
