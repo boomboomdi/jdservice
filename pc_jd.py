@@ -528,7 +528,7 @@ def order_appstore(ck, order_me, amount):
     code = NETWOTK_ERROR
     ck_status = '1'
     account = tools.get_jd_account(ck)
-
+    tools.LOG_D('account: ' + account)
     proxy = ip_sql().search_ip(account)
     if proxy == None:
         proxy = tools.getip_uncheck()
