@@ -226,7 +226,7 @@ class pc_jd():
         }
         try:
             res = requests.get(url, headers=head, proxies=self.proxy)
-            # print(res.text)
+            print(res.text)
         except Exception as e:
             tools.LOG_D(e)
             return NETWOTK_ERROR, None
@@ -530,6 +530,7 @@ def order_appstore(ck, order_me, amount):
     account = tools.get_jd_account(ck)
     tools.LOG_D('account: ' + account)
     proxy = ip_sql().search_ip(account)
+    tools.LOG_D('searchip: ' + str(proxy))
     if proxy == None:
         proxy = tools.getip_uncheck()
         if proxy == None:
