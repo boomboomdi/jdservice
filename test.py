@@ -204,4 +204,4 @@ if __name__ == '__main__':
     # s = Base64.encode(json.dumps(a))
     # print(s)
     s = base64.b64decode('yXHAF5mz3YNu7tCyIBXSWQ==')
-    print(str(s, 'utf-8'))
+    print()
