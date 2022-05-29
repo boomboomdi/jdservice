@@ -48,6 +48,18 @@ def queryAppstore():
     threading.Thread(target=query_order_appstore, args=(ck, order_me, order_pay, amount)).start()
     return "success"
 
+@app.route('/queryAppstoreImmediate', methods=['POST'])
+def queryAppstore():
+    param = flask.request.get_json()
+    ck = str(param.get('cookie'))
+    order_me = str(param.get('order_me'))
+    order_pay = str(param.get('order_pay'))
+    amount = str(param.get('amount'))
+    print(param)
+    print('========')
+    threading.Thread(target=query_order_appstore, args=(ck, order_me, order_pay, amount)).start()
+    return "success"
+
 @app.route('/getRealurl', methods=['POST'])
 def getRealurl():
     param = flask.request.get_json()

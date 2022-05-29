@@ -226,7 +226,7 @@ class pc_jd():
         }
         try:
             res = requests.get(url, headers=head, proxies=self.proxy)
-            print(res.text)
+            # print(res.text)
         except Exception as e:
             tools.LOG_D(e)
             return NETWOTK_ERROR, None
@@ -729,6 +729,56 @@ def query_order_appstore(ck, order_me, order_no, amount):
             upload_callback_result(result)
             return
         i += 1
+
+
+def query_order_appstore_immediate(ck, order_me, order_no, amount):
+    result = {
+        'check_status': '1',
+        'pay_status': '0',
+        'ck_status': '1',
+        'time': str(int(time())),
+        'order_me': order_me,
+        'order_pay': order_no,
+        'amount': amount,
+        'card_name': '',
+        'card_password': ''
+    }
+    account = tools.get_jd_account(ck)
+    tools.LOG_D(account)
+    proxy = ip_sql().search_ip(account)
+    tools.LOG_D(proxy)
+    if proxy == None:
+        proxy = tools.getip_uncheck()
+        ip_sql().delete_ip(account)
+        ip_sql().insert_ip(account, proxy)
+    for i in range(3):
+        pc_client = pc_jd(ck, proxy)
+        code, order_status, status_name = pc_client.get_order_status(order_no)
+        if code == SUCCESS:
+            if order_status == True and status_name == '已完成':
+                code, card_id, card_key, pay_time = pc_client.get_kami(order_no)
+                result['card_name'] = card_id
+                result['card_password'] = card_key
+                result['pay_status'] = '1'
+                tools.LOG_D(card_id, card_key, pay_time)
+                result = json.dumps(result)
+                if upload_callback_result(result):
+                    if order_status == True and status_name == '已完成':
+                        pc_client.clear_order(order_no)
+            else:
+                result = json.dumps(result)
+                upload_callback_result(result)
+            return
+        elif code == NETWOTK_ERROR:
+            proxy = tools.getip_uncheck()
+            ip_sql().update_ip(account, proxy)
+        elif code == CK_UNVALUE:
+            result['ck_status'] = '0'
+            result = json.dumps(result)
+            upload_callback_result(result)
+            return
+        i += 1
+
 
 
 def callback(ck, order_no, order_me, amount):
