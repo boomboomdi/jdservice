@@ -32,7 +32,7 @@ def createOrderAppstore():
     ck = str(param.get('cookie'))
     order_me = str(param.get('order_me'))
     amount = str(param.get('amount'))
-    LOG_D(order_me + '  ' + amount)
+    print(param)
     threading.Thread(target=order_appstore, args=(ck, order_me, amount)).start()
     return 'success'
     # return '{"code": 0, "msg": "SUCCESS", "data": {"phone": "' + phone + '", "amount": 469.19}, "sign": "488864C0AB51AEA0AF551074446FBCEC"}'
@@ -79,5 +79,6 @@ def callBackDv():
 
 if __name__ == '__main__':
     # threading.Thread(target=query_task).start()
-    app.debug = False
+    # app.debug = False
+    app.debug = True
     app.run(port=23942)
