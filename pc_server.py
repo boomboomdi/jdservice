@@ -49,7 +49,7 @@ def queryAppstore():
     return "success"
 
 @app.route('/queryAppstoreImmediate', methods=['POST'])
-def queryAppstore():
+def queryAppstoreImmediate():
     param = flask.request.get_json()
     ck = str(param.get('cookie'))
     order_me = str(param.get('order_me'))
