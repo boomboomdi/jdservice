@@ -976,7 +976,7 @@ if __name__ == '__main__':
     # code, order_id_s = jd_client.submit_order(id, address)
     # url = 'weixin://wxpay/bizpayurl?pr=W0VhsEuzz'
     # url = 'https://wqs.jd.com/order/n_detail_jdm.shtml?deal_id=247761070918&sceneval=2'
-    url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=bd2fe12eff6427b6624729d62e2ef85ff4eac628c84c6b993dfb6825d5ff76428a0eb9bd627d16463b5fe8e6ba5ccd5b21d7b0b5ad16ec8249d36b681605f793df6d5c816042cd6e5533737f72ee711c'
+    url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=8b2aad72668890803d70ddfce9341c399254da213289d54ee189d9646867fd9212c0ad4b2ec950030cadfbec772745c74270384c890ea00f51a93f8f8e125670aef277307a0ff5ecf6b214ab52cebebe34af41273e8fe32548929db9a7001d32'
     status, token = jd_client.gen_token(url)
     pay_url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=' + token 
     print(pay_url)
