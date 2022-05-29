@@ -65,7 +65,7 @@ def queryAppstoreImmediate():
 def getRealurl():
     param = flask.request.get_json()
     ck = str(param.get('cookie'))
-    url = str(param.get('url'))
+    url = str(param.get('qr_url'))
     print(param)
     print('========')
     return get_real_url(ck, url)
