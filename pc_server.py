@@ -30,6 +30,7 @@ def index():
 def createOrderAppstore():
     param = flask.request.get_json()
     ck = str(param.get('cookie'))
+    ck = ck.encode("utf-8").decode("latin1")
     order_me = str(param.get('order_me'))
     amount = str(param.get('amount'))
     print(param)
@@ -41,6 +42,7 @@ def createOrderAppstore():
 def queryAppstore():
     param = flask.request.get_json()
     ck = str(param.get('cookie'))
+    ck = ck.encode("utf-8").decode("latin1")
     order_me = str(param.get('order_me'))
     order_pay = str(param.get('order_pay'))
     amount = str(param.get('amount'))
@@ -53,6 +55,7 @@ def queryAppstore():
 def queryAppstoreImmediate():
     param = flask.request.get_json()
     ck = str(param.get('cookie'))
+    ck = ck.encode("utf-8").decode("latin1")
     order_me = str(param.get('order_me'))
     order_pay = str(param.get('order_pay'))
     amount = str(param.get('amount'))
@@ -65,6 +68,7 @@ def queryAppstoreImmediate():
 def getRealurl():
     param = flask.request.get_json()
     ck = str(param.get('cookie'))
+    ck = ck.encode("utf-8").decode("latin1")
     url = str(param.get('qr_url'))
     print(param)
     print('========')
