@@ -1,14 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
--------------------------------------------------
-    Author: qinLess
-    File: test.py
-    Time: 2022/2/27 9:26 下午
--------------------------------------------------
-    Change Activity: 2022/2/27 9:26 下午
--------------------------------------------------
-    Desc: 
-"""
 import base64
 import hashlib
 from pydoc import resolve
@@ -20,9 +10,11 @@ import uuid
 import requests
 import json
 from hashlib import md5
+from jd_app_web import get_ip
+from tools import LOG_D, parse_card_info, get_jd_account, getip_uncheck
+from ip_sqlite import ip_sql
+import re
 
-# ck = 'pin=jd_4d9b500034155;wskey=AAJiGxaRAEDyfsdhBlmqAMrbqNdctzFATFzy7Vz7yL0BM3sab-sf2vZW8visccwGzSPJ2rW4XLJ2rYsDEaPRVbtOBASmZeca;whwswswws=wFIRcJyGMvZtnzHnGmdkKEwwApu7kCbUjeZMtYPcVJt3L1Mei1Zg8r8MV4e9F0boa;unionwsws={"devicefinger":"eidA8f8f8120cds10KoCHNU0TZ678jnQ7RG0gtCqA5wPA+GhsjzzH4trRGr+spYPXNa+80JjjsCXkWXo8SJXT+ok4+SC\/Y5plzZd89a3OWc+nWcNMiU3","jmafinger":"wFIRcJyGMvZtnzHnGmdkKEwwApu7kCbUjeZMtYPcVJt3L1Mei1Zg8r8MV4e9F0boa"};'
-# ck = 'guid=90a4e8eb581c46800c0dc683b549f64180f19e5948f4c8b0da68643cf2537e5c; pt_pin=jd_OVOrCCjugivK;pt_key=app_openAAJiHdt9ADAZs-xzs_buSpo9LrWUvuI4ftCRnnYun3gmSeey6LTOfhwXcgsWEVlaiVSCbODrqZE; pwdt_id=jd_OVOrCCjugivK; sid=94ccb59b6262f3679ee18d594edf8e4w; pin=jd_OVOrCCjugivK; wskey=AAJgrI8rAECQVyDqdSqW1VcS2hi95qyv6De0-sAeBJLcgjJt_335Hyb9la4CIv-6THJkfsMJegW0wCt59ePb0km1BHS0QhaP'
 client_version = '10.4.0'
 client = 'android'
 
@@ -51,62 +43,6 @@ def get_sign(text):
         result += hex(rr & 0xff).replace('0x', '').rjust(2, '0')
     md5_str = hashlib.md5(base64.b64encode(bytes.fromhex(result)))
     return md5_str.hexdigest()
-
-def get_ip():
-    for i in range(3):
-        url = 'http://webapi.http.zhimacangku.com/getip?num=1&type=1&pro=&city=0&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=45&mr=1&regions=&username=chukou01&spec=1'
-        response = requests.get(url)
-        if response.status_code == 200:
-            print(response.text)
-            ip = response.text
-            ip = ip.replace('\n', '')
-            ip = ip.replace('\r', '')
-            if (test_proxy(ip)):
-                return ip
-    return None
-
-def getip_uncheck():
-    url = 'http://webapi.http.zhimacangku.com/getip?num=1&type=1&pro=0&city=0&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=&username=chukou01&spec=1'
-    response = requests.get(url)
-    if response.status_code == 200:
-        print(response.text)
-        if '请添加白名单' in response.text:
-            return None
-        ip = response.text
-        ip = ip.replace('\n', '')
-        ip = ip.replace('\r', '')
-        return ip
-
-def test_proxy(proxy_ip, times=2):
-    proxy = {
-          'http': proxy_ip,
-          'https': proxy_ip
-        }
-    url = "http://2021.ip138.com"
-    head = {
-        "sec-ch-ua-platform": "\"Windows\"",
-        "Connection": "keep-alive",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Safari/537.36 Edg/94.0.992.31",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-        "sec-ch-ua": "\"Chromium\";v=\"94\", \"Microsoft Edge\";v=\"94\", \";Not A Brand\";v=\"99\"",
-        "sec-ch-ua-mobile": "?0",
-        "Upgrade-Insecure-Requests": "1",
-        "Sec-Fetch-Site": "same-site",
-        "Sec-Fetch-Mode": "navigate",
-        "Sec-Fetch-Dest": "iframe",
-        "Referer": "https://www.ip138.com/",
-        "Accept-Encoding": "deflate, br"
-    }
-    for i in range(times):
-        try:
-            re = requests.get(url, headers=head, proxies=proxy, timeout=5)
-            print('代理:' + proxy_ip + '可用')
-            return True
-        except:
-            pass
-        i += 1
-    print('代理:' + proxy_ip + '不可用')
-    return False
 
 
 class jd:
@@ -375,9 +311,10 @@ class jd:
         print(body)
         try:
             resp = requests.post(url=url + params, data=body, headers=headers, proxies=self.proxy)
-            print(resp.text)
+            if 'orderId' in resp.text:
+                return SUCCESS, resp.json()['orderId']
         except:
-            return NETWOTK_ERROR
+            return NETWOTK_ERROR, None
         # print(resp.text)
         # if resp.status_code == 200:
             # ret_json = json.loads(resp.text)
@@ -611,26 +548,27 @@ class jd:
                 return WEB_CK_UNVALUE, None
         return RET_CODE_ERROR, None
 
-    def web_jdappmpay(self, deal_id):
+    def web_jdappmpay(self, mck, deal_id):
         print('web_jdappmpay')
         url = 'https://wq.jd.com/jdpaygw/jdappmpay?dealId=' + deal_id + '&backUrl=' + \
             'https%3A%2F%2Fwqs.jd.com%2Forder%2Fpaysuc.shtml%3FdealId%3D' + deal_id + '%26normal%3D1%26sourcefrom%3Dorder&' + \
             'r=&traceid=&_=&sceneval=2&g_login_type=1&callback=jdappmpay_Cb&g_ty=ls'
+        url = 'https://wq.jd.com/jdpaygw/jdappmpay?call=jdappmpay_cb&dealId=' + deal_id + '&ufc=&r=&backUrl=https%3A%2F%2Fwqs.jd.com&umpKey=jdappmpay&sceneval=2&traceid=&dataType=jsonp&callback=jdappmpay_cb'
         headers = {
             'user-agent': "Mozilla/5.0 (Linux; Android 6; A31 Build/KTU84P; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36",
             'accept': '*/*',
             'x-requested-with': 'com.ajiejd',
             'referer': 'https://wqs.jd.com/order/orderlist_merge.shtml?sceneval=2',
-            'cookie': self.ck
+            'cookie': mck
         }
         try:
             resp = requests.get(url=url, headers=headers, proxies=self.proxy)
         except:
             return NETWOTK_ERROR, None
-        print(resp.text)
-        ret = resp.text.replace('jdappmpay_Cb(', '')
+        # print(resp.text)
+        ret = resp.text.replace('jdappmpay_cb(', '')
         ret = ret.replace(')', '')
-        print(ret)
+        # print(ret)
         ret_json = json.loads(ret)
         if ret_json['errno'] == 0 and ret_json['msg'] == '':
             return SUCCESS, ret_json['data']['jumpurl']
@@ -638,7 +576,7 @@ class jd:
             return WEB_CK_UNVALUE, None
 
 
-    def web_cpay_newpay(self, pay_id):
+    def web_cpay_newpay(self, mck, pay_id):
         print('web_cpay_newpay')
         url = 'https://pay.m.jd.com/cpay/newPay-index.html?payId=' + pay_id + '&appId=jd_m_pay&sceneval=2&jxsid=&__navVer=1'
         headers = {
@@ -646,7 +584,7 @@ class jd:
             'accept': '*/*',
             'x-requested-with': 'com.ajiejd',
             'referer': 'https://wqs.jd.com/order/orderlist_merge.shtml?sceneval=2',
-            'cookie': self.ck
+            'cookie': mck
         }
         try:
             resp = requests.get(url=url, headers=headers, proxies=self.proxy)
@@ -656,8 +594,8 @@ class jd:
             return SUCCESS
         return RET_CODE_ERROR
 
-    def web_newpay(self, pay_id):
-        print('web_newpay')
+    def web_newpay(self, mck, pay_id):
+        # print('web_newpay')
         url = 'https://pay.m.jd.com/newpay/index.action'
         param = 'lastPage=https%3A%2F%2Fwqs.jd.com%2Forder%2Forderlist_merge.shtml%3Fsceneval%3D2&appId=jd_m_pay&payId=' + pay_id + '&_format_=JSON'
         headers = {
@@ -666,10 +604,11 @@ class jd:
             'accept': '*/*',
             'origin': 'https://pay.m.jd.com',
             'referer': 'https://pay.m.jd.com/cpay/newPay-index.html?payId=' + pay_id + '&appId=jd_m_pay&sceneval=2&jxsid=&__navVer=1',
-            'cookie': self.ck
+            'cookie': mck
         }
         try:
             resp = requests.post(url=url, headers=headers, data=param, proxies=self.proxy)
+            # print(resp.text)
         except:
             return NETWOTK_ERROR
         if resp.status_code == 200:
@@ -677,24 +616,25 @@ class jd:
         return RET_CODE_ERROR
 
 
-    def web_wxpay(self, pay_id):
+    def web_wxpay(self, mck, pay_id):
         url = 'https://pay.m.jd.com/index.action?functionId=wapWeiXinPay&body=%7B%22__navVer%22%3A%221%22%2C%22jxsid%22%3A%22%22%2C%22sceneval%22%3A%222%22%2C%22appId%22%3A%22jd_m_pay%22%2C%22payId%22%3A%22' + pay_id + '%22%2C%22eid%22%3A%22%22%7D&appId=jd_m_pay&payId=' + pay_id + '&_format_=JSON'
-        print(url)
+        # print(url)
         headers = {
             'user-agent': "Mozilla/5.0 (Linux; Android 6; A31 Build/KTU84P; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36",
             'accept': '*/*',
             'referer': 'https://pay.m.jd.com/cpay/newPay-index.html?payId=' + pay_id + '&appId=jd_m_pay&sceneval=2&jxsid=&__navVer=1',
-            'cookie': self.ck
+            'cookie': mck
         }
         try:
             resp = requests.get(url=url, headers=headers, proxies=self.proxy)
+            # print(resp.text)
         except:
             return NETWOTK_ERROR, None
         if resp.status_code == 200:
-            print(resp.text)
+            # print(resp.text)
             ret_json = json.loads(resp.text)
-            if ret_json['code'] == '0':
-                return SUCCESS, ret_json['deepLink']
+            if ret_json['code'] == '0' and '交易受限' not in resp.text:
+                    return SUCCESS, ret_json['deepLink']
             else:
                 return CK_PAY_FAIL, None
         return RET_CODE_ERROR, None
@@ -730,9 +670,30 @@ class jd:
             ret_json = json.loads(resp.text)
             if ret_json['code'] == '0':
                 return SUCCESS, str(ret_json['tokenKey'])
-        return RET_CODE_ERROR       
+        return RET_CODE_ERROR, None       
 
-    def submit_appstore(self, skuid, price):
+    def get_mck(self, token_url):
+        t = str(int(time.time()))
+        try:
+            resp = requests.get(url=token_url, proxies=self.proxy, allow_redirects=False)
+        except Exception as e:
+            print(e)
+            return NETWOTK_ERROR, None
+        if 'pt_key' in resp.headers['Set-Cookie']:
+            jda = '__jda=122270672.' + t + '3191886255148.' + t + '.' + t + '.' + t + '.8'
+            for item in re.split(";|,| ", resp.headers['Set-Cookie']):
+                if 'pt_key' in item:
+                    pt_key = item
+                if 'pt_pin' in item:
+                    pt_pin = item
+                # print(item)
+            new_ck = pt_pin + ';' + pt_key + ';' + jda
+            return SUCCESS, new_ck
+        else:
+            return CK_UNVALUE, None
+
+
+    def submit_appstore(self, mck, skuid, price):
         url = 'https://gamerecg.m.jd.com/game/submitOrder.action'
         data = 'chargeType=13759&skuId=' + skuid + '&brandId=999440&payPwd=&customs=&gamearea=&gamesrv=&accounttype=&chargetype=&eid=&skuName=App&buyNum=1&type=1&couponIds=&useBean=&payMode=0&totalPrice=' + price
         headers = {
@@ -741,22 +702,87 @@ class jd:
             'x-requested-with': 'com.jingdong.app.mall',
             'origin': 'https://gamerecg.m.jd.com',
             'content-type': "application/x-www-form-urlencoded",
-            'cookie': self.ck
+            'referer': 'https://gamerecg.m.jd.com/?skuId=' + skuid,
+            'cookie': mck
         }
-        print(data)
         try:
             resp = requests.post(url=url, data=data, headers=headers, proxies=self.proxy, allow_redirects=False)
             # resp = requests.post(url=url, data=data, headers=headers, proxies=self.proxy)
-            print(resp.status_code)
-            print(resp.text)
-            print(resp.headers)
         except Exception as e:
             print(e)
-            return NETWOTK_ERROR
+            return NETWOTK_ERROR, None
         if resp.status_code == 302:
             if 'payId' in resp.headers['location']:
-                return SUCCESS
-        return CK_UNVALUE
+                for item in resp.headers['location'].split('?')[1].split('&'):
+                    if 'payId' in item:
+                        return SUCCESS, item.split('=')[1]
+        return CK_UNVALUE, None
+
+
+    def get_appstore_detail(self, order_id):
+        sv = '120'
+        function_id = 'getGPOrderDetail'
+        ts = str(int(time.time() * 1000))
+        body= '{"apiVersion":"new","appKey":"android","orderId":"' + order_id + '","rechargeversion":"10.9","version":"1.10"}'
+        uuid_str = hashlib.md5(str(int(time.time() * 1000)).encode()).hexdigest()[0:16]
+        sign = f'functionId={function_id}&body={body}&uuid={uuid_str}&client={client}&clientVersion={client_version}&st={ts}&sv={sv}'
+        sign = get_sign(sign)
+        url = 'https://api.m.jd.com/client.action?functionId=' + function_id
+        params = f'&clientVersion={client_version}&build=92610&client={client}&uuid={uuid_str}&st={ts}&sign={sign}&sv={sv}'
+        body = 'body=' + quote(body)
+        headers = {
+            'charset': "UTF-8",
+            'user-agent': "okhttp/3.12.1;jdmall;iphone;version/10.3.5;build/92610;",
+            'content-type': "application/x-www-form-urlencoded; charset=UTF-8",
+            'cookie': self.ck
+        }
+        try:
+            resp = requests.post(url=url + params, data=body, headers=headers, proxies=self.proxy)
+        except Exception as e:
+            print(e)
+            return NETWOTK_ERROR, None
+        if resp.status_code == 200:
+            if '响应成功' in resp.text:
+                result = resp.json()['result']
+                LOG_D(resp.text)
+                if result['orderStatus'] == 8 and result['orderStatusName'] == '交易完成':
+                    card_info = result['cardInfos']
+                    card_no, card_pass = parse_card_info(card_info)
+                    return SUCCESS, card_no, card_pass
+            else:
+                return CK_UNVALUE, None, None
+        return RET_CODE_ERROR, None, None
+
+    def delete_order(self, order_id):
+        sv = '120'
+        function_id = 'delHistoryOrder'
+        ts = str(int(time.time() * 1000))
+        body= '{"deis":"dy","orderId":"' + order_id + '","plugin_version":104000,"recyle":"1"}'
+        uuid_str = hashlib.md5(str(int(time.time() * 1000)).encode()).hexdigest()[0:16]
+        sign = f'functionId={function_id}&body={body}&uuid={uuid_str}&client={client}&clientVersion={client_version}&st={ts}&sv={sv}'
+        sign = get_sign(sign)
+        url = 'https://api.m.jd.com/client.action?functionId=' + function_id
+        params = f'&clientVersion={client_version}&build=92610&client={client}&uuid={uuid_str}&st={ts}&sign={sign}&sv={sv}'
+        body = 'body=' + quote(body)
+        headers = {
+            'charset': "UTF-8",
+            'user-agent': "okhttp/3.12.1;jdmall;iphone;version/10.3.5;build/92610;",
+            'content-type': "application/x-www-form-urlencoded; charset=UTF-8",
+            'cookie': self.ck
+        }
+        try:
+            resp = requests.post(url=url + params, data=body, headers=headers, proxies=self.proxy)
+        except Exception as e:
+            print(e)
+            return NETWOTK_ERROR, None
+        if resp.status_code == 200:
+            LOG_D(resp.text)
+            if 'true' in resp.text:
+                return SUCCESS, True
+            else:
+                return SUCCESS, False
+        return RET_CODE_ERROR, None
+
 
 
 
@@ -893,7 +919,7 @@ def create_waitpay_order(account, ck, amount, good_id):
  
 def create_df_order_test(account, ck, amount, good_id):
     LOG('====create_order=== ' , account )
-    proxy_ip = get_ip()
+    proxy_ip = getip_uncheck()
     if proxy_ip == None:
         return NETWOTK_ERROR, None, None
     jd_client = jd(ck, proxy_ip)
@@ -914,19 +940,228 @@ def create_df_order_test(account, ck, amount, good_id):
     if code != SUCCESS:
         return code, None, None
     return SUCCESS, pay_url, order_id
- 
-def pc_test():
-    url = 'https://kami.jd.com/order/getJmiUrl/243798120543/39'
-    ck = 'TrackID=1X8xAALyJawdGeT9hQ_53o1z5g9Z_0kV2OfCFaOZAW4luPclJd0MedAFUlK6Gkg0yje0vbzXWQYNAyNBuc3pWclkMrt5KC_Ag65_XKMjWkV2PfyU96ox50Qs3D4Gi3UQQ'
-    head = {
-        'Referer': 'https://order.jd.com/',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Safari/537.36 Edg/101.0.1210.53',
-        'Cookie': ck
-    }
-    res = requests.get(url, headers=head)
-    print(res.text)
-    print(res.headers)
 
+
+APPSTORE_SKUIDS = {
+    '100': '11183343342',
+    '200': '11183368356',
+    '500': '11183445154' 
+}
+
+def create_order_appstore(ck, amount, proxy):
+    LOG_D('create_order_appstore')
+    client = jd(ck, proxy)
+    if code != SUCCESS:
+        return code, None
+    url = 'https://pay.m.jd.com'
+    code, token = client.gen_token(url)
+    if code != SUCCESS:
+        return code, None
+    token_url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=' + token
+    code, mck = client.get_mck(token_url)
+    if code != SUCCESS:
+        return code, None
+    # print(mck)
+    code, pay_id = client.submit_appstore(mck, APPSTORE_SKUIDS[amount], amount)
+    if code != SUCCESS:
+        return code, None
+    print('payid', pay_id)
+    code, order_id = client.pay_index(pay_id)
+    if code != SUCCESS:
+        return code, None
+    return code, order_id
+
+
+def order_appstore(ck, order_me, amount):
+    code = NETWOTK_ERROR
+    ck_status = '1'
+    account = get_jd_account(ck)
+    LOG_D('account: ' + account)
+    proxy = ip_sql().search_ip(account)
+    LOG_D('searchip: ' + str(proxy))
+    if proxy == None:
+        proxy = getip_uncheck()
+        if proxy == None:
+            return None
+        ip_sql().insert_ip(account, proxy)
+
+    for i in range(3):
+        code, order_id = create_order_appstore(ck, order_me, amount, proxy)
+        if code == NETWOTK_ERROR:
+            proxy = getip_uncheck()
+            ip_sql().update_ip(account, proxy)
+        elif code == CK_UNVALUE:
+            ck_status = '0'
+            break
+        elif code == SUCCESS:
+            break
+        elif code == RET_CODE_ERROR:
+            return None
+        i += 1
+    upload_order_result(order_me, order_id, amount, ck_status)
+
+
+def upload_order_result(order_me, order_id, amount, ck_status):
+    url = 'http://127.0.0.1:9191/api/preparenotify/notifyjdurl0069'
+    head = {
+        'content-type': 'application/json'
+    }
+    # data = '{"prepare_status": "1", "ck_status": "1", "order_me": "' + order_me + '", "order_pay": "247775877802", "amount": "' + amount + '", "qr_url": "https://pcashier.jd.com/image/virtualH5Pay?sign=d6e2869be73c243c560393c09a7182ca89a1ed515bb088cc3ca08658daa14a0a6d4f8399eb23e3c53f93c113731f840e7fbd03300ab7e2ace58ab06ead2a3128ca6ce6e5705410517c18220000f4be1334af41273e8fe32548929db9a7001d32"}'
+    data = {
+        'prepare_status': '1',
+        'ck_status': ck_status,
+        'order_me': order_me,
+        'order_pay': order_id,
+        'amount': amount,
+        'qr_url': order_id
+    }
+    if order_id == None:
+        data['prepare_status'] = '0'
+    data = json.dumps(data)
+    LOG_D(data)
+    res = requests.post(url, headers=head, data=data)
+    print(res.text)
+
+
+def upload_callback_result(result):
+    url = 'http://127.0.0.1:9191/api/ordernotify/notifyorderstatus0069'
+    head = {
+        'content-type': 'application/json'
+    }
+    res = requests.post(url, headers=head, data=result).json()
+    LOG_D(str(result) + '\nret:' + json.dumps(res))
+    if res['code'] == 0:
+        return True
+    else:
+        return False
+
+
+def query_order_appstore(ck, order_me, order_no, amount):
+    result = {
+        'check_status': '1',
+        'pay_status': '0',
+        'ck_status': '1',
+        'time': str(int(time())),
+        'order_me': order_me,
+        'order_pay': order_no,
+        'amount': amount,
+        'card_name': '',
+        'card_password': ''
+    }
+    account = get_jd_account(ck)
+    LOG_D(account)
+    proxy = ip_sql().search_ip(account)
+    LOG_D(proxy)
+    if proxy == None:
+        proxy = getip_uncheck()
+        ip_sql().delete_ip(account)
+        ip_sql().insert_ip(account, proxy)
+    for i in range(3):
+        client = jd(ck, proxy)
+        code, card_no, card_pass = client.get_appstore_detail(order_no)
+        if code == SUCCESS:
+            if card_no != None and card_pass != None:
+                result['card_name'] = card_no
+                result['card_password'] = card_pass
+                result['pay_status'] = '1'
+                result = json.dumps(result)
+                if upload_callback_result(result):
+                    client.delete_order(order_no)
+            else:
+                result = json.dumps(result)
+                upload_callback_result(result)
+            return
+        elif code == NETWOTK_ERROR:
+            proxy = getip_uncheck()
+            ip_sql().update_ip(account, proxy)
+        elif code == CK_UNVALUE:
+            result['ck_status'] = '0'
+            result = json.dumps(result)
+            upload_callback_result(result)
+            return
+        i += 1
+
+
+def query_order_appstore_immediate(ck, order_me, order_no, amount):
+    result = {
+        'check_status': '1',
+        'pay_status': '0',
+        'ck_status': '1',
+        'time': str(int(time())),
+        'order_me': order_me,
+        'order_pay': order_no,
+        'amount': amount,
+        'card_name': '',
+        'card_password': ''
+    }
+    account = get_jd_account(ck)
+    LOG_D(account)
+    proxy = ip_sql().search_ip(account)
+    LOG_D(proxy)
+    if proxy == None:
+        proxy = getip_uncheck()
+        ip_sql().delete_ip(account)
+        ip_sql().insert_ip(account, proxy)
+    for i in range(3):
+        client = jd(ck, proxy)
+        code, card_no, card_pass = client.get_appstore_detail(order_no)
+        if code == SUCCESS:
+            if card_no != None and card_pass != None:
+                result['card_name'] = card_no
+                result['card_password'] = card_pass
+                result['pay_status'] = '1'
+                result = json.dumps(result)
+                return result
+            else:
+                result = json.dumps(result)
+                return result
+            return
+        elif code == NETWOTK_ERROR:
+            proxy = getip_uncheck()
+            ip_sql().update_ip(account, proxy)
+        elif code == CK_UNVALUE:
+            result['ck_status'] = '0'
+            result = json.dumps(result)
+            return result
+        i += 1
+
+
+def get_real_url(ck, img_url):
+    result = {
+        'code': '1',
+        'data': '',
+        'msg': ''
+    }
+    account = get_jd_account(ck)
+    proxy = ip_sql().search_ip(account)
+    if proxy == None:
+        proxy = getip_uncheck()
+        if proxy == None:
+            return None
+        ip_sql().insert_ip(account, proxy)
+    for i in range(3):
+        app_client = jd(ck, proxy)
+        LOG_D(img_url)
+        code, token = app_client.gen_token(img_url)
+        LOG_D(token)
+        if code == NETWOTK_ERROR:
+            proxy = getip_uncheck()
+            ip_sql().update_ip(account, proxy)
+        elif code == CK_UNVALUE:
+            result['msg'] = 'ck unvalue'
+            break
+        elif code == SUCCESS:
+            pay_url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=' + token
+            result['code'] = '0'
+            result['data'] = pay_url
+            result['msg'] = 'success'
+            return json.dumps(result)
+        i += 1
+    return json.dumps(result)
+
+
+
+ 
 
 if __name__ == '__main__':
     good_id = '10045398811484'
@@ -950,23 +1185,42 @@ if __name__ == '__main__':
     ck = 'pin=jd_JYAGIAzaLlWQ; wskey=AAJikS2nAEBWoqcfP9P0dQWfq4Y87A8LhEdaAlG-tt00ruaKXhnh2QzpNMfedSEVydE-y3OYmHYP0W7AzoR0dm9Ae4AvfDct;'
     ck = 'pin=%E8%AE%B7%E6%B2%B3%E5%B8%82%E4%BD%B3%E6%89%AC%E8%A3%85%E9%A5%B0%E8%A3%85%E6%BD%A2%E6%9C%89;wskey=AAJikkYfAFAgXEakpQ3A5vKOv_XopdQHyNXwOgIyWzinpb4vJ4pEa5Ys-xdfUsiLo_eBT29DW0ZnrPoBmOlokxBZij94z8zPMvFLrI6HibdzBRaF5zv_UQ;'
     ck = 'pin=%E8%AE%B7%E6%B2%B3%E5%B8%82%E9%B8%BF%E5%85%89%E7%83%AD%E5%8A%9B%E6%9C%89;wskey=AAJikkyeAFDY6a4fMRVCTVaFKsoHTAhCY1ufcASTPbKbz6MOYnJ3jDL44hfLhXuFW5gbns6Pb49g9uk-Je-S3wo7hJn11O9s0lBnReZx4z_cvN4mV1is_Q;'
+    # ck = 'pin=jd_4d9b500034155; wskey=AAJilPxfAEAortaxnLPqL6DsHt-93EO6Z5LFILJO22e4Ltl3XhSWFiNm8TjAbym8WdEoEw_WQlZuoVEZ3qXYcQn6tP2vl7zU;'
+    ck = 'pin=jd%5FsDveqlanuYKn; wskey=AAJhtG6AAECcTpsu-ewvhw_uxJEalmnkdyXGtNNwbzZa5hbdnDdwJMMlZmA3uAQcTYkgQlWOaybm2w5Rn9Il7IK4nKiqL1-P;'
+    # ck = 'pin=jd%5FqCfPeqttaRcc; wskey=AAJhyxAEAEA3Y_TXrqD3L1EqBnhX6cieCTwRYCWIp6rSsxsrmnCBYBnHgrfDpJqM8dc00WwLJYown0l-tuK5Ig3zZ_Qx554P;'
+    # ck = 'pin=yNzZeCwSs; wskey=AAJiV5ZpAEBKFGrEnbFTW778jOez30cUmOHdMXTyb1ErXQfIEQnKsJD2arMPB1yOv_zxPevGpZfsNr6uaf2z2z1SqbByZcbI;'
     # ck = 'pin=aa17108392698; wskey=AAJiiSo3AEBJB-dWUsuCrAPJmoSgvQ0fVhJ6z5YTJ8TZLh2ZfXhQiLmwtgkG90h8Uq7tt-ydge_d2JwmyDuQ9JX_hpMOaeBK;'
     # ck = 'pin=%E7%BB%86%E5%9B%BA%E5%A8%9F%E8%8B%B1; wskey=AAJiNW1bAEDagQKqDECetiXtITfrWXlhk5Np-mL2RsRrGgsF0r_fs8ABYMKpfMxgTi5OrUhGUFIXPhp-oNRGCUIGVYt0tElE;'
     for i in ck.split(';'):
         if 'pin' in i:
             user = i.split('=')[1].strip()
 
-    phone = '13356749345'
-    amount = '505'
-    id = '10047077591909'
-
-    # create_df_order(user, ck, amount, id)
-    # create_waitpay_order(user, ck, amount, id)
-
     # ip = get_ip()
+    skuid = '11183343342'
     ip = None
     jd_client = jd(ck, ip)
-
+    # jd_client.get_appstore_detail('248300092259')
+    # print(jd_client.delete_order('248300092259'))
+    url = 'https://m.jd.com'
+    # url = 'https://st.jingxi.com/order/n_detail_v2.shtml?deal_id=248322658627&appCode=msc588d6d5&__navVer=1'
+    # url = 'https://wqs.jd.com/order/n_detail_jdm.shtml?deal_id=248326472544&sceneval=2&appCode=ms0ca95114'
+    code, token = jd_client.gen_token(url)
+    token_url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=' + token
+    print(token_url)
+    code, mck = jd_client.get_mck(token_url)
+    # print(mck)
+    # code, pay_id = jd_client.submit_appstore(mck, skuid, '100')
+    # print('payid', pay_id)
+    # code, order_id = jd_client.pay_index(pay_id)
+    # print('order_id', order_id)
+    order_id = '248335926310'
+    code, jump_url = jd_client.web_jdappmpay(mck, order_id)
+    LOG(jump_url)
+    pay_id = jump_url.split('payId=')[1].split('&')[0]
+    # jd_client.web_wxpay(pay_id)
+    code = jd_client.web_newpay(mck, pay_id)
+    print(jd_client.web_wxpay(mck, pay_id))
+    # code, pay_url = jd_client.web_wxpay(mck, pay_id)
 
 
 
@@ -975,11 +1229,13 @@ if __name__ == '__main__':
     # code = jd_client.current_order(good_id, address)
     # code, order_id_s = jd_client.submit_order(id, address)
     # url = 'weixin://wxpay/bizpayurl?pr=W0VhsEuzz'
-    # url = 'https://wqs.jd.com/order/n_detail_jdm.shtml?deal_id=247761070918&sceneval=2'
-    url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=8b2aad72668890803d70ddfce9341c399254da213289d54ee189d9646867fd9212c0ad4b2ec950030cadfbec772745c74270384c890ea00f51a93f8f8e125670aef277307a0ff5ecf6b214ab52cebebe34af41273e8fe32548929db9a7001d32'
-    status, token = jd_client.gen_token(url)
-    pay_url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=' + token 
-    print(pay_url)
+    # url = 'https://wqs.jd.com/order/n_detail_jdm.shtml?deal_id=248330326663&sceneval=2&appCode=ms0ca95114'
+    # url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=d4cc150660bee90b98d3e6bf659c65362f82731b4dfeb7b5f89feb0545b304f65315eef6104c45368ff15d5f3e56518b8eaccb975963e8f46aa057c4774c7ecdc1b0c4ab88b7e0928f8872365c7dde35'
+    # url = 'https://passport.jd.com/new/login.aspx?ReturnUrl=https%3A%2F%2Fwww.jd.com%2Fb'
+    # url = 'https://pay.m.jd.com/cpay/newPay-index.html?appId=jd_m_yxdk&payId=5eee5dd30b520b9e39df8d54a1114a0c'
+    # status, token = jd_client.gen_token(url)
+    # pay_url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=' + token 
+    # print(pay_url)
 
     # jd_client.submit_appstore('11183343342', '100')
 
