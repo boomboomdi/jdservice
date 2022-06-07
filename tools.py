@@ -7,6 +7,7 @@ import pyzbar
 from io import BytesIO
 import time
 import inspect
+from pyDes import des, CBC, PAD_PKCS5, ECB
 
 
 def random_phone():
@@ -82,6 +83,19 @@ def get_jd_account(ck):
             return item.split('=')[1]
     return None
 
+def des_decrypt(data,secretkey):
+    des_obj = des(secretkey, ECB, secretkey, padmode=PAD_PKCS5)
+    decodebs64data = base64.b64decode(data)
+    return des_obj.decrypt(decodebs64data).decode('utf-8')
+
+DES_KEY = '2E1ZMAF8'
+def parse_card_info(en_info):
+    de_info = des_decrypt(en_info, DES_KEY)
+    info_json = json.loads(de_info.replace('[', '').replace(']', ''))
+    return info_json['cardNo'], info_json['cardPass']
+
 if __name__ == '__main__':
     # parse_qrcode('https://qr.m.jd.com/show?appid=133&size=147&t=')
+    data = 'BsBfLCzOTlBGoq5gIBRaumf56aJxrurFoDkYKoywLcgJIyRuRlJdmTwqqJ14MAkuJBVWoUctCi8Fq+4pXGi34VxQ2VF287irFgf1hfDcjLBlqx3jlqZ+ppGA/LSZ8fD89OtWnpDhel352bQn77KOQk2ysxtQjCRPIfYA0F9SCU943Vf5H9StfleUMylDQ6Fe'
+    print(parse_card_info(data))
     pass

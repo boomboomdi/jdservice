@@ -1,6 +1,7 @@
 import requests
 import json
 import base64,requests
+from rsa import decrypt
 from tools import yanzhengma
 import requests
 import time
@@ -9,6 +10,9 @@ import time
 import hashlib
 import base64
 import sqlite3
+import binascii
+from pyDes import des, CBC, PAD_PKCS5, ECB
+
 # 流量订单使用
 
 STATUS_TRUE = '1'
@@ -194,6 +198,23 @@ def update_ck_status(account, code):
     print(res.text)
 
 
+def des_descrypt(s, key):
+    """
+    DES 解密
+    :param s: 加密后的字符串，16进制
+    :return:  解密后的字符串
+    """
+    secret_key = key 
+    iv = secret_key
+    des_obj = des(secret_key, CBC, iv, pad=None, padmode=PAD_PKCS5)
+    # decrypt_str = des_obj.decrypt(binascii.a2b_hex(s), padmode=PAD_PKCS5)
+    decrypt_str = des_obj.decrypt(s, padmode=PAD_PKCS5)
+    return decrypt_str
+
+def des_decrypt(data,secretkey):
+    des_obj = des(secretkey, ECB, secretkey, padmode=PAD_PKCS5)
+    decodebs64data = base64.b64decode(data)
+    return des_obj.decrypt(decodebs64data).decode('utf-8')
 
 
 # conn = sqlite3.connect('/home/police/project/python/jd/jd.db') 
@@ -203,5 +224,7 @@ if __name__ == '__main__':
     }
     # s = Base64.encode(json.dumps(a))
     # print(s)
-    s = base64.b64decode('yXHAF5mz3YNu7tCyIBXSWQ==')
-    print()
+    # s = base64.b64decode('yXHAF5mz3YNu7tCyIBXSWQ==')
+    data = 'BsBfLCzOTlBGoq5gIBRaumf56aJxrurFoDkYKoywLcgJIyRuRlJdmTwqqJ14MAkuJBVWoUctCi8Fq+4pXGi34VxQ2VF287irFgf1hfDcjLBlqx3jlqZ+ppGA/LSZ8fD89OtWnpDhel352bQn77KOQk2ysxtQjCRPIfYA0F9SCU943Vf5H9StfleUMylDQ6Fe'
+    key = '2E1ZMAF8'
+    # card = des_descrypt(base64.b64decode(data), key)
