@@ -951,8 +951,6 @@ APPSTORE_SKUIDS = {
 def create_order_appstore(ck, amount, proxy):
     LOG_D('create_order_appstore')
     client = jd(ck, proxy)
-    if code != SUCCESS:
-        return code, None
     url = 'https://pay.m.jd.com'
     code, token = client.gen_token(url)
     if code != SUCCESS:
@@ -986,7 +984,7 @@ def order_appstore(ck, order_me, amount):
         ip_sql().insert_ip(account, proxy)
 
     for i in range(3):
-        code, order_id = create_order_appstore(ck, order_me, amount, proxy)
+        code, order_id = create_order_appstore(ck, amount, proxy)
         if code == NETWOTK_ERROR:
             proxy = getip_uncheck()
             ip_sql().update_ip(account, proxy)
@@ -1126,12 +1124,13 @@ def query_order_appstore_immediate(ck, order_me, order_no, amount):
         i += 1
 
 
-def get_real_url(ck, img_url):
+def get_real_url(ck, order_id):
     result = {
         'code': '1',
         'data': '',
         'msg': ''
     }
+    order_url= 'https://wqs.jd.com/order/n_detail_jdm.shtml?deal_id=' + order_id + '&sceneval=2&appCode=ms0ca95114'
     account = get_jd_account(ck)
     proxy = ip_sql().search_ip(account)
     if proxy == None:
@@ -1141,8 +1140,8 @@ def get_real_url(ck, img_url):
         ip_sql().insert_ip(account, proxy)
     for i in range(3):
         app_client = jd(ck, proxy)
-        LOG_D(img_url)
-        code, token = app_client.gen_token(img_url)
+        LOG_D(order_url)
+        code, token = app_client.gen_token(order_url)
         LOG_D(token)
         if code == NETWOTK_ERROR:
             proxy = getip_uncheck()

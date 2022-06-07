@@ -32,7 +32,7 @@ def create_order(amount):
     head = {
         'session': order_no
     }
-    url = 'http://175.178.195.147:9292/api/orderinfo/order?t=' + str(randint(100000,9999999))
+    url = 'http://175.178.195.147:9191/api/orderinfo/order?t=' + str(randint(100000,9999999))
     data = json.dumps(order)
     print(data)
     res = requests.post(url, headers=head, data=data)
