@@ -1039,7 +1039,7 @@ def query_order_appstore(ck, order_me, order_no, amount):
         'check_status': '1',
         'pay_status': '0',
         'ck_status': '1',
-        'time': str(int(time())),
+        'time': str(int(time.time())),
         'order_me': order_me,
         'order_pay': order_no,
         'amount': amount,
