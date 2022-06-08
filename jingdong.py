@@ -565,15 +565,14 @@ class jd:
             resp = requests.get(url=url, headers=headers, proxies=self.proxy)
         except:
             return NETWOTK_ERROR, None
-        # print(resp.text)
         ret = resp.text.replace('jdappmpay_cb(', '')
         ret = ret.replace(')', '')
         # print(ret)
         ret_json = json.loads(ret)
-        if ret_json['errno'] == 0 and ret_json['msg'] == '':
+        if ret_json['errno'] == 0 and ret_json['msg'] == '' and 'jumpurl' in resp.text:
             return SUCCESS, ret_json['data']['jumpurl']
         else:
-            return WEB_CK_UNVALUE, None
+            return CK_UNVALUE, None
 
 
     def web_cpay_newpay(self, mck, pay_id):
@@ -629,15 +628,16 @@ class jd:
             resp = requests.get(url=url, headers=headers, proxies=self.proxy)
             # print(resp.text)
         except:
-            return NETWOTK_ERROR, None
+            return NETWOTK_ERROR
         if resp.status_code == 200:
             # print(resp.text)
             ret_json = json.loads(resp.text)
-            if ret_json['code'] == '0' and '交易受限' not in resp.text:
-                    return SUCCESS, ret_json['deepLink']
+            if '交易受限' not in resp.text:
+                    # return SUCCESS, ret_json['deepLink']
+                    return SUCCESS
             else:
-                return CK_PAY_FAIL, None
-        return RET_CODE_ERROR, None
+                return CK_UNVALUE
+        return RET_CODE_ERROR
 
     def gen_token(self, url):
         sv = '120'
@@ -739,8 +739,8 @@ class jd:
         try:
             resp = requests.post(url=url + params, data=body, headers=headers, proxies=self.proxy)
         except Exception as e:
-            print(e)
-            return NETWOTK_ERROR, None
+            LOG_D(e)
+            return NETWOTK_ERROR, None, None
         if resp.status_code == 200:
             if '响应成功' in resp.text:
                 result = resp.json()['result']
@@ -749,6 +749,8 @@ class jd:
                     card_info = result['cardInfos']
                     card_no, card_pass = parse_card_info(card_info)
                     return SUCCESS, card_no, card_pass
+                else:
+                    return SUCCESS, None, None
             else:
                 return CK_UNVALUE, None, None
         return RET_CODE_ERROR, None, None
@@ -963,8 +965,21 @@ def create_order_appstore(ck, amount, proxy):
     code, pay_id = client.submit_appstore(mck, APPSTORE_SKUIDS[amount], amount)
     if code != SUCCESS:
         return code, None
-    print('payid', pay_id)
+    LOG_D('payid ' + pay_id)
     code, order_id = client.pay_index(pay_id)
+    if code != SUCCESS:
+        return code, None
+    # check pay 
+    code, jump_url = jd_client.web_jdappmpay(mck, order_id)
+    LOG('jump_url: ' + str(jump_url))
+    if code != SUCCESS:
+        return code, None
+    pay_id = jump_url.split('payId=')[1].split('&')[0]
+    LOG('pay_id: ' + str(pay_id))
+    code = jd_client.web_newpay(mck, pay_id)
+    if code != SUCCESS:
+        return code, None
+    code = jd_client.web_wxpay(mck, pay_id)
     if code != SUCCESS:
         return code, None
     return code, order_id
@@ -1057,6 +1072,7 @@ def query_order_appstore(ck, order_me, order_no, amount):
     for i in range(3):
         client = jd(ck, proxy)
         code, card_no, card_pass = client.get_appstore_detail(order_no)
+        print('query', code)
         if code == SUCCESS:
             if card_no != None and card_pass != None:
                 result['card_name'] = card_no
@@ -1065,9 +1081,11 @@ def query_order_appstore(ck, order_me, order_no, amount):
                 result = json.dumps(result)
                 if upload_callback_result(result):
                     client.delete_order(order_no)
+                    return
             else:
                 result = json.dumps(result)
                 upload_callback_result(result)
+                return
             return
         elif code == NETWOTK_ERROR:
             proxy = getip_uncheck()
@@ -1213,14 +1231,7 @@ if __name__ == '__main__':
     # code, order_id = jd_client.pay_index(pay_id)
     # print('order_id', order_id)
     order_id = '248335926310'
-    code, jump_url = jd_client.web_jdappmpay(mck, order_id)
-    LOG(jump_url)
-    pay_id = jump_url.split('payId=')[1].split('&')[0]
-    # jd_client.web_wxpay(pay_id)
-    code = jd_client.web_newpay(mck, pay_id)
-    print(jd_client.web_wxpay(mck, pay_id))
-    # code, pay_url = jd_client.web_wxpay(mck, pay_id)
-
+    query_order_appstore(ck, '', order_id, '100')
 
 
     # code = jd_client.cart_add(good_id)
