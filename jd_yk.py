@@ -10,6 +10,7 @@ import requests
 import json
 from hashlib import md5
 from tools import random_phone
+import re
 
 client_version = '10.4.0'
 client = 'android'
@@ -35,6 +36,8 @@ SH_2020 = '200153016897'
 YS_505 = '200152222503'
 YS_1010 = '200152225502'
 YS_2020 = '200152228602'
+
+KLY_505 = '200153481018'
 
 SKU_INFO = {
    SH_105:{
@@ -72,6 +75,10 @@ SKU_INFO = {
    YS_2020:{
        'face_price': '200000',
        'online_price': '202000'
+   },
+   KLY_505:{
+       'face_price': '50000',
+       'online_price': '50500'
    },
 }
 
@@ -259,15 +266,18 @@ class jd:
         face_price = SKU_INFO[sku_id]['face_price']
         ts = str(int(time.time() * 1000))
         url = 'https://api.m.jd.com/client.action?functionId=oilcardSubmitOrder&body=%7B%22userPin%22%3A%22' + user_id + \
-            '%22%2C%22source%22%3A8%2C%22callId%22%3A%223c' + str(uuid.uuid4()) + '%22%2C%22voiceCode%22%3Anull%2C%22promotionDiscount%22%3A0' + \
+            '%22%2C%22source%22%3A8%2C%22callId%22%3A%223c' + str(uuid.uuid4())[2:] + '%22%2C%22voiceCode%22%3Anull%2C%22promotionDiscount%22%3A0' + \
             '%2C%22dongCouponPay%22%3A0%2C%22balancePay%22%3A0%2C%22phone%22%3A%22' + phone + '%22%2C%22salePrice%22%3A' + online_price + '%2C%22promoRfId%22%3Anull' + \
             '%2C%22onlinePay%22%3A' + online_price + '%2C%22jingdouPay%22%3A0%2C%22skuId%22%3A%22' + sku_id + '%22%2C%22payType%22%3A1%2C%22couponIds%22%3A%5B%5D%2C%22' + \
             'cardNum%22%3A%22' + card_id + '%22%2C%22brand%22%3A%222%22%2C%22jingCouponPay%22%3A0%2C%22facePrice%22%3A' + face_price + '%7D&appid=youka_H5&client=youka_H5' + \
             '&clientVersion=1.0.0&jsonp=jsonp_' + ts + '_98652'
+        print(url)
         headers = {
             'charset': "UTF-8",
             'user-agent': "okhttp/3.12.1;jdmall;iphone;version/10.3.5;build/92610;",
+            # 'user-agent': "okhttp/3.12.1;jdmall;android;version/10.3.5;build/92610;",
             'content-type': "application/x-www-form-urlencoded; charset=UTF-8",
+            'referer': 'https://oilcard.m.jd.com/',
             'cookie': self.ck
         }
         try:
@@ -285,6 +295,66 @@ class jd:
             elif ret_json['msg'] == '不能下单' or '您的账户下单过于频繁' in ret_json['msg'] or 'no permissions' in ret_json['msg']:
                 return CK_UNVALUE, None, None
         return RET_CODE_ERROR, None, None
+
+    def gen_token(self, url):
+        sv = '120'
+        function_id = 'genToken'
+        ts = str(int(time.time() * 1000))
+        body= '{"to":"' + quote(url, safe='') + '"}'
+        # body = '{"to":"https%3a%2f%2fplogin.m.jd.com%2fjd-mlogin%2fstatic%2fhtml%2fappjmp_blank.html"}'
+        uuid_str = hashlib.md5(str(int(time.time() * 1000)).encode()).hexdigest()[0:16]
+        sign = f'functionId={function_id}&body={body}&uuid={uuid_str}&client={client}&clientVersion={client_version}&st={ts}&sv={sv}'
+        sign = get_sign(sign)
+        print(sign)
+        url = 'https://api.m.jd.com/client.action?functionId=' + function_id
+        params = f'&clientVersion={client_version}&build=92610&client={client}&uuid={uuid_str}&st={ts}&sign={sign}&sv={sv}'
+        headers = {
+            'charset': "UTF-8",
+            'user-agent': "okhttp/3.12.1;jdmall;iphone;version/10.3.5;build/92610;",
+            'content-type': "application/x-www-form-urlencoded; charset=UTF-8",
+            'cookie': self.ck
+        }
+        body = 'body=' + quote(body)
+        print(body)
+        try:
+            resp = requests.post(url=url + params, data=body, headers=headers, proxies=self.proxy)
+            print(resp)
+        except Exception as e:
+            print(e)
+            return NETWOTK_ERROR, None
+        print(resp.text)
+        if resp.status_code == 200:
+            ret_json = json.loads(resp.text)
+            if ret_json['code'] == '0':
+                return SUCCESS, str(ret_json['tokenKey'])
+        return RET_CODE_ERROR, None       
+
+    def get_mck(self, token_url):
+        t = str(int(time.time()))
+        head = {
+            'content-type': 'application/x-www-form-urlencoded; charset=UTF-8'
+        }
+        try:
+            resp = requests.get(url=token_url, proxies=self.proxy, allow_redirects=False)
+        except Exception as e:
+            print(e)
+            return NETWOTK_ERROR, None
+        if 'pt_key' in resp.headers['Set-Cookie']:
+            jda = '__jda=122270672.' + t + '3191886255148.' + t + '.' + t + '.' + t + '.8'
+            for item in re.split(";|,| ", resp.headers['Set-Cookie']):
+                if 'pt_key' in item:
+                    pt_key = item
+                if 'pt_pin' in item:
+                    pt_pin = item
+                # print(item)
+            new_ck = pt_pin + ';' + pt_key + ';' + jda
+            return SUCCESS, new_ck
+        else:
+            return CK_UNVALUE, None
+
+
+
+
 
 
 def create_df_pay(account, ck, sku_id, card_id, amount):
@@ -338,14 +408,11 @@ if __name__ == '__main__':
     good_id_206 = '10045398948206'
     good_id_309 = '10045399054885'
 
-    ck = 'pt_key=app_openAAJiKcaCADCRm5ac3oveZNy6URrLanVB7yiqFwJqIDJJua1hZsZBqO9Q4SnhVDDmEJgI-kSYjN8;pt_pin=jd_GBhpTVkLWbqL;pin=jd_GBhpTVkLWbqL;wskey=AAJhYowKAEDhEG6wK1OULKIKAlKn-bKN5TJ79P80pp1Bh5Y_xlRUCtDtGTHf-pP8Er6aADk3KB1UO06m9uDvcPEJ402AJnPr'
-    for i in ck.split(';'):
-        if 'pt_pin' in i:
-            user = i.split('=')[1].strip()
+
     phone = '13367849114'
     amount = '505'
-    card_id = '1000113100016976190'
-    sku_id = '200152809708'
+    card_id = '1000113200034820712'
+    sku_id = '200153481018'
 
     # code, order_id, pay_id = jd_client.yk_submit(user, phone, card_id, id)
     # jd_client.pay_index(pay_id)
@@ -358,10 +425,27 @@ if __name__ == '__main__':
     # print(code, pay_url, order_id)
     # ip = get_ip()
     # jd_client = jd(ck, ip)
-    jd_client = jd(ck)
-    code, order_id, pay_id = jd_client.yk_submit(user, phone, card_id, SH_505, amount)
+    # ck = 'pin=jd_7b3b6c0bfbbbf; wskey=AAJiik8NAEDle7sy1ILxFTBQezCHqbTaSnxCubDeI6R2JkKxzs3UxmCRKF3drtQLB5bwya1CWmqypqGYEwVD_03mK303Klxz; pt_pin=jd_7b3b6c0bfbbbf; '
+    # ck = 'guid=565a406d6271d4a4978f3c43e5efab123b307323f9a344b981164e268315b531; pt_key=app_openAAJipsscADDBi0pEYaB97guiLrL9sS4v1Un_hPTmgeJMVvb8e-JrqJqcRypjXt8BnnPukPzZfpE; pt_pin=jd_JAAsikWhNxem; pwdt_id=jd_JAAsikWhNxem; sid=24dd47f9d082bae65366f9162a08f25w; pin=jd_JAAsikWhNxem;wskey=AAJifdadAEDOi_tzRdBaoHUkiHDqm5lJpibdiz98f8DprVM33w816q7fYHgQRPVz4LGtGbMrrE2oD6shp6Blg01K13CA64Q0;'
+    # ck = 'pt_pin=jd_JAAsikWhNxem; pwdt_id=jd_JAAsikWhNxem; sid=24dd47f9d082bae65366f9162a08f25w; pin=jd_JAAsikWhNxem;wskey=AAJifdadAEDOi_tzRdBaoHUkiHDqm5lJpibdiz98f8DprVM33w816q7fYHgQRPVz4LGtGbMrrE2oD6shp6Blg01K13CA64Q0;'
+    # ck = 'pin=jd_CVUppfBIfbul; wskey=AAJiofzwAECscBxdv0Lj5qz3jreRLN_IAvgH7Uq70RWkOwBatTNQVkFnwWo51l7JBaT4YFA-lcnNG3e7bP9V-C5Hq5K0qqOz; guid=c3c44943dd764c55cae73b7fa2837c2f8d7af4dede429f16c1fa85e08996d02c; pt_key=app_openAAJiofzxADC9wqrMYQchf9syROsYZ9fBiVq_ojPiPQQlZZAXbFyGSH6sm6zvY69rXzG8WTP7vG4; pt_pin=jd_CVUppfBIfbul; pwdt_id=jd_CVUppfBIfbul; sid=3add1ca1f79d10e2a65a2f80e75d8cdw'
+    # ck = 'pin=jd_kOpnrNnTYpKZ; wskey=AAJiogLUAEDOkeSL-5TrLxv8lh7IIhBSsvBP-z_GokebSrSvCqeqvCoJ9WfZhOnJkvNybXADQ22nesXXOLoi1m0_96dcbRV0; TARGET_UNIT=bjcenter; guid=4bf828b6c116dc2980893c40e64e51b1ed616531510f151f8a24c6922b0067a3; '
+    ck = 'pin=4d9b500034155; wskey=AAJioezoAECwBP5u00yWw4Wmm1VoGgB6DKaGtp_iF-nnh3LMty5vhN6xuU0oVyMTQ9ENxG8Wyb2utzOCDrs5gulgXGCajild;'
+    for i in ck.split(';'):
+        if 'pin=' in i:
+            user = i.split('=')[1].strip()
+    jd_client = jd(ck, getip_uncheck())
+    # url = 'https://oilcard.m.jd.com/?skuId=200153481018'
+    url = 'https://plogin.m.jd.com/jd-mlogin/static/html/appjmp_blank.html'
+    code, token = jd_client.gen_token(url)
+    print(token)
+    token_url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=' + token
+    code, mck = jd_client.get_mck(token_url)
+    print(mck)
+    jd_client.ck = jd_client.ck + mck
+    print(jd_client.ck)
+    code, order_id, pay_id = jd_client.yk_submit(user, phone, card_id, KLY_505, amount)
     print(pay_id)
     jd_client.pay_index(pay_id)
-    # pay_id = '4803450470654f4eb2ec88bd9b12ba66'
     code, pay_info = jd_client.sdk_pay(pay_id)
     print(pay_info)
