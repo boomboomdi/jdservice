@@ -433,7 +433,7 @@ class pc_jd():
             'Cookie': self.ck
         }       
         try:
-            res = requests.get(url, headers=head, proxies=self.proxy)
+            res = requests.get(url, headers=head, proxies=self.proxy, timeout=5)
         except Exception as e:
             tools.LOG_D(e)
             return NETWOTK_ERROR, None
@@ -531,6 +531,8 @@ class pc_jd():
             res = requests.get(url, headers=head, proxies=self.proxy)
             if 'paySign' in res.text:
                 return SUCCESS, True
+            if '无法使用微信支付' in res.text:
+                return CK_UNVALUE, False
         except Exception as e:
             tools.LOG_D(e)
             return NETWOTK_ERROR, False
@@ -728,7 +730,7 @@ def get_real_url(ck, img_url):
         'msg': ''
     }
     account = tools.get_jd_account(ck)
-    proxy = ip_sql().search_ip(account)
+    proxy = None
     if proxy == None:
         proxy = tools.getip_uncheck()
         if proxy == None:
@@ -1023,19 +1025,20 @@ if __name__=='__main__':
     # ck = 'wskey=AAJioezoAECwBP5u00yWw4Wmm1VoGgB6DKaGtp_iF-nnh3LMty5vhN6xuU0oVyMTQ9ENxG8Wyb2utzOCDrs5gulgXGCajild; pin=jd_4d9b500034155;'
 
     ck = 'mp=jd_5fb9ae7b01e08;  TrackID=19FYOprl5sBgnEkuYUE3KDb0zG3SHGp7jCaunlHGMncLmYqqew8jn40NgY5cCPCy_zhmF9HVLD02jJvY1z7ST2Wv5VYEJFzAnPbiwzhO83MQ_os-3Nj2Bj1-AKegtZHs6zzhWeSjDTuKGOM3bVwrfvQ;  thor=B30DD83C6079DAA5CFBDA36F593B368D801DAF94F2BF40779727F6F9CFFB1DDF7F1362598B695E92B2B49895D18236005E7CC26ED03DD85FB14B5442A229BCAD8CD6523034E6BF3429F43F008CE9C268404161CAA7DE10BEDD056F1A055A989DE5B584F5C56A75E9A2DCCCF7161FB8BA3171EB701479C231A3D14AE4554966F4AC9A0420A167E462A952431A6B8FDDDBA0E7092A8C7BBBFBED8D0704D48A0EEB;  pinId=BGKvA2_UfjvhWAZmjwVu8rV9-x-f3wj7;  pin=jd_5fb9ae7b01e08;  unick=jd_153795jwr;  _tp=SQ7R3CmB8JuGRypP2WMBzKKIvWOeJwI9QrI7oK2WBz0%3D;  _pst=jd_5fb9ae7b01e08;pin=jd_5fb9ae7b01e08; wskey=AAJiik9hAEDDjxoqzjfQ1XpC-HYi3V5BN3ueuBk88kG2ysV-KnENPtnbpNcP0NoYBlPJUI9Q3eI-y8XoH-VrWtcbjUjZhAgj; pt_pin=jd_5fb9ae7b01e08; pt_key=AAJiik9jADAiGcrzRHH56ZpNTozHWShxk3d-Q7id3SuwdIToxU4F0DQx5BAWQN-wYVooN0HFiG0; unionwsws={"devicefinger":"eidAf2d9812223s47XKUfq+fStSVW1VOujudXO1ylf+b5WB4rKwtO5AJpcZmhzjIgcv1YEdiioqGHb6DI9CnyX8HD2Hf5du2E4Hfz/Jhi2AVzMn6qE1y","jmafinger":"qlcWImUm4XkA3PPAuUrp941LEp0xhgZz4dXXX0VwR1hxTlqfinMj0YNSC4qL7zV7P"}'
-
+    ck = 'mp=jd_6b9d96fd0d837;  TrackID=1xSTbkSRdGeyBYdpDR2fPKLhUi4XvabGBTnWOinJpsPoo66-cYsLUQX35wHGkT1yQySaNXUUQViN0vXd8M3I7_Sl6SI8Aaa40HxSqyolT2oR7Ux3kyS95XBruIGsP8UyK85AlwRbesYtoEMLG2i1IJw;  thor=7FE9F5D6D6C9A6C796BBEEA3189D28E8338722E18F03548C5AEF2D01B3C409B22FD0DA40D6BD10ED5421183F70CF1051E5F7811B0F7D5388AF851A0F7A1424D2201D68348F6B4E16345050FD7CE9C29CD5D12F9D11932095404C6E5912AE5F2F05E5D384E13A08E2FADC4E8B747F061902CA555A6DB030730DA715654145659FD2D23E10ECCCA637269E4B27A9E121D2303E8B98317DB9764D77931595CA363E;  pinId=N5_vYWcwCx2wbLEFt7aFIrV9-x-f3wj7;  pin=jd_6b9d96fd0d837;  unick=jd_153804kwdt;  _tp=%2BK5iEN2qxsfunAsu881z42iB5YIRoDUN6Hsup%2BOe1a4%3D;  _pst=jd_6b9d96fd0d837; pin=jd_6b9d96fd0d837; wskey=AAJiik9wAECj_LcQ2TY_8otK55ml-69lGcAanZ7kYn85xOg9alpSsLXowQD0fmtaiMou7VahI0ra4sFvMHPZZKXfNfirarR5; pt_pin=jd_6b9d96fd0d837; pt_key=AAJiik9xADDmPHrTFVbtmZtLhP9y9zdcq_rfvCj_pWMj7siS-epPtL9Os2ayf8gdWZu3saRMq7I; unionwsws={"devicefinger":"eidAc6588120ccs4Cok4yA2mTI6WDdRbQ66CnwqJOkj57JyhQWgx2Jp3BogfeZj9y/WRtHR1Goit9pa4O38whl97ijvo4Y05OU3WP1291ZNkTFYAm004","jmafinger":"kVxK-p1gOjV9M-lt-qrQhj_doUOOijFcrFcjhZNsisGDsa6Zjuh6i_gGtEzbdsLTv"}'
+    ck = 'mp=jd_vMd4ndXc5Sv6NPj;  TrackID=18RTfWm-UgNZzJo3dc1KnQC8jgwFTjq0JqGkkMTYZvJlQBphvz5s9v6QD5jxRep-bNPKeN0Fjv25ghc-aq_mSNT1caijJRJGZB0Tp3JOpdtVS_Mn8UMIQJkgqjp-5hCHucyGJjkifmocplcBpa-gvKw;  thor=7248A84612E5ACCA551476A6EF51F0E57CA7D5CEFE439BD712DA409C4F00EF3C56EAF246C5FCB20287E67389B4FB61F97644715E630258788BFE3845ABDD8420298FDE67E9ABC62B070D3FAE8402AD885144D0EF334194512E3BAE85A9E3373AD7812779FA3CA39549E72A743363ADD6F1BDF6CEA46AD02B87D0B73046C21E227809B37799F8C8FA20018F98B7B247FFDC796F3D32EF1C86C95BF000666D2874;  pinId=X6jIrSJAIN0Dz1-uddPyL_AK-8CHeFO6;  pin=jd_vMd4ndXc5Sv6NPj;  unick=jd_vMd4ndXc5Sv6NPj;  _tp=9Tw3GEGzFXC%2BWdHjP74noDLH64xRkfRnpK6ZuFJqWjc%3D;  _pst=jd_vMd4ndXc5Sv6NPj; pin=jd_vMd4ndXc5Sv6NPj; wskey=AAJiogLrAFAVIVwKfgWui1FtfIpTtEFq9NaDKy3bOqNK4mDiidYZM-bMQOwzdR5K5y1gLTiDXOzCBRhvCd-xApVNPRuEBOH06m1yLdiALQ2l3tZ6xxmiQg..; TARGET_UNIT=squnit; guid=2ece958887d0755afad6af5389b04441cf4fdbdb2562b83db8959eb64cfb9ab4; pt_key=app_openAAJiogLsAEBVzvlQQSAg4NeWEEliW_hsGwH6BI5BSAtY1Bbal1IsgQg5LSUlKx-ceeaOidV447OQgqWbDZ_f22qvCa4PHdtN; pt_pin=jd_vMd4ndXc5Sv6NPj; pwdt_id=jd_vMd4ndXc5Sv6NPj; sid=3866ebbd6cd1c9ca93f4cbaf039be3aw'
     # test_order_appstore(ck, '123', '100')
     # proxy = getip_uncheck()
     # print(create_order_appstore(ck, '123', '100', proxy))
     # query_order(ck, '247775877802')
-    # print(order_qb(ck, '', '11', '780776612'))
-    print(query_order_qb(ck, '', '244731313945', '105'))
+    print(order_qb(ck, '', '11', '780776612'))
+    # print(query_order_qb(ck, '', '244731313945', '105'))
     # test(ck)
     # callback(ck, '247486125452', '123', '100')
     # clear_order(ck, '247761070918')
     # 06:50
     # 07:18
-    # weixin_page_url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=8b6ed1c02125de79416ec8c84c49609add872b2fa986d506dbda29860aeb8f8fd62c171c87bc4aa79d3cee8cd6e542bc8eaccb975963e8f46aa057c4774c7ecdc1b0c4ab88b7e0928f8872365c7dde35'
+    # weixin_page_url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=699d3620bdddb2cd1d9471b07eca4efedef02545e1061f0cc3119c5588f40c8c5893c0c857e10c555aecefb46ea62f518caa1476b7d3513d6242fad999a962a0c1b0c4ab88b7e0928f8872365c7dde35'
     # print(get_real_url(ck, weixin_page_url))
     # order_no = '247574887620'
     # callback(ck, order_no)

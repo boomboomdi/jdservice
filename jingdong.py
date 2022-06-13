@@ -660,7 +660,7 @@ class jd:
         body = 'body=' + quote(body)
         print(body)
         try:
-            resp = requests.post(url=url + params, data=body, headers=headers, proxies=self.proxy)
+            resp = requests.post(url=url + params, data=body, headers=headers, proxies=self.proxy, timeout=4)
             print(resp)
         except Exception as e:
             print(e)
