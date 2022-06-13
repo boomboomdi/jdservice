@@ -875,8 +875,10 @@ def query_order_qb(ck, order_me, order_no, amount):
                 result['pay_status'] = '1'
                 result['card_name'] = 'QB' + str(time()).replace('.', '')
                 result['card_password'] = 'QB' + str(time()).replace('.', '')
+                result = json.dumps(result)
                 upload_callback_result(result)
             else:
+                result = json.dumps(result)
                 upload_callback_result(result)
             return
         elif code == NETWOTK_ERROR:
@@ -888,6 +890,8 @@ def query_order_qb(ck, order_me, order_no, amount):
             upload_callback_result(result)
             return
         i += 1
+
+    result = json.dumps(result)
     upload_callback_result(result)
 
 
