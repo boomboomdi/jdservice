@@ -75,7 +75,6 @@ def queryAppstore():
     amount = str(param.get('amount'))
     print(param)
     print('========')
-    
     threading.Thread(target=query_order_qb, args=(ck, order_me, order_pay, amount)).start()
     return "success"
 

@@ -256,6 +256,7 @@ class jd:
         sv = '120'
         function_id = 'genAppPayId'
         raw_payinfo = 'jd_android_app4;' + order_id + ';' + order_type + ';' + payable_price + ';e53jfgRgd7Hk'
+        # raw_payinfo = 'jd_iphone_app4;' + order_id + ';' + order_type + ';' + payable_price + ';e53jfgRgd7Hk'
         pay_sign = md5(raw_payinfo.encode('utf-8')).hexdigest()
         ts = str(int(time.time() * 1000))
         body= '{"appId":"jd_android_app4","fk_aid":"","fk_appId":"com.jingdong.app.mall","fk_latitude":"",' + \
@@ -276,7 +277,7 @@ class jd:
         }
         body = 'body=' + quote(body)
         try:
-            resp = requests.post(url=url + params, data=body, headers=headers, proxies=self.proxy)
+            resp = requests.post(url=url + params, data=body, headers=headers, proxies=self.proxy, timeout=3)
         except:
             return NETWOTK_ERROR, None
         print(resp.text)
@@ -293,7 +294,8 @@ class jd:
         sv = '120'
         function_id = 'payIndex'
         ts = str(int(time.time() * 1000))
-        body= '{"appId":"jd_android_app4","hasCyberMoneyPay":"0","hasHuaweiPay":"0","hasOCPay":"0","hasUPPay":"0","payId":"' + pay_id + '","supportNFC":"1"}'
+        # body= '{"appId":"jd_android_app4","hasCyberMoneyPay":"0","hasHuaweiPay":"0","hasOCPay":"0","hasUPPay":"0","payId":"' + pay_id + '","supportNFC":"1"}'
+        body= '{"appId":"jd_iphone_app4","hasCyberMoneyPay":"0","hasHuaweiPay":"0","hasOCPay":"0","hasUPPay":"0","payId":"' + pay_id + '","supportNFC":"1"}'
         # body= '{"appId":"jd_android_app4","hasCyberMoneyPay":"0","hasHuaweiPay":"0","hasOCPay":"0","hasUPPay":"0","payId":"' + pay_id + '","supportNFC":"1"}'
         uuid_str = hashlib.md5(str(int(time.time() * 1000)).encode()).hexdigest()[0:16]
         sign = f'functionId={function_id}&body={body}&uuid={uuid_str}&client={client}&clientVersion={client_version}&st={ts}&sv={sv}'
@@ -407,8 +409,8 @@ class jd:
             ret_json = json.loads(resp.text)
             if ret_json['code'] == '0':
                 share_url = str(ret_json['shareInfo']['shareUrl'])
-                # share_url = share_url.replace('jd_android_app4', 'jd_m_xnjyk')
-                # share_url = share_url.replace('Fother-pay-jdpay', 'Fother-pay')
+                share_url = share_url.replace('jd_android_app4', 'jd_m_xnjyk')
+                share_url = share_url.replace('Fother-pay-jdpay', 'Fother-pay')
                 return SUCCESS, share_url
         return RET_CODE_ERROR, None
 
@@ -808,6 +810,48 @@ class jd:
                 return SUCCESS, False
         return RET_CODE_ERROR, None
 
+    def weixin_pay(self, pay_id):
+        sv = '120'
+        function_id = 'weixinPay'
+        ts = str(int(time.time() * 1000))
+        # body= '{"appId":"jd_android_app4","payId":"' + pay_id + '","sdkToken":""}'
+        body= '{"appId":"jd_iphone_app4","payId":"' + pay_id + '","sdkToken":""}'
+        # body= '{"appId":"jd_ios_app","payId":"' + pay_id + '","sdkToken":""}'
+        # body = '{"to":"https%3a%2f%2fplogin.m.jd.com%2fjd-mlogin%2fstatic%2fhtml%2fappjmp_blank.html"}'
+        uuid_str = hashlib.md5(str(int(time.time() * 1000)).encode()).hexdigest()[0:16]
+        sign = f'functionId={function_id}&body={body}&uuid={uuid_str}&client={client}&clientVersion={client_version}&st={ts}&sv={sv}'
+        sign = get_sign(sign)
+        print(sign)
+        url = 'https://api.m.jd.com/client.action?functionId=' + function_id
+        params = f'&clientVersion={client_version}&build=92610&client={client}&uuid={uuid_str}&st={ts}&sign={sign}&sv={sv}'
+        headers = {
+            'charset': "UTF-8",
+            'user-agent': "okhttp/3.12.1;jdmall;iphone;version/10.3.5;build/92610;",
+            'content-type': "application/x-www-form-urlencoded; charset=UTF-8",
+            'cookie': self.ck
+        }
+        body = 'body=' + quote(body)
+        print(body)
+        try:
+            resp = requests.post(url=url + params, data=body, headers=headers, proxies=self.proxy, timeout=4)
+            print(resp.text)
+        except Exception as e:
+            print(e)
+            return NETWOTK_ERROR, None
+        if resp.status_code == 200:
+            ret_json = json.loads(resp.text)
+            if 'partnerId' in resp.text:
+                nonce_str = ret_json['payInfo']['nonceStr']
+                partner_id = ret_json['payInfo']['partnerId']
+                prepay_id =  ret_json['payInfo']['prepayId']
+                times = ret_json['payInfo']['timeStamp']
+                sign = ret_json['payInfo']['sign']
+                pay_url = 'weixin://app/wxe75a2e68877315fb/pay/?nonceStr=' + nonce_str + '&package=Sign%253DWXPay&' + \
+                    'partnerId=' + partner_id + '&prepayId=' + prepay_id + '&timeStamp=' + times + '&sign=' + sign + '&signType=MD5'
+                return SUCCESS, pay_url
+            return CK_UNVALUE, None
+
+
 
 
 
@@ -1201,7 +1245,18 @@ def get_real_url(ck, order_id):
     return json.dumps(result)
 
 
-
+def get_ios_wx(ck, order_id, amount, proxy):
+    app_client = jd(ck, proxy)
+    code, pay_id = app_client.gen_app_payid(order_id, '22', amount)
+    if code != SUCCESS:
+        return code, None
+    code, order_id = app_client.pay_index(pay_id)
+    if code != SUCCESS:
+        return code, None
+    code, pay_url = app_client.weixin_pay(pay_id)
+    if code != SUCCESS:
+        return code, None
+    return SUCCESS, pay_url
  
 
 if __name__ == '__main__':
@@ -1242,8 +1297,12 @@ if __name__ == '__main__':
 
     # ip = get_ip()
     skuid = '11183343342'
-    ip = None
-    # jd_client = jd(ck, ip)
+
+
+    ck = 'wskey=AAJioezoAECwBP5u00yWw4Wmm1VoGgB6DKaGtp_iF-nnh3LMty5vhN6xuU0oVyMTQ9ENxG8Wyb2utzOCDrs5gulgXGCajild; pin=jd_4d9b500034155;'
+    ip = getip_uncheck()
+    # ip = None
+    jd_client = jd(ck, ip)
     # jd_client.get_appstore_detail('248300092259')
     # print(jd_client.delete_order('248300092259'))
     # url = 'https://m.jd.com'
@@ -1267,21 +1326,26 @@ if __name__ == '__main__':
     # code = jd_client.current_order(good_id, address)
     # code, order_id_s = jd_client.submit_order(id, address)
     # url = 'weixin://wxpay/bizpayurl?pr=W0VhsEuzz'
-    # url = 'https://wqs.jd.com/order/n_detail_jdm.shtml?deal_id=248330326663&sceneval=2&appCode=ms0ca95114'
+    # url = 'https://wqs.jd.com/order/n_detail_jdm.shtml?deal_id=244737756703&sceneval=2&appCode=ms0ca95114'
     # url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=35e63cd8e2759b7b61a352950e199a5be7fd9b33af78959511a3a9e1ba2af6c7fb9c748e5eb8642576f2bf821e57796849575b6380eeee0733a3b398749e879d7468d1105e2aae7f367203b13dcff177'
     # url = 'https://passport.jd.com/new/login.aspx?ReturnUrl=https%3A%2F%2Fwww.jd.com%2Fb'
     # url = 'https://pay.m.jd.com/cpay/newPay-index.html?appId=jd_m_yxdk&payId=5eee5dd30b520b9e39df8d54a1114a0c'
+
     # status, token = jd_client.gen_token(url)
     # pay_url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=' + token 
     # print(pay_url)
-    ck = 'pin=jd_uPlHcIlPnyzTnW2; wskey=AAJiogKlAFDDFXsvInK4Vh5L5B1EKEY_RsSjHVwE3Ox_1bLTtzDQdDjhO9rxb1NqyvBdLGhmf47vXkMbtNw-YZfYbJMLyDAPDJAk0mg7XwI4YkoyNr24Mg;'
-    create_order_appstore(ck, '100', getip_uncheck())
+    # ck = 'pin=jd_uPlHcIlPnyzTnW2; wskey=AAJiogKlAFDDFXsvInK4Vh5L5B1EKEY_RsSjHVwE3Ox_1bLTtzDQdDjhO9rxb1NqyvBdLGhmf47vXkMbtNw-YZfYbJMLyDAPDJAk0mg7XwI4YkoyNr24Mg;'
+    # create_order_appstore(ck, '100', getip_uncheck())
 
     # code, order_id, pay_id = jd_client.yk_submit(user, phone, card_id, id)
     # order_id = ''
-    # code, pay_id = jd_client.gen_app_payid(order_id, '22', amount)
+    order_id = '244739200888'
+    code, pay_id = jd_client.gen_app_payid(order_id, '22', amount)
     # pay_id = '49f7294cc42642e08a815b29f995fd8e'
-    # jd_client.pay_index(pay_id)
+    jd_client.pay_index(pay_id)
+    pay_url = jd_client.weixin_pay(pay_id)
+    print(pay_url)
+    # jd_client.
     # code, pay_url = jd_client.df_pay(pay_id)
     # if code != SUCCESS:
     # print(pay_url)
