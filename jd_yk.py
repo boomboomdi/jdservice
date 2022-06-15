@@ -274,8 +274,8 @@ class jd:
         print(url)
         headers = {
             'charset': "UTF-8",
-            'user-agent': "okhttp/3.12.1;jdmall;iphone;version/10.3.5;build/92610;",
-            # 'user-agent': "okhttp/3.12.1;jdmall;android;version/10.3.5;build/92610;",
+            # 'user-agent': "okhttp/3.12.1;jdmall;iphone;version/10.3.5;build/92610;",
+            'user-agent': "okhttp/3.12.1;jdmall;android;version/10.3.5;build/92610;",
             'content-type': "application/x-www-form-urlencoded; charset=UTF-8",
             'referer': 'https://oilcard.m.jd.com/',
             'cookie': self.ck
@@ -411,7 +411,7 @@ if __name__ == '__main__':
 
     phone = '13367849114'
     amount = '505'
-    card_id = '1000113200034820712'
+    card_id = '1000113200034820713'
     sku_id = '200153481018'
 
     # code, order_id, pay_id = jd_client.yk_submit(user, phone, card_id, id)
@@ -430,21 +430,25 @@ if __name__ == '__main__':
     # ck = 'pt_pin=jd_JAAsikWhNxem; pwdt_id=jd_JAAsikWhNxem; sid=24dd47f9d082bae65366f9162a08f25w; pin=jd_JAAsikWhNxem;wskey=AAJifdadAEDOi_tzRdBaoHUkiHDqm5lJpibdiz98f8DprVM33w816q7fYHgQRPVz4LGtGbMrrE2oD6shp6Blg01K13CA64Q0;'
     # ck = 'pin=jd_CVUppfBIfbul; wskey=AAJiofzwAECscBxdv0Lj5qz3jreRLN_IAvgH7Uq70RWkOwBatTNQVkFnwWo51l7JBaT4YFA-lcnNG3e7bP9V-C5Hq5K0qqOz; guid=c3c44943dd764c55cae73b7fa2837c2f8d7af4dede429f16c1fa85e08996d02c; pt_key=app_openAAJiofzxADC9wqrMYQchf9syROsYZ9fBiVq_ojPiPQQlZZAXbFyGSH6sm6zvY69rXzG8WTP7vG4; pt_pin=jd_CVUppfBIfbul; pwdt_id=jd_CVUppfBIfbul; sid=3add1ca1f79d10e2a65a2f80e75d8cdw'
     # ck = 'pin=jd_kOpnrNnTYpKZ; wskey=AAJiogLUAEDOkeSL-5TrLxv8lh7IIhBSsvBP-z_GokebSrSvCqeqvCoJ9WfZhOnJkvNybXADQ22nesXXOLoi1m0_96dcbRV0; TARGET_UNIT=bjcenter; guid=4bf828b6c116dc2980893c40e64e51b1ed616531510f151f8a24c6922b0067a3; '
-    ck = 'pin=4d9b500034155; wskey=AAJioezoAECwBP5u00yWw4Wmm1VoGgB6DKaGtp_iF-nnh3LMty5vhN6xuU0oVyMTQ9ENxG8Wyb2utzOCDrs5gulgXGCajild;'
+    # ck = 'pin=4d9b500034155; wskey=AAJioezoAECwBP5u00yWw4Wmm1VoGgB6DKaGtp_iF-nnh3LMty5vhN6xuU0oVyMTQ9ENxG8Wyb2utzOCDrs5gulgXGCajild;'
+    ck = 'guid=45d763d66f8a1e21cea7f9b1aedbbebe58dd7e3bc040f15ca83e875fccfcb16e; pt_key=app_openAAJiqYuSAEDRuA__A6tK47tOg5LStzonkj33X_7R0aDB6xBCYZw2nrSYjTfSWa75VUuSfpRSOsrJk8eS4vZ7E7gcKhrBLWOH; pt_pin=jd_ZW8vrsHz0s57jZk; pwdt_id=jd_ZW8vrsHz0s57jZk; sid=392bc5983122f98dafdda9622dae98dw; pin=jd_ZW8vrsHz0s57jZk;wskey=AAJiHCtRAFDzK3DBRZbGte0raavmaLNSMUnyuzfjbO9j1Knl7wYzGSvz8Q3uNSVnjt6AOjP0pNmWxmFW-4U8xUscpW26vPmJlhHASTJjznsGquo5Y1Lg8w==;'
+    ck = 'guid=c638ee7574571d55b9b272f9b578f98c40e68ec22c31f4ebbda832602e7717b3; pt_key=app_openAAJiqYuTAEDcSDrKEK1FstIFRpTJcMyrRc4sDbNcc8NgVlyJBp6KPkqifzjQ_WlcJmRQm12SpBbby_BEA8EXXxMNobxBxe_3; pt_pin=jd_DoUiY6tydHRrJxb; pwdt_id=jd_DoUiY6tydHRrJxb; sid=79aaefb3989577337b1ee1a899ca331w; pin=jd_DoUiY6tydHRrJxb;wskey=AAJiDI4YAFBNgPdxb1j_UEKipLFNPexZ0iQ-voK5aRMf4G5ZK5pSeCnH6LRkspKuUL0-X1B9TNEUSswMbDPK7Mu1A7df8KZKdX9afSjnRe6-lj2Xvh4WAg==;'
     for i in ck.split(';'):
         if 'pin=' in i:
             user = i.split('=')[1].strip()
-    jd_client = jd(ck, getip_uncheck())
+    # jd_client = jd(ck, getip_uncheck())
+    jd_client = jd(ck)
     # url = 'https://oilcard.m.jd.com/?skuId=200153481018'
-    url = 'https://plogin.m.jd.com/jd-mlogin/static/html/appjmp_blank.html'
-    code, token = jd_client.gen_token(url)
-    print(token)
-    token_url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=' + token
-    code, mck = jd_client.get_mck(token_url)
-    print(mck)
-    jd_client.ck = jd_client.ck + mck
-    print(jd_client.ck)
-    code, order_id, pay_id = jd_client.yk_submit(user, phone, card_id, KLY_505, amount)
+    # url = 'https://plogin.m.jd.com/jd-mlogin/static/html/appjmp_blank.html'
+    # code, token = jd_client.gen_token(url)
+    # print(token)
+    # token_url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=' + token
+    # code, mck = jd_client.get_mck(token_url)
+    # print(mck)
+    # jd_client.ck = jd_client.ck + mck
+    # print(jd_client.ck)
+    # code, order_id, pay_id = jd_client.yk_submit(user, phone, card_id, KLY_505, amount)
+    pay_id = '80069608df2840889746192ccc98f8eb'
     print(pay_id)
     jd_client.pay_index(pay_id)
     code, pay_info = jd_client.sdk_pay(pay_id)

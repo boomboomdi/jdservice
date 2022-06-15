@@ -1,3 +1,5 @@
+from imaplib import Time2Internaldate
+from os import times
 import random
 import requests
 import base64
@@ -94,8 +96,17 @@ def parse_card_info(en_info):
     info_json = json.loads(de_info.replace('[', '').replace(']', ''))
     return info_json['cardNo'], info_json['cardPass']
 
+def time_2_ts(time_str):
+    # 先转换为时间数组
+    timeArray = time.strptime(time_str, "%Y-%m-%d%H:%M:%S")
+    # 转换为时间戳
+    timeStamp = int(time.mktime(timeArray))
+    return timeStamp
+
 if __name__ == '__main__':
     # parse_qrcode('https://qr.m.jd.com/show?appid=133&size=147&t=')
     data = 'BsBfLCzOTlBGoq5gIBRaumf56aJxrurFoDkYKoywLcgJIyRuRlJdmTwqqJ14MAkuJBVWoUctCi8Fq+4pXGi34VxQ2VF287irFgf1hfDcjLBlqx3jlqZ+ppGA/LSZ8fD89OtWnpDhel352bQn77KOQk2ysxtQjCRPIfYA0F9SCU943Vf5H9StfleUMylDQ6Fe'
-    print(parse_card_info(data))
+    # print(parse_card_info(data))
+    a1 = "2022-05-1023:40:00"
+    print(time_2_ts(a1))
     pass

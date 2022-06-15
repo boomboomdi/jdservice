@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import base64
+from distutils.errors import LibError
 import hashlib
 from pydoc import resolve
 import time
@@ -852,8 +853,69 @@ class jd:
             return CK_UNVALUE, None
 
 
+    def xlmy_qb_load(self, skuid):
+        url = 'https://xmlya.m.jd.com/?skuId=' + skuid
+        headers = {
+            'charset': "UTF-8",
+            'user-agent': "okhttp/3.12.1;jdmall;iphone;version/10.3.5;build/92610;",
+            'content-type': "application/x-www-form-urlencoded; charset=UTF-8",
+            'cookie': self.ck
+        }       
+        try:
+            resp = requests.get(url=url, headers=headers, proxies=self.proxy, timeout=4)
+            # print(resp.text)
+        except Exception as e:
+            print(e)
+            return NETWOTK_ERROR, None
+        if resp.status_code == 200:
+            for line in resp.text.split('\n'):
+                if 'repeatKey' in line:
+                    line = line.replace(' ', '').replace('\n', '')
+                    repeat_key = line.replace('<inputtype="hidden"id="repeatKey"value="', '').replace('"/>', '')
+                    print(repeat_key)
+                    return SUCCESS,repeat_key 
+            return CK_UNVALUE, None
 
+    def xmly_qb_submit(self, skuid, repeat_key, amount, qq):
+        url = 'https://xmlya.m.jd.com/submitOrder.action'
+        data = '{"couponIds":"","orderAmount":"' + amount + '.00","payType":"0","brand":"64","skuId":"' + skuid +   \
+            '","dongquanAmount":"","jingquanAmount":"","onlineAmount":"' + amount + '.00","rechargeNum":"' + qq +   \
+                '","repeatKey":"' + '","featureParam":{},"eid":"GKTFQWUAFQT4WWHBFAEWQV3N7B6D7GVPMF6RDXF674E2SRF2UHKKOWUGEZH6PLFQEIRLY6DYGYTJ5FYFW7WQQ63F5Q"}'
+        data = 'submitParam=' + quote(data)
+        headers = {
+            'charset': "UTF-8",
+            'user-agent': "okhttp/3.12.1;jdmall;iphone;version/10.3.5;build/92610;",
+            'content-type': "application/x-www-form-urlencoded; charset=UTF-8",
+            'cookie': self.ck
+        }       
+        try:
+            resp = requests.post(url=url, headers=headers, data=data, proxies=self.proxy, timeout=4)
+            print(resp.text)
+        except Exception as e:
+            print(e)
+            return NETWOTK_ERROR, None
+        if 'orderId' in resp.text:
+            return SUCCESS, resp.json()['orderId']
+        return CK_UNVALUE, None
 
+    def xmly_gopay(self, order_id, amount):
+        url = 'https://xmlya.m.jd.com/goPay.action?orderId=' + order_id + '&onlineAmount=' + amount + '.00'
+        headers = {
+            'charset': "UTF-8",
+            'user-agent': "okhttp/3.12.1;jdmall;iphone;version/10.3.5;build/92610;",
+            'content-type': "application/x-www-form-urlencoded; charset=UTF-8",
+            'cookie': self.ck
+        }       
+        try:
+            resp = requests.get(url=url, headers=headers, proxies=self.proxy, timeout=4)
+        except Exception as e:
+            print(e)
+            return NETWOTK_ERROR, None
+        if resp.status_code == 302:
+            if 'payId' in resp.headers['location']:
+                return SUCCESS, resp.headers['location']
+        else:
+            return CK_UNVALUE, None
 
 
 
@@ -1300,6 +1362,7 @@ if __name__ == '__main__':
 
 
     ck = 'wskey=AAJioezoAECwBP5u00yWw4Wmm1VoGgB6DKaGtp_iF-nnh3LMty5vhN6xuU0oVyMTQ9ENxG8Wyb2utzOCDrs5gulgXGCajild; pin=jd_4d9b500034155;'
+    ck = 'mp=jd_7b6b4d6d0b4bc;  TrackID=1vN4FH6zMhiQVuVxhYz58lTYTVkHiZyPRqTAHY3Ea-fwGWri0FYVTGv10VUCvXaX0dA5S39PcbF113un8NPeOHzXHwIvT88-Uax4bKeFSJdbHgwoD6Gzu0sFGqmFqjofRshWfS-RJ5eLjnVfPme152g;  thor=E7E196E8A12A5CE173405235B9239BDA4C5EFE63D32FC15163BC2AE71D121CC7C871D4390F7718332F9F1DC201A5FE3F548D608FE276529CC728805AAD8EAEA47B2D574F8F039D4895E039000EAA74623413FC1A8EB76DB38E54522D89BADA03CA56F04E9E594102539DAE1D551FE808B5DA6CD70591125E04F086DE519E56C5079850FFBB336446C5520082080A509945CDD9341BF0B6CCA47E55A9C4CDF95A;  pinId=SBr-25ouTZE_8n6hcfrbebV9-x-f3wj7;  pin=jd_7b6b4d6d0b4bc;  unick=jd_7b6b4d6d0b4bc;  _tp=iNluJKUSrG9Estty85fNU%2B70gQrhhPR47VpXn6whI9Y%3D;  _pst=jd_7b6b4d6d0b4bc; pin=jd_7b6b4d6d0b4bc; wskey=AAJiik9kAEBdr2TwInWTnN3Jipm_5cfQmeC9WGnkbrVkScACgyTBgrwkXbooQBbKpIR1UjE4gEwR8ltRD-Pu4c9nFQHpIDAC; pt_pin=jd_7b6b4d6d0b4bc; pt_key=AAJiik9lADCZ4B4g_7nme68g60_4QSEX-9yBJJk2cXW0aGAA8MhC4sCnKyVsKW50XApcjrIlMJ4; unionwsws={"devicefinger":"eidAbcb4812178sbg2crCUSyRlSY7J3VMNsceINnLIow+GfKPl8Q/s4aF200XmwBM9SLz0lNiTCG6Q5SjOWe2wAfRNFNh1+EObxi1jKrfb/sVkNoz1Ra","jmafinger":"lhd7wQWZNVefTprrDLTR3toDMe10RpaIFbIkscMU7CgR7PyQrRbHHeUDhiatJeqQf"}'
     ip = getip_uncheck()
     # ip = None
     jd_client = jd(ck, ip)
@@ -1329,22 +1392,30 @@ if __name__ == '__main__':
     # url = 'https://wqs.jd.com/order/n_detail_jdm.shtml?deal_id=244737756703&sceneval=2&appCode=ms0ca95114'
     # url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=35e63cd8e2759b7b61a352950e199a5be7fd9b33af78959511a3a9e1ba2af6c7fb9c748e5eb8642576f2bf821e57796849575b6380eeee0733a3b398749e879d7468d1105e2aae7f367203b13dcff177'
     # url = 'https://passport.jd.com/new/login.aspx?ReturnUrl=https%3A%2F%2Fwww.jd.com%2Fb'
-    # url = 'https://pay.m.jd.com/cpay/newPay-index.html?appId=jd_m_yxdk&payId=5eee5dd30b520b9e39df8d54a1114a0c'
-
-    # status, token = jd_client.gen_token(url)
-    # pay_url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=' + token 
-    # print(pay_url)
-    # ck = 'pin=jd_uPlHcIlPnyzTnW2; wskey=AAJiogKlAFDDFXsvInK4Vh5L5B1EKEY_RsSjHVwE3Ox_1bLTtzDQdDjhO9rxb1NqyvBdLGhmf47vXkMbtNw-YZfYbJMLyDAPDJAk0mg7XwI4YkoyNr24Mg;'
+    # url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=85ba07a8357daaffe73450b9e5ca00bfebd5562e067c21e082b47a92e971cbeed62c171c87bc4aa79d3cee8cd6e542bc8eaccb975963e8f46aa057c4774c7ecdc1b0c4ab88b7e0928f8872365c7dde35'
+    # url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=b40653a2a42cd78a492916bdb8ce459a48c563c58ceb58b85a2d1772e18858d526cef82354c2cf661474df9c82776427122f64c16e897369932856dd0260db749dad0fe81d042f848ab3f603f57cf109'
+    url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=91cdd3c81ca4eb0e567ae1aa974c0edc26ca3884223ba250dbcfa8810261853e2328b54465304f257d4cf742590d02052b86033b07b653b048611091e50a63b4c1b0c4ab88b7e0928f8872365c7dde35'
+    status, token = jd_client.gen_token(url)
+    pay_url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=' + token 
+    print(pay_url)
+    # ck = 'guid=565a406d6271d4a4978f3c43e5efab123b307323f9a344b981164e268315b531; pt_key=app_openAAJipsscADDBi0pEYaB97guiLrL9sS4v1Un_hPTmgeJMVvb8e-JrqJqcRypjXt8BnnPukPzZfpE; pt_pin=jd_JAAsikWhNxem; pwdt_id=jd_JAAsikWhNxem; sid=24dd47f9d082bae65366f9162a08f25w; pin=jd_JAAsikWhNxem;wskey=AAJifdadAEDOi_tzRdBaoHUkiHDqm5lJpibdiz98f8DprVM33w816q7fYHgQRPVz4LGtGbMrrE2oD6shp6Blg01K13CA64Q0;'
     # create_order_appstore(ck, '100', getip_uncheck())
-
+    # jd_client = jd(ck, ip)
+    # amount = '105'
+    # code, repeat_key = jd_client.xlmy_qb_load('200145365539')
+    # print(repeat_key)
+    # code, order_id = jd_client.xmly_qb_submit(skuid, repeat_key, amount, '780776614')
+    # print(order_id)
+    # code, pay_id = jd_client.xmly_gopay(order_id, amount)
+    # print(pay_id)
     # code, order_id, pay_id = jd_client.yk_submit(user, phone, card_id, id)
     # order_id = ''
-    order_id = '244739200888'
-    code, pay_id = jd_client.gen_app_payid(order_id, '22', amount)
+    # order_id = '244739200888'
+    # code, pay_id = jd_client.gen_app_payid(order_id, '22', amount)
     # pay_id = '49f7294cc42642e08a815b29f995fd8e'
-    jd_client.pay_index(pay_id)
-    pay_url = jd_client.weixin_pay(pay_id)
-    print(pay_url)
+    # jd_client.pay_index(pay_id)
+    # pay_url = jd_client.weixin_pay(pay_id)
+    # print(pay_url)
     # jd_client.
     # code, pay_url = jd_client.df_pay(pay_id)
     # if code != SUCCESS:
