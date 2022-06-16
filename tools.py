@@ -103,10 +103,26 @@ def time_2_ts(time_str):
     timeStamp = int(time.mktime(timeArray))
     return timeStamp
 
+def get_ipinfo(ip):
+    url = 'https://ip.taobao.com/outGetIpInfo'
+    head = {
+        'content-type': 'application/x-www-form-urlencoded',
+        'referer': 'https://ip.taobao.com/ipSearch',
+        'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.60 Safari/537.36'
+    }
+    data = 'ip=' + ip + '&accessKey=alibaba-inc'
+    res = requests.post(url=url, headers=head, data=data)
+    if res.status_code == 200:
+        if 'query success' in res.text:
+            return res.json()['data']['region'], res.json()['data']['city']
+        return None, None
+    return None, None
+
 if __name__ == '__main__':
     # parse_qrcode('https://qr.m.jd.com/show?appid=133&size=147&t=')
     data = 'BsBfLCzOTlBGoq5gIBRaumf56aJxrurFoDkYKoywLcgJIyRuRlJdmTwqqJ14MAkuJBVWoUctCi8Fq+4pXGi34VxQ2VF287irFgf1hfDcjLBlqx3jlqZ+ppGA/LSZ8fD89OtWnpDhel352bQn77KOQk2ysxtQjCRPIfYA0F9SCU943Vf5H9StfleUMylDQ6Fe'
     # print(parse_card_info(data))
     a1 = "2022-05-1023:40:00"
-    print(time_2_ts(a1))
-    pass
+    # print(time_2_ts(a1))
+    # pass
+    print(get_ipinfo('223.83.132.229'))
