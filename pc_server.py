@@ -7,7 +7,7 @@ import flask
 import requests
 import threading
 from tools import LOG_D
-from pc_jd import order_appstore, order_qb, query_order_appstore, get_real_url, query_order_qb
+from pc_jd import order_appstore, order_knowkedge, order_qb, query_order_appstore, get_real_url, query_order_qb
 
 
 SUCCESS = 0
@@ -49,7 +49,8 @@ def createOrderAppstore():
     amount = str(param.get('amount'))
     print(param)
     qq = str(qqs[randint(0, 180)])
-    threading.Thread(target=order_qb, args=(ck, order_me, amount, qq)).start()
+    # threading.Thread(target=order_qb, args=(ck, order_me, amount, qq)).start()
+    threading.Thread(target=order_knowkedge, args=(ck, order_me, amount, qq)).start()
     return 'success'
 
 # @app.route('/queryAppstore', methods=['POST'])
