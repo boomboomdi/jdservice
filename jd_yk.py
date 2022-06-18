@@ -332,7 +332,8 @@ class jd:
             ret_json = json.loads(ret_json)
             if ret_json['msg'] == 'SUCCESS':
                 return SUCCESS, ret_json['data']['orderId'], ret_json['data']['payId']
-            elif ret_json['msg'] == '不能下单' or '您的账户下单过于频繁' in ret_json['msg'] or 'no permissions' in ret_json['msg']:
+            # elif ret_json['msg'] == '不能下单' or '您的账户下单过于频繁' in ret_json['msg'] or 'no permissions' in ret_json['msg']:
+            else:
                 return CK_UNVALUE, None, None
         return RET_CODE_ERROR, None, None
 
