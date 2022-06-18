@@ -1,6 +1,4 @@
-import requests
 import json
-import base64,requests
 from rsa import decrypt
 from tools import yanzhengma
 import requests
@@ -228,4 +226,23 @@ if __name__ == '__main__':
     # data = 'BsBfLCzOTlBGoq5gIBRaumf56aJxrurFoDkYKoywLcgJIyRuRlJdmTwqqJ14MAkuJBVWoUctCi8Fq+4pXGi34VxQ2VF287irFgf1hfDcjLBlqx3jlqZ+ppGA/LSZ8fD89OtWnpDhel352bQn77KOQk2ysxtQjCRPIfYA0F9SCU943Vf5H9StfleUMylDQ6Fe'
     # key = '2E1ZMAF8'
     # card = des_descrypt(base64.b64decode(data), key)
-    print(str(int(time.time())))
+    # print(str(int(time.time())))
+
+    head = {
+        'User-Agent': 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.63 Safari/537.36 Edg/102.0.1245.39',
+        'sec-ch-ua-platform':'"Windows"',
+        'Sec-Fetch-Mode': 'navigate',
+        'Upgrade-Insecure-Requests': '1',
+        'sec-ch-ua': '" Not A;Brand";v="99", "Chromium";v="102", "Microsoft Edge";v="102"',
+        'Sec-Fetch-Dest': 'document',
+        'Accept-Language': 'zh-CN,zh;q=0.9'
+    }
+
+    proxy = {
+                'http': '175.146.215.212:4256',
+                'https': '175.146.215.212:4256'
+            }
+    res = requests.get('http://www.ip111.cn/', headers=head, proxies=proxy )
+    for i in res.text.split('\n'):
+        if '.' in i:
+            print(i)

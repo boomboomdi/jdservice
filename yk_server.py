@@ -8,7 +8,7 @@ import requests
 import threading
 from tools import LOG_D
 from pc_jd import order_appstore, order_knowkedge, order_qb, query_order_appstore, get_real_url, query_order_qb
-from jd_yk import order_ios, real_url, query_order
+from jd_yk import order_ios, real_url, query_order, query_order_im
 
 
 SUCCESS = 0
@@ -51,8 +51,8 @@ def createOrderAppstore():
     print(param)
     qq = str(qqs[randint(0, 180)])
     # threading.Thread(target=order_qb, args=(ck, order_me, amount, qq)).start()
-    phone = '133' + str(int(time()))[0:8]
-    card_id = '100011320003' + str(int(time()))[0:7]
+    phone = '135' + str(randint(10000000, 99999999))
+    card_id = '100011320003' + str(randint(1000000, 9999999))
     threading.Thread(target=order_ios, args=(ck, order_me, amount, card_id, phone)).start()
     return 'success'
 
@@ -79,7 +79,7 @@ def queryAppstore():
     amount = str(param.get('amount'))
     print(param)
     print('========')
-    threading.Thread(target=query_order_qb, args=(ck, order_me, order_pay, amount)).start()
+    threading.Thread(target=query_order, args=(ck, order_me, order_pay, amount)).start()
     return "success"
 
 
@@ -93,8 +93,7 @@ def queryAppstoreImmediate():
     amount = str(param.get('amount'))
     print(param)
     print('========')
-    threading.Thread(target=query_order_appstore, args=(ck, order_me, order_pay, amount)).start()
-    return "success"
+    return query_order_im(ck, order_me, order_pay, amount)
 
 @app.route('/getRealurl', methods=['POST'])
 def getRealurl():

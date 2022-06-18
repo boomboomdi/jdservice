@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import base64
 import hashlib
+from random import randint
 import time
 from urllib.parse import urlencode
 from urllib.parse import quote
@@ -458,7 +459,7 @@ class jd:
             for line in resp.text.split('\n'):
                 if 'fr red f-s-26' in line:
                     print(line)
-                    if '充值成功' in line or '完成' in line:
+                    if '充值成功' in line or '完成' in line or '正在充值' in line:
                         return SUCCESS, True
         return SUCCESS, False
 
@@ -766,6 +767,51 @@ def query_order(ck, order_me, order_no, amount):
         i += 1
 
 
+
+def query_order_im(ck, order_me, order_no, amount):
+    result = {
+        'check_status': '1',
+        'pay_status': '0',
+        'ck_status': '1',
+        'time': str(int(time.time())),
+        'order_me': order_me,
+        'order_pay': order_no,
+        'amount': amount,
+        'card_name': '',
+        'card_password': ''
+    }
+    account = tools.get_jd_account(ck)
+    tools.LOG_D(account)
+    proxy = ip_sql().search_ip(account)
+    tools.LOG_D(proxy)
+    if proxy == None:
+        proxy = tools.getip_uncheck()
+        ip_sql().delete_ip(account)
+        ip_sql().insert_ip(account, proxy)
+    for i in range(3):
+        code, status = query_order_status(ck, order_no, proxy)
+        if code == SUCCESS:
+            if status == True:
+                result['pay_status'] = '1'
+                result['card_name'] = 'QB' + str(time.time()).replace('.', '')
+                result['card_password'] = 'QB' + str(time.time()).replace('.', '')
+                result = json.dumps(result)
+                return result
+            else:
+                result = json.dumps(result)
+                return result
+        elif code == NETWOTK_ERROR:
+            proxy = tools.getip_uncheck()
+            ip_sql().update_ip(account, proxy)
+        elif code == CK_UNVALUE:
+            result['ck_status'] = '0'
+            result = json.dumps(result)
+            return result
+        i += 1
+
+
+
+
 def get_real_url(ck, pay_id, proxy):
     jd_client = jd(ck, proxy)
     code, pay_info = jd_client.sdk_pay(pay_id)
@@ -819,9 +865,9 @@ if __name__ == '__main__':
     good_id_309 = '10045399054885'
 
 
-    phone = '133' + str(int(time.time()))[0:8]
+    phone = '135' + str(randint(10000000, 99999999))
     amount = '1010'
-    card_id = '100011320003' + str(int(time.time()))[0:7]
+    card_id = '100011320003' + str(randint(1000000, 9999999))
     sku_id = '200153481018'
 
     # code, order_id, pay_id = jd_client.yk_submit(user, phone, card_id, id)
@@ -870,14 +916,25 @@ if __name__ == '__main__':
     # ck = 'pin=jd_EDyFZMGcbHRb;wskey=AAJh3l0UAEAFvaH8HQqSSDv5b-iWmV_l7Cv0fXcVB9vyga3-evLgrKbepfwx-G0rkcFIAhMj4zWEtVhCOYlBXi88_g5renRj;'
     ck = 'pin=jd_yGyNCNVqgDiW; wskey=AAJh3lBPAEDD22Sc7xaZ-ksuhz9HU2lBu4lbgxBpzCqdleLnK4e8SP15hEXk2xhXTALb7qN8AK4LvKa3UvNMghhkL27O8evz;'
     ck = 'pin=jd_fSLLMmbmzzfJ; wskey=AAJh3lGDAEBTfj4bRDiikbrehybIOS7y-OZ99zTpb3ZFaB8TJHeQVfeVUexL2uj2U0Sh7RhXcEeTcswnS1Jn8DUT3ORJv7Xt; '
+    ck = 'pin=jd_kPBVOWEypCCr;wskey=AAJhxnZNAEDfW1Aq_-IJgLA5V-Y_splmupBCNbZ5gVR-ICaZayT9oyIyfzB3-YrjyfWU9gbcMBJ-jvD575Su_Ln8UGSAPa6V;'
+    ck = 'pin=jd_vAdOaEdzVFdp; wskey=AAJghPQQAECZ95_rmo_6RpOu-lVJEB8wWeFrxTBFmo2bOWYqXt0N3EbKijwkRZHAdTaLwe9vDnKW5bGvzhjjmw5YpbUbqUgD; '
+    ck = 'pin=jd_AdxjztAlWBiK; wskey=AAJggPxwAED45Vc7FG7sA1oX-h-x3vbeasgt8OREDXfCu8_Hy276YU-w4whW-iOHUgFipHDXbt7OEEDERzDuVqxdK3vnlIWz; '
+    ck = 'pin=jd_uhxsgNHizwij; wskey=AAJgruWxAEBJkkFuuyWTIHLIDK4w08oDJXuURqSQh0ohqQMuVuF9ngWMCUaIVo_OKwNrt-12W8AnwOL4PoTS_ukQRzb30uUG; '
+    ck = 'guid=66935036fe54f7ffa8696fa4ca99b8fb9ae361e147ea15a7fc1b1dc1b68b9660; pt_key=app_openAAJirdXIADDlPAGY1ruV9qOWcTv5-NFrxiVDYP2Zk89dvC9N8fMAY09e_nFQ0cP6WowlQ24p3bc; pt_pin=jd_uhxsgNHizwij; pwdt_id=jd_uhxsgNHizwij; sid=09c85b3453ce1986e6006c53e2b025dw; pin=jd_uhxsgNHizwij; wskey=AAJgruWxAEBJkkFuuyWTIHLIDK4w08oDJXuURqSQh0ohqQMuVuF9ngWMCUaIVo_OKwNrt-12W8AnwOL4PoTS_ukQRzb30uUG'
+    ck = 'pin=jd_KHhDrLYdVpae;wskey=AAJhxngvAEDtn1Cc1-UHSI07s3YcIcmDqrntC49bCEnENHKioocxad0dyJPYUDqzB6De_IRu9VpUPASrIW1VbaJ-Fep1lS2i;'
+    ck = 'guid=66935036fe54f7ffa8696fa4ca99b8fb9ae361e147ea15a7fc1b1dc1b68b9660; pt_key=app_openAAJirdXIADDlPAGY1ruV9qOWcTv5-NFrxiVDYP2Zk89dvC9N8fMAY09e_nFQ0cP6WowlQ24p3bc; pt_pin=jd_uhxsgNHizwij; pwdt_id=jd_uhxsgNHizwij; sid=09c85b3453ce1986e6006c53e2b025dw; pin=jd_uhxsgNHizwij; wskey=AAJgruWxAEBJkkFuuyWTIHLIDK4w08oDJXuURqSQh0ohqQMuVuF9ngWMCUaIVo_OKwNrt-12W8AnwOL4PoTS_ukQRzb30uUG;'
+    ck = 'pin=jd_qRbyYLMFypuh;wskey=AAJhxqPrAEA21VR1OrpjsE9BxEL5d6-LngjXHN6f6cFVr4LY98t_jaXIluw4ni0Zbvc1ECj51CEGXb792ReU6b37vFgyW1_J;'
+    ck = 'pin=jd_pWXGDEMeiZLg;wskey=AAJhxnmrAED8UbqJx-aoP9oNEDuN7M6flU21ujd0TqR1FKV_EgqUMdUPR7_k0egI3-xN5HutEbuz553ZzP7ssDn-ocjD5gsS;'
+    # ck = 'guid=4147664d2d6900ff55c7a82810cf07172ed04c2c6d6a64f91dfdbf6d0aa44c34; pt_key=app_openAAJirdXkADCR9VzgCJ0OJj8-gUsr5CNAir64bG6NprH7MY50Jf0g-WpORUiy0borupQhh0W5sXo; pt_pin=jd_RTHfJGApbDPj; pwdt_id=jd_RTHfJGApbDPj; sid=9ae11f4b9ddcaf03b08805da425a804w; thor1=; wq_skey=; pin=jd_RTHfJGApbDPj;wskey=AAJhxmK3AEAhdaT8TWoIKtg1hCOVPMgJMRLRCOEcwYxORKFlbw4pLTTT_W4s-A8BCH3EDeOak5qqw62x6RM69It0z64zwE7G;'
     for i in ck.split(';'):
         if 'pin=' in i:
             user = i.split('=')[1].strip()
-    # jd_client = jd(ck, getip_uncheck())
+    jd_client = jd(ck, getip_uncheck())
     # jd_client.delete_order('245016422034')
     # jd_client.wait_pay('1010')
 
-
+    # print(card_id)
+    # print(phone)
     # code, order_id, pay_id = jd_client.yk_submit(user, phone, card_id, KLY_505, amount)
     # print(order_id)
     # pay_id = '1ed2bff7519b4a0c97e176a640a22342'
@@ -889,5 +946,10 @@ if __name__ == '__main__':
     # print(create_sdk_pay(user, ck, KLY_505, card_id, amount))
     # pay_id = '78d5ba906c604e4a805d77bdb45fd315'
     # print(real_url(ck, pay_id))
-    # query_order(ck, '', '245015155577', '505')
-    print(order_ios(ck, '', '505', card_id, phone))
+    # ck = 'pin=jd_lzFrcmurRwaM;wskey=AAJhxn6pAECXSZ1eqbF_Odv-JDVIUJVuKpm57sRT6ZO7wFRztU0y0bR3wS0Op64SkYeGxOE3qaxcF7K4Q9UrC7VCfeLMtVpR;'
+    ck = 'pin=jd_WvIBKXNckmRW;wskey=AAJhxnxtAECdwgdPGP9J1AuNUzvIxGZO4s5q3ENTp48gl2qTtcD_KCDUfN0FhUhIkkUed-HNKsjtseuI9DRwgXhI6Y1-jYq5;'
+    ck = 'pin=jd_DeVbYnTNAZyK;wskey=AAJhxomgAEDyaw0-nF8UbJ3FuJUq--_6oj4phD4aUHBdWbsr6IkgA6rBsVQmO7uILvpngwM7nkL0rk01-LZ0mG7_D73w0S9O; '
+    ck = 'pin=jd_jUAIgWbMwdOf;wskey=AAJhxo-iAEB8UAFEsDFiY6YZazbe7Qo-SvRKWU2eyc36xt8rLvzhEle7sbOiJnUMFst3HQYYBed-bxWuIC8V_7u0LleR_IgB;'
+    ck = 'pin=jd_bMfNvswgRZFO;wskey=AAJhxoRkAEDMTtTyBFlCHhtB7F6XqJmloNePUca2nzWL0QaODLb2sytkdDjxx8mucwuhUL_B6IQoTjIdt4YrNvq6Yt2NI2TV'
+    query_order(ck, '', '248925665512', '205')
+    # print(order_ios(ck, '', '505', card_id, phone))
