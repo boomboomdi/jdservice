@@ -1,195 +1,125 @@
 # -*- coding: utf-8 -*-#
-import json
-import base64
+from random import randint
+from time import sleep, time
 from urllib.parse import quote
-from flask import Flask, make_response
+from flask import Flask, session
 import flask
 import requests
-from callback_jdsb import callback_task
-from jd_yk import create_order
-
-SUCCESS = 1
-WEB_CK_UNVALUE = 2
-CK_UNVALUE = 3
-CK_PAY_FAIL = 4
-NETWOTK_ERROR = 5
-RET_CODE_ERROR = 6
-CK_NO_ADDRESS = 7
-
-def sdk2_android(ali_param):
-    param = {
-        'external_info': ali_param,
-        'sourcePid': '1',
-        'session': '',
-        'pkgName': 'com.ss.android.ugc.aweme'
-    }
-    pay_url = 'alipays://platformapi/startapp?appId=20000125&mqpSchemePay=' +   \
-        quote(str(base64.b64encode(bytes(json.dumps(param), 'utf-8')), 'utf-8'))
-    print(pay_url)
-    return pay_url
-
-def sdk2_ios(ali_param):
-    param = {
-        'requestType': 'SafePay',
-        'fromAppUrlScheme': 'alipays',
-        'dataString': ali_param
-    }
-    return "alipaymatrixbwf0cml3://alipayclient/?" + quote(json.dumps(param))
-
-GOOD_IDS = {
-    '1': {
-        '5000':'3'
-    },
-    '2':{
-        '1000':'7'
-    },
-    '3':{
-        '1000':'13'
-    }
-}
-
-def get_proxy():
-    url = 'http://webapi.http.zhimacangku.com/getip?num=1&type=1&pro=&city=0&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=&username=chukou01&spec=1'
-    return requests.get(url).text.strip()
-
-def check_proxy(ip):
-    proxy = {
-        'http': ip,
-        'https': ip
-    }
-    try:
-        res = requests.get('http://www.baidu.com', proxies=proxy, timeout=3)
-        if res.status_code == 200:
-            return True
-        return False
-    except Exception:
-        return False
-
-def test_proxy(ip):
-    url = 'http://2021.ip138.com'
-    proxy = {
-        'http': ip,
-        'https': ip
-    }
-    head = {
-        'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Safari/537.36 Edg/94.0.992.31',
-        'Referer':'https://www.ip138.com/'
-    }
-    res = requests.get(url, headers=head, proxies=proxy)
-    print(res.text)
-
-def update_proxy(ck, proxy):
-    pass
-
-def update_ck_status(account, code):
-    print('======== update_ck_status =========')
-    url = 'http://175.178.150.157:9666/api/get/updateAccountState?account=' + str(account) + '&state=' + str(code)
-    head = {
-        'Content-Type': 'application/x-www-form-urlencoded',
-    }
-    print(url)
-    res = requests.get(url, headers=head)
-    print(res.text)
+import threading
+from tools import LOG_D
+from pc_jd import order_appstore, order_knowkedge, order_qb, query_order_appstore, get_real_url, query_order_qb
+from jd_yk import order_ios, real_url, query_order
 
 
-    pass
+SUCCESS = 0
+CK_UNABLE = 1
+NET_ERROR = 2
+CODE_ERROR = 3
 
+PHONE = 0
+ORDER_NO = 1
 
-app = Flask(__name__)
-# 
+qqs = [947705958, 947743456, 952458479, 947570644, 2605711095, 1994816316, 1208559244, 1208620725, 1207350251, 1125689908, 1206655847, 2235241725, 1020353698, 1060648356, 1019166513, 1060697875, 1127855236, 1207295299, 1016856692, 1204321547, 1059805332, 1014971894, 1014663878, 1014700394, 1016757488, 1016923555, 1017906219, 1019504222, 1019572118, 1020276438, 1131496551, 1020350745, 1059922045, 1060034285, 1060041759, 1060875383, 1060517237, 1060566552, 1060612899, 1014517277, 1060747539, 1060755845, 1018560611, 1125294666, 1125380405, 1125424555, 1125457784, 1125874180, 1015069805, 1127054482, 1127245846, 1127443830, 1016011723, 1127609000, 1060039843, 1127659529, 1127794777, 1204248772, 1127875111, 1131010444, 1131384627, 1060068426, 1131547253, 1021072333, 1060875092, 1204168988, 1204285035, 1205306795, 1207342573, 1208705617, 1207618757, 1060271681, 1207403513, 1060189289, 1363151385, 1749425086, 1748362369, 2238862031, 1020134241, 1127376555, 1207631772, 2205561709, 1208927421, 1293871194, 1293879945, 1284073013, 1284072849, 1284072851, 1284072767, 1292913861, 1284073065, 1284073060, 1284073018, 1284072954, 1284073067, 1293685062, 1292778396, 1209399014, 1284072833, 1293522869, 1291948564, 1291806458, 1291516612, 1284072938, 1284073078, 1284072932, 1284073066, 1284072947, 1284072830, 1284072928, 1127440684, 1206636065, 1210749101, 1391552476, 1294497297, 1295244985, 1394330367, 1394843689, 1394493540, 1395339265, 1400508380, 1400553280, 1397582570, 1400366722, 1295281714, 1293889695, 1060247523, 1295407806, 1393402391, 1444345509, 1284072802, 1284072823, 1059863225, 1284072831, 1294429779, 1391565464, 1295438669, 1295576193, 1295805895, 1391098774, 1391994472, 1394323123, 1391212174, 1391935490, 1392059406, 1482502080, 1482542150, 1492589607, 1493345164, 1493691294, 1473645771, 1749949814, 1750078515, 1750263110, 1750326903, 1750506893, 1750582431, 1750962734, 1750987193, 1751325637, 1751361695, 1751688539, 1753226005, 1756107324, 1756636392, 1761709874, 1768331289, 2267147506, 2281798362, 2316693149, 2328978624, 2375199817, 239227256, 2394512197, 994904960, 997279711, 755685909, 2322630974, 2353901021, 1727560100, 761842512, 2359852270, 1295829327, 2283120754, 1502478914, 1494600634, 2275034125, 1296930517, 1410222384, 1285894044, 1105477009, 1151699805, 1405363135, 1023481175, 1021669630, 1021738629, 1063757504, 1064125872, 1064090266, 1063986423]
+
+app = Flask('app')
+
 @app.route('/test', methods=['GET'])
 def index():
     a = flask.request.args.get('a')
     b = flask.request.args.get('b')
     return a + b
 
-@app.route('/createYkOrder', methods=['POST'])
-def createOrder():
-    param = flask.request.get_json()
-    ck = param.get('ck')
-    amount = param.get('amount')
-    account = param.get('account')
-    skuid = param.get('skuid')
-    card_id = param.get('cardId')
-    phone_type = param.get('phoneType')
-    print(ck)
-    print(amount)
-    print(account)
-    print(skuid)
-    print(card_id)
-    code, pay_url, order_id = create_order(account, ck, skuid, card_id, amount, phone_type)
-    if code == SUCCESS:
-        order_info = {
-            'payUrl': pay_url,
-            'orderNo': order_id,
-            'amount': amount
-        }
-        return json.dumps(order_info)
-    elif code != NETWOTK_ERROR and code != RET_CODE_ERROR:
-        update_ck_status(account, code)
-        order_info = {
-            'payUrl': 'error',
-            'orderNo': '',
-            'amount': ''
-        }
-        return json.dumps(order_info)
-    elif code == NETWOTK_ERROR:
-        print('!!!!!!!!!!! ip proxy error !!!!!!!!')
-
-    # order_info = {
-    #     'pay_url': '',
-    #     'dy_order_no': '',
-    #     'phone_type': phone_type,
-    #     'amount': amount
-    # }
-    # order_info['pay_url'] = 'alipays://platformapi/startapp?appId=20000125&mqpSchemePay=eyJleHRlcm5hbF9pbmZvIjogImFsaXBheV9zZGs9YWxpcGF5LWVhc3lzZGstamF2YSZhcHBfaWQ9MjAyMTAwMjExODY5MTAyNiZiaXpfY29udGVudD0lN0IlMjJib2R5JTIyJTNBJTIyJUU4JUFGJTlEJUU4JUI0JUI5JUU1JTg1JTg1JUU1JTgwJUJDKzUwJUU1JTg1JTgzJTIyJTJDJTIyYnVzaW5lc3NfcGFyYW1zJTIyJTNBJTIyJTdCJTVDJTIybWNDcmVhdGVUcmFkZUlwJTVDJTIyJTNBJTVDJTIyMS42OC4xNjMuMTU5JTVDJTIyJTJDJTVDJTIyb3V0VHJhZGVSaXNrSW5mbyU1QyUyMiUzQSU1QyUyMiU3QiU1QyU1QyU1QyUyMm1jQ3JlYXRlVHJhZGVUaW1lJTVDJTVDJTVDJTIyJTNBJTVDJTVDJTVDJTIyMjAyMi0wMS0xOCsyMiUzQTI5JTNBMjUlNUMlNUMlNUMlMjIlN0QlNUMlMjIlN0QlMjIlMkMlMjJleHRlbmRfcGFyYW1zJTIyJTNBJTdCJTIyc3BlY2lmaWVkX3NlbGxlcl9uYW1lJTIyJTNBJTIyJTIyJTdEJTJDJTIyb3V0X3RyYWRlX25vJTIyJTNBJTIyMTIyMDExODAzMzg1NjMxMDM4MjQlMjIlMkMlMjJwcm9kdWN0X2NvZGUlMjIlM0ElMjJRVUlDS19NU0VDVVJJVFlfUEFZJTIyJTJDJTIyc2VsbGVyX2lkJTIyJTNBJTIyMjA4ODA0MTMxNzk3MDY2MiUyMiUyQyUyMnN1YmplY3QlMjIlM0ElMjIlRTglQUYlOUQlRTglQjQlQjklRTUlODUlODUlRTUlODAlQkMrNTAlRTUlODUlODMlMjIlMkMlMjJ0aW1lX2V4cGlyZSUyMiUzQSUyMjIwMjItMDEtMTgrMjIlM0E1OSUzQTI0JTIyJTJDJTIydG90YWxfYW1vdW50JTIyJTNBJTIyNTAuMDAlMjIlN0QmY2hhcnNldD11dGYtOCZmb3JtYXQ9anNvbiZtZXRob2Q9YWxpcGF5LnRyYWRlLmFwcC5wYXkmbm90aWZ5X3VybD1odHRwcyUzQSUyRiUyRmFwaS1jcGMuc25zc2RrLmNvbSUyRmdhdGV3YXklMkZwYXltZW50JTJGY2FsbGJhY2slMkZhbGlwYXklMkZub3RpZnklMkZwYXkmc2lnbj1ZMnRFNktZM2VsTE8zMjdSak1ZNHhqVkUzemJjTkQyV3ZDZno4eEJHMnEzd1BEN3p6dnhMeTJSUXVIbDJIYVJ6WHBrbmVHMDhxNVVPMHNhdHlTWVZxYU5VUTBjRThudmlBYjBQVGs0dHJxbHVkRGZqU3IyUHVLTjI0c3pIZ215Y2w2T1ZXQ3c5eERldG5nbnpWNTkycVhNazA3ZVN0MXBraTRDeXpYJTJCclVrR05rVXdoMkQ4bHRhZEY2cWFFQkNSJTJCaVFIZEtyMjVEM3J0b2JPUjlhWUV0WXNSTHclMkY0WFZvc1pRbTJNc1kydzJTT1VPVE9HcjhzMiUyQllTRiUyQnpTS1BEOFZLM0VPMGVxZUhRTHZNSHJrcmpwWklmZ1klMkZJV1M1cHVhcXJYOTR5MU1qaEN1UFhIbFJqWHd4MmlpeXpSYmFvQ3dlbGdsTGlxcG9oc0pkJTJCJTJCSGcwazB3JTNEJTNEJnNpZ25fdHlwZT1SU0EyJnRpbWVzdGFtcD0yMDIyLTAxLTE4KzIyJTNBMjklM0EyNSZ2ZXJzaW9uPTEuMCIsICJzb3VyY2VQaWQiOiAiMSIsICJzZXNzaW9uIjogIiIsICJwa2dOYW1lIjogImNvbS5zcy5hbmRyb2lkLnVnYy5hd2VtZSJ9'
-    # order_info['dy_order_no'] = 'SP2022011822324539616394314226'
-    # return json.dumps(order_info)
-
-    # proxy_ip = get_proxy()
-    # if not check_proxy(proxy_ip):
-    #     print('================== proxy_ip error', proxy_ip)
-    #     return False, None
-    # print('================== use ip', proxy_ip)
-    # good_id = GOOD_IDS[channel][amount]
-    # huafei = dy_huafei(ck, proxy_ip)
-    # status = huafei.mobile_plan(phone_num)
-    # if status != SUCCESS:
-    #     return handle_failed(status)
-    # status, param = huafei.mobile_order_create(phone_num, amount, good_id)
-    # if status != SUCCESS:
-    #     return handle_failed(status)
-    # status, app_id, tp_log_id, trade_no, process, promotion_process, risk_info = huafei.trade_create(param)
-    # if status != SUCCESS:
-    #     return handle_failed(status)
-    # status, ali_param = huafei.trade_confirm(app_id, tp_log_id, trade_no, process, promotion_process, risk_info)
-    # if status != SUCCESS:
-    #     return handle_failed(status)
-    # if phone_type == OS_ANDROID:
-    #     order_info['pay_url'] = sdk2_android(ali_param)
-    # elif phone_type == OS_IOS:
-    #     order_info['pay_url'] = sdk2_ios(ali_param)
-    # order_info['dy_order_no'] = trade_no
-    # return json.dumps(order_info)
-
-
-# @app.route('/query', methods=['POST'])
-# def query_order():
-#     print('==== create_order ====')
+# @app.route('/createOrderAppstore', methods=['POST'])
+# def createOrderAppstore():
 #     param = flask.request.get_json()
+#     ck = str(param.get('cookie'))
+#     ck = ck.encode("utf-8").decode("latin1")
+#     order_me = str(param.get('order_me'))
+#     amount = str(param.get('amount'))
 #     print(param)
-#     ck = param.get('ck')
-#     dy_order_no = param.get('dy_order_no')
-#     proxy_ip = get_proxy()
-#     if not check_proxy(proxy_ip):
-#         return False, None
-#     print('use ip', proxy_ip)
-#     huafei = dy_huafei(ck, proxy_ip)
-#     return huafei.query_order()
+#     threading.Thread(target=order_appstore, args=(ck, order_me, amount)).start()
+#     return 'success'
+    # return '{"code": 0, "msg": "SUCCESS", "data": {"phone": "' + phone + '", "amount": 469.19}, "sign": "488864C0AB51AEA0AF551074446FBCEC"}'
+
+@app.route('/createOrderAppstore', methods=['POST'])
+def createOrderAppstore():
+    param = flask.request.get_json()
+    ck = str(param.get('cookie'))
+    ck = ck.encode("utf-8").decode("latin1")
+    order_me = str(param.get('order_me'))
+    amount = str(param.get('amount'))
+    print(param)
+    qq = str(qqs[randint(0, 180)])
+    # threading.Thread(target=order_qb, args=(ck, order_me, amount, qq)).start()
+    phone = '133' + str(int(time()))[0:8]
+    card_id = '100011320003' + str(int(time()))[0:7]
+    threading.Thread(target=order_ios, args=(ck, order_me, amount, card_id, phone)).start()
+    return 'success'
+
+# @app.route('/queryAppstore', methods=['POST'])
+# def queryAppstore():
+#     param = flask.request.get_json()
+#     ck = str(param.get('cookie'))
+#     ck = ck.encode("utf-8").decode("latin1")
+#     order_me = str(param.get('order_me'))
+#     order_pay = str(param.get('order_pay'))
+#     amount = str(param.get('amount'))
+#     print(param)
+#     print('========')
+#     threading.Thread(target=query_order_appstore, args=(ck, order_me, order_pay, amount)).start()
+#     return "success"
+
+@app.route('/queryAppstore', methods=['POST'])
+def queryAppstore():
+    param = flask.request.get_json()
+    ck = str(param.get('cookie'))
+    ck = ck.encode("utf-8").decode("latin1")
+    order_me = str(param.get('order_me'))
+    order_pay = str(param.get('order_pay'))
+    amount = str(param.get('amount'))
+    print(param)
+    print('========')
+    threading.Thread(target=query_order_qb, args=(ck, order_me, order_pay, amount)).start()
+    return "success"
+
+
+@app.route('/queryAppstoreImmediate', methods=['POST'])
+def queryAppstoreImmediate():
+    param = flask.request.get_json()
+    ck = str(param.get('cookie'))
+    ck = ck.encode("utf-8").decode("latin1")
+    order_me = str(param.get('order_me'))
+    order_pay = str(param.get('order_pay'))
+    amount = str(param.get('amount'))
+    print(param)
+    print('========')
+    threading.Thread(target=query_order_appstore, args=(ck, order_me, order_pay, amount)).start()
+    return "success"
+
+@app.route('/getRealurl', methods=['POST'])
+def getRealurl():
+    param = flask.request.get_json()
+    print('========')
+    print(param)
+    ck = str(param.get('cookie'))
+    ck = ck.encode("utf-8").decode("latin1")
+    url = str(param.get('qr_url'))
+    os = str(param.get('os'))
+    if os == 'android':
+        return real_url(ck, url)
+    elif os == 'ios':
+        return real_url(ck, url)
+
+@app.route('/callBackDv', methods=['POST'])
+def callBackDv():
+    param = flask.request.get_json()
+    print('callback dv:', param)
+    return "success"
 
 
 if __name__ == '__main__':
+    # threading.Thread(target=query_task).start()
+    # app.debug = False
     app.debug = True
-    app.run(port=23946)
-    # update_ck_status('jd_uPvFzRIHqogg', SUCCESS)
+    app.run(port=23942)
 

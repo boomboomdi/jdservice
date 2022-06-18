@@ -97,12 +97,16 @@ def queryAppstoreImmediate():
 @app.route('/getRealurl', methods=['POST'])
 def getRealurl():
     param = flask.request.get_json()
+    print('========')
+    print(param)
     ck = str(param.get('cookie'))
     ck = ck.encode("utf-8").decode("latin1")
     url = str(param.get('qr_url'))
-    print(param)
-    print('========')
-    return get_real_url(ck, url)
+    os = str(param.get('os'))
+    if os == 'android':
+        return get_real_url(ck, url)
+    elif os == 'ios':
+        return get_real_url(ck, url)
 
 @app.route('/callBackDv', methods=['POST'])
 def callBackDv():
