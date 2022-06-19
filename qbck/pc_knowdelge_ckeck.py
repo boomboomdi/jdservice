@@ -1,9 +1,10 @@
 import base64
+import sys
+sys.path.append("..") 
 import json
 import requests
 from time import time
 from urllib.parse import quote
-from jd_yk import getip_uncheck
 import tools
 from jingdong import LOG, jd
 from ip_sqlite import ip_sql
@@ -777,16 +778,17 @@ def check_order(skuid, ck, proxy, amount):
     code, weixin_page_url = pc_client.weixin_confirm(order_no, pay_sign, amount, page_id, channel_sign)
     if code != SUCCESS:
         return code, None, None
-    # tools.LOG_D(weixin_page_url)
-    # code, status = pc_client.weixin_page_qb(weixin_page_url)
-    # if code != SUCCESS:
-        # return code, None, None
-    # if status == False:
-        # return CK_UNVALUE, None, None
-    # code, img_url = pc_client.get_weixin_img(weixin_page_url, order_no, pay_sign)
-    # if code != SUCCESS:
-        # return code, None, None
-    # return code, order_no, img_url
+    code, status = pc_client.weixin_page_qb(weixin_page_url)
+    if code != SUCCESS:
+        return code, None, None
+    if status == False:
+        return CK_UNVALUE, None, None
+    code, img_url = pc_client.get_weixin_img(weixin_page_url, order_no, pay_sign)
+    tools.LOG_D('========== ' + tools.get_jd_account(ck) + ' =========')
+    tools.LOG_D(img_url)
+    if code != SUCCESS:
+        return code, None, None
+    return code, order_no, img_url
     return code, None, None
 
 
@@ -843,7 +845,10 @@ if __name__ == '__main__':
     with ProcessPool(max_workers=10, max_tasks=5) as pool:
         for line in appck_f.readlines():
             # print(line)
-            ck = line.replace('\n', '')
+            line = line.replace('\n', '')
+            for i in line.split('----'):
+                if 'pin=' in i:
+                    ck = i
             future = pool.schedule(check, args=[ck, '520'], timeout=60)
             sleep(0.1)
 

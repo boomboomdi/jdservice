@@ -921,6 +921,41 @@ class jd:
             return CK_UNVALUE, None
 
 
+    def query_pczorder_detail(self, order_id):
+        sv = '120'
+        function_id = 'queryPczOrderInfo'
+        ts = str(int(time.time() * 1000))
+        body= '{"apiVersion":"new","orderId":"' + order_id + '","rechargeversion":"10.9"}'
+        uuid_str = hashlib.md5(str(int(time.time() * 1000)).encode()).hexdigest()[0:16]
+        sign = f'functionId={function_id}&body={body}&uuid={uuid_str}&client={client}&clientVersion={client_version}&st={ts}&sv={sv}'
+        sign = get_sign(sign)
+        # print(sign)
+        url = 'https://api.m.jd.com/client.action?functionId=' + function_id
+        params = f'&clientVersion={client_version}&build=92610&client={client}&uuid={uuid_str}&st={ts}&sign={sign}&sv={sv}'
+        headers = {
+            'charset': "UTF-8",
+            'user-agent': "okhttp/3.12.1;jdmall;iphone;version/10.3.5;build/92610;",
+            'content-type': "application/x-www-form-urlencoded; charset=UTF-8",
+            'cookie': self.ck
+        }
+        body = 'body=' + quote(body)
+        # print(body)
+        try:
+            resp = requests.post(url=url + params, data=body, headers=headers, proxies=self.proxy, timeout=4)
+        except Exception as e:
+            print(e)
+            return NETWOTK_ERROR, None
+        if resp.status_code == 200:
+            if 'orderId' in resp.text:
+                if resp.json()['result']['orderStatusName'] == '充值成功':
+                    return SUCCESS, True, resp.json()['result']['orderStatusName']
+                else:
+                    return SUCCESS, False,resp.json()['result']['orderStatusName']
+            return CK_UNVALUE, None, None
+        return CK_UNVALUE, None, None
+
+
+
 
 def clear_cart(jd_client):
     print('======= clear_cart ======')
@@ -1358,6 +1393,9 @@ if __name__ == '__main__':
     # ck = 'pin=%E5%9F%8B%E6%B3%89%E4%B8%8B%E6%B3%A5%E9%94%80%E9%AA%A8ergJU; wskey=AAJirLjEAFDfO37k10JsQmjMPg8Z9A2mbifa69OSGVmNgY3_NsoO1luEUCcjMfEmC76zaLM9g8v_K3PU_76w9wEYVyXtrnzRyK2EWwcT38BbyuelafZ-oQ; '
 
     ck = 'pin=jd_4d9b500034155; wskey=AAJiqgJZAECd9g_DDWxJo3YPVOaYWwvDsU_BCxK7nZcTma51_nkgmKL3e4RfmW8vZ0r1bdc0B2FISHUA0CaxqLYzyy02KqUH;'
+    ck = 'pin=NKTYr%E5%B9%B3%E6%B1%9F%E5%8E%BF%E5%AE%89%E4%BF%9D; wskey=AAJirxk3AFBiEtYkE-qACcv_vrvMdXWspkdnZPSquKXQ4sEfD3jcCWQ_CQBEexl5AthJFdgaSXAKVJ6iW-dz_bjVtwyVoI7FG_BWdVMtiII0yoBQkD7giA; '
+    # ck = 'pin=KLPQa%E5%B9%B3%E6%B1%9F%E5%8E%BF%E5%AE%89%E4%BF%9D; wskey=AAJirxlJAFAxh9EyD3dvVSxseGMy3ymEFokeROlblOuZPzm-KoqENyzbzQ5BUj55Wh39FUfeEWk8Hgw4CCOvlTPAHj91k5U1T2irDIsJ68uQVbiApFeyuA; '
+
     for i in ck.split(';'):
         if 'pin' in i:
             user = i.split('=')[1].strip()
@@ -1386,7 +1424,8 @@ if __name__ == '__main__':
     # print(jd_client.delete_order('248300092259'))
     # url = 'https://m.jd.com'
     # url = 'https://st.jingxi.com/order/n_detail_v2.shtml?deal_id=248322658627&appCode=msc588d6d5&__navVer=1'
-    url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=20e0bf74656077e028e0548c6e4a9af0abd9888dbb6a86ea51dddb7bd7059f010f9e68042c2d350063ceab27de604e208eaccb975963e8f46aa057c4774c7ecdc1b0c4ab88b7e0928f8872365c7dde35'
+    url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=e997760dabfe6ff502361ce4ea77666b9077749a65b2ce5e0057f934307e42a23fa5eea4af30c9bca6aab606e24ecc71c184d066df2d580afb5fa7da880e8e03c3f7ffc69162a5a830cdcd50f7b4f0dc'
+
     code, token = jd_client.gen_token(url)
     token_url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=' + token
     print(token_url)

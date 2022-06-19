@@ -72,6 +72,6 @@ if __name__ == '__main__':
     # sleep(1)
     # sql.delete_order('13456523')
     # sql.update_order_time('13456523')
-    t = order_sql().search_order('248615578436')
-    print(t)
+    # t = order_sql().search_order('248615578436')
+    order_sql().insert_order('1234', '100')
     # print(sql.search_ip('13456523'))
