@@ -860,38 +860,35 @@ def create_order_appstore(ck, order_me, amount, proxy):
 
 def order_appstore(ck, order_me, amount):
     code = NETWOTK_ERROR
-    # ck_status = '1'
-    # account = tools.get_jd_account(ck)
-    # tools.LOG_D('account: ' + account)
-    # proxy = ip_sql().search_ip(account)
-    # tools.LOG_D('searchip: ' + str(proxy))
-    # if proxy == None:
-        # proxy = tools.getip_uncheck()
-        # if proxy == None:
-            # return None
-        # ip_sql().insert_ip(account, proxy)
-# 
-    # for i in range(3):
-        # code, order_no, img_url = create_order_appstore(ck, order_me, amount, proxy)
-        # if code == NETWOTK_ERROR:
-            # proxy = tools.getip_uncheck()
-            # if proxy == None:
-                # return NETWOTK_ERROR
-            # ip_sql().update_ip(account, proxy)
-        # elif code == CK_UNVALUE:
-            # ck_status = '0'
-            # break
-        # elif code == SUCCESS:
-            # order_sql().insert_order(order_no, amount)
-            # order_sql().update_order_time(order_no)
-            # break
-        # elif code == RET_CODE_ERROR:
-            # return None
-        # i += 1
-    # tools.LOG_D(img_url)
-    order_no = None
-    img_url = None
-    ck_status = '0'
+    ck_status = '1'
+    account = tools.get_jd_account(ck)
+    tools.LOG_D('account: ' + account)
+    proxy = ip_sql().search_ip(account)
+    tools.LOG_D('searchip: ' + str(proxy))
+    if proxy == None:
+        proxy = tools.getip_uncheck()
+        if proxy == None:
+            return None
+        ip_sql().insert_ip(account, proxy)
+
+    for i in range(3):
+        code, order_no, img_url = create_order_appstore(ck, order_me, amount, proxy)
+        if code == NETWOTK_ERROR:
+            proxy = tools.getip_uncheck()
+            if proxy == None:
+                return NETWOTK_ERROR
+            ip_sql().update_ip(account, proxy)
+        elif code == CK_UNVALUE:
+            ck_status = '0'
+            break
+        elif code == SUCCESS:
+            order_sql().insert_order(order_no, amount)
+            order_sql().update_order_time(order_no)
+            break
+        elif code == RET_CODE_ERROR:
+            return None
+        i += 1
+    tools.LOG_D(img_url)
     upload_order_result(order_me, order_no, img_url, amount, ck_status)
 
 
