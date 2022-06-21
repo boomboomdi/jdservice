@@ -330,7 +330,7 @@ class pc_jd():
         }
         try:
             res = requests.get(url, headers=head, allow_redirects=False, proxies=self.proxy, timeout=5)
-            print(res.text)
+            # print(res.text)
         except Exception as e:
             tools.LOG_D(e)
             return NETWOTK_ERROR, None, None
@@ -393,7 +393,7 @@ class pc_jd():
             'Cookie': self.ck
         }          
         res = requests.get(url, headers=head, proxies=self.proxy)
-        print(res.text)
+        # print(res.text)
         if res.status_code == 200:
             for line in res.text.split('\n'):
                 if '_orderid' in line:
@@ -431,7 +431,7 @@ class pc_jd():
         }       
         res = requests.get(url, headers=head, proxies=self.proxy)
         if res.status_code == 200:
-            tools.LOG_D(res.text)
+            # tools.LOG_D(res.text)
             if 'success' in res.text:
                 return SUCCESS, True
             else:
