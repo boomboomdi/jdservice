@@ -1,6 +1,7 @@
 from imaplib import Time2Internaldate
 from os import times
 import random
+from numpy import size
 import requests
 import base64
 import json
@@ -67,19 +68,46 @@ def LOG_E(log):
     t = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())) 
     print('[---]' + t, 'function', '[' + inspect.stack()[1][3] + ']' + ':', log)
 
-def getip_uncheck():
-    # url = 'http://webapi.http.zhimacangku.com/getip?num=1&type=1&pro=0&city=0&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=&username=chukou01&spec=1'
-    # shanghai
-    url = 'http://webapi.http.zhimacangku.com/getip?num=1&type=1&pro=310000&city=310200&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=&username=chukou01&spec=1'
-    response = requests.get(url)
-    if response.status_code == 200:
-        print(response.text)
-        if '请添加白名单' in response.text:
-            return None
-        ip = response.text
-        ip = ip.replace('\n', '')
-        ip = ip.replace('\r', '')
-        return ip
+AREA = ['重庆市', '上海市', '天津市', '北京市', '福建省福州市', '广东省广州市', '广东省佛山市', '浙江省金华市', '湖南省长沙市', '福建省莆田市', '山东省济南市', 
+        '山东省日照市', '辽宁省大连市', '安徽省六安市', '江苏省连云港市', '四川省成都市', '陕西省西安市', '陕西省渭南市', '河南省三门峡市']
+PROXY_API = {
+    AREA[0]: 'http://webapi.http.zhimacangku.com/getip?num=1&type=1&pro=500000&city=500300&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=&username=chukou01&spec=1',
+    AREA[1]: 'http://webapi.http.zhimacangku.com/getip?num=1&type=1&pro=310000&city=0&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=&username=chukou01&spec=1',
+    AREA[2]: 'http://webapi.http.zhimacangku.com/getip?num=1&type=1&pro=120000&city=0&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=&username=chukou01&spec=1',
+    AREA[3]: 'http://webapi.http.zhimacangku.com/getip?num=1&type=1&pro=110000&city=0&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=&username=chukou01&spec=1',
+    AREA[4]: 'http://webapi.http.zhimacangku.com/getip?num=1&type=1&pro=350000&city=350100&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=&username=chukou01&spec=1',
+    AREA[5]: 'http://webapi.http.zhimacangku.com/getip?num=1&type=1&pro=440000&city=440100&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=&username=chukou01&spec=1',
+    AREA[6]: 'http://webapi.http.zhimacangku.com/getip?num=1&type=1&pro=440000&city=440600&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=&username=chukou01&spec=1',
+    AREA[7]: 'http://webapi.http.zhimacangku.com/getip?num=1&type=1&pro=330000&city=330700&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=&username=chukou01&spec=1',
+    AREA[8]: 'http://webapi.http.zhimacangku.com/getip?num=1&type=1&pro=430000&city=430100&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=&username=chukou01&spec=1',
+    AREA[9]: 'http://webapi.http.zhimacangku.com/getip?num=1&type=1&pro=350000&city=350300&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=&username=chukou01&spec=1',
+    AREA[10]: 'http://webapi.http.zhimacangku.com/getip?num=1&type=1&pro=370000&city=370100&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=&username=chukou01&spec=1',
+    AREA[11]: 'http://webapi.http.zhimacangku.com/getip?num=1&type=1&pro=370000&city=371100&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=&username=chukou01&spec=1',
+    AREA[12]: 'http://webapi.http.zhimacangku.com/getip?num=1&type=1&pro=210000&city=210200&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=&username=chukou01&spec=1',
+    AREA[13]: 'http://webapi.http.zhimacangku.com/getip?num=1&type=1&pro=340000&city=341500&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=&username=chukou01&spec=1',
+    AREA[14]: 'http://webapi.http.zhimacangku.com/getip?num=1&type=1&pro=320000&city=320700&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=&username=chukou01&spec=1',
+    AREA[15]: 'http://webapi.http.zhimacangku.com/getip?num=1&type=1&pro=510000&city=510100&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=&username=chukou01&spec=1',
+    AREA[16]: 'http://webapi.http.zhimacangku.com/getip?num=1&type=1&pro=610000&city=610100&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=&username=chukou01&spec=1',
+    AREA[17]: 'http://webapi.http.zhimacangku.com/getip?num=1&type=1&pro=610000&city=610500&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=&username=chukou01&spec=1',
+    AREA[18]: 'http://webapi.http.zhimacangku.com/getip?num=1&type=1&pro=410000&city=411200&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=&username=chukou01&spec=1'
+}
+
+def getip_uncheck(area='上海市'):
+    for i in range(3):
+        url = PROXY_API[area]
+        response = requests.get(url)
+        if response.status_code == 200:
+            print(response.text)
+            if '请添加白名单' in response.text:
+                return None, None
+            if 'false' in response.text:
+                continue
+            ip = response.text
+            ip = ip.replace('\n', '')
+            ip = ip.replace('\r', '')
+            return ip
+    return None, None
+
 
 def get_jd_account(ck):
     for item in ck.split(';'):
@@ -127,4 +155,5 @@ if __name__ == '__main__':
     a1 = "2022-05-1023:40:00"
     # print(time_2_ts(a1))
     # pass
-    print(get_ipinfo('223.83.132.229'))
+    # print(get_ipinfo('223.83.132.229'))
+    print(getip_uncheck())

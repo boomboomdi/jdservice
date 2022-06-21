@@ -11,6 +11,7 @@ from jingdong import LOG, jd
 from ip_sqlite import ip_sql
 from jingdong import get_ios_wx
 from order_sqlite import order_sql
+from urllib.parse import unquote
 
 SUCCESS = 1
 WEB_CK_UNVALUE = 2
@@ -864,7 +865,7 @@ def create_order_appstore(ck, order_me, amount, proxy):
     if code != SUCCESS:
         return code, None, None
 
-    for i in range(7):
+    for i in range(6):
         code, weixin_page_url = pc_client.weixin_confirm(order_no, pay_sign, amount, page_id, channel_sign)
         if code != SUCCESS:
             return code, None, None
@@ -875,11 +876,12 @@ def create_order_appstore(ck, order_me, amount, proxy):
         if status == True:
             break
         code, pay_sign, page_id, channel_sign = pc_client.get_pay_channel_qq(cashier_url)
+        if code != SUCCESS:
+            return code, None, None
         sleep(1)
         i += 1
 
-    # if code != SUCCESS:
-        # return code, None, None
+
     # code, weixin_page_url = pc_client.weixin_confirm(order_no, pay_sign, amount, page_id, channel_sign)
     # if code != SUCCESS:
         # return code, None, None
@@ -887,8 +889,8 @@ def create_order_appstore(ck, order_me, amount, proxy):
     # code, status = pc_client.weixin_page(weixin_page_url)
     # if code != SUCCESS:
         # return code, None, None
-    # if status == False:
-        # return CK_UNVALUE, None, None
+    if status == False:
+        return CK_UNVALUE, None, None
     code, img_url = pc_client.get_weixin_img(weixin_page_url, order_no, pay_sign)
     if code != SUCCESS:
         return code, None, None
@@ -896,6 +898,12 @@ def create_order_appstore(ck, order_me, amount, proxy):
 
 
 def order_appstore(ck, order_me, amount):
+    if '&' not in ck:
+        area = '上海市'
+    else:
+        area = ck.split('&')[1]
+        area = unquote(area)
+    tools.LOG_D(area)
     code = NETWOTK_ERROR
     ck_status = '1'
     account = tools.get_jd_account(ck)
@@ -903,7 +911,7 @@ def order_appstore(ck, order_me, amount):
     proxy = ip_sql().search_ip(account)
     tools.LOG_D('searchip: ' + str(proxy))
     if proxy == None:
-        proxy = tools.getip_uncheck()
+        proxy = tools.getip_uncheck(area)
         if proxy == None:
             return None
         ip_sql().insert_ip(account, proxy)
@@ -911,7 +919,7 @@ def order_appstore(ck, order_me, amount):
     for i in range(5):
         code, order_no, img_url = create_order_appstore(ck, order_me, amount, proxy)
         if code == NETWOTK_ERROR:
-            proxy = tools.getip_uncheck()
+            proxy = tools.getip_uncheck(area)
             if proxy == None:
                 return NETWOTK_ERROR
             ip_sql().update_ip(account, proxy)
@@ -1356,6 +1364,12 @@ def test(ck):
 
 
 def query_order_appstore(ck, order_me, order_no, amount):
+    if '&' not in ck:
+        area = '上海市'
+    else:
+        area = ck.split('&')[1]
+        area = unquote(area)
+    tools.LOG_D(area)
     result = {
         'check_status': '1',
         'pay_status': '0',
@@ -1372,7 +1386,7 @@ def query_order_appstore(ck, order_me, order_no, amount):
     proxy = ip_sql().search_ip(account)
     tools.LOG_D(proxy)
     if proxy == None:
-        proxy = tools.getip_uncheck()
+        proxy = tools.getip_uncheck(area)
         ip_sql().delete_ip(account)
         ip_sql().insert_ip(account, proxy)
     for i in range(3):
@@ -1394,7 +1408,11 @@ def query_order_appstore(ck, order_me, order_no, amount):
                 upload_callback_result(result)
             return
         elif code == NETWOTK_ERROR:
-            proxy = tools.getip_uncheck()
+            proxy = tools.getip_uncheck(area)
+            if proxy == None:
+                result = json.dumps(result)
+                upload_callback_result(result)
+                return 
             ip_sql().update_ip(account, proxy)
         elif code == CK_UNVALUE:
             result['ck_status'] = '0'
@@ -1648,6 +1666,8 @@ if __name__=='__main__':
     ck = 'mp=%E5%98%89%E6%BA%90%E7%8E%AF%E4%BF%9D%E7%A7%91%E6%8A%80; TrackID=1M1-Nvt2jY-2mIFv8vR8ZRZMlxRa_5oAvPMgNyPXATIkMBpdbKNA23t0o6tGWq54E4mpkaQQbRQ2kjiuhzXtt-W08mNcCOqQL2UsZ3upt00Xf4WIHPk3iiSB9jvd0b-QNxspooenTeVxO1mG7Yy_Byw; thor=878B256FC89FF576B3C220B32B34C2AC9CBFBAC5FE1017132C7CF3E22117D0479E41326CFF7A501C5E46C3A504CC32AD9758558B07176CD737368DD2E0BCC1265B487356C3A4164B106048C0591C03AEF70C3AA47F8EC7FB39F2DF62E36723837E3C4E49986E282A0F71CDFFACDA81005486891DBDAE9A396889AB7C757DD42D; pinId=CMswon-sGCkz1Vso2Dx4SJ0crUj1-hPV; pin=%E5%98%89%E6%BA%90%E7%8E%AF%E4%BF%9D%E7%A7%91%E6%8A%80; unick=%E5%98%89%E6%BA%90%E7%8E%AF%E4%BF%9D%E7%A7%91%E6%8A%80; _tp=QYAfdd7dZs%2BjGi8%2F0kK6gvalR3svCWPVmhT0vF1Py%2B2ngqHLHxl4HH9MAEnhHQlS%2FXZEroZYh83cwNBsTiYboQ%3D%3D; _pst=%E5%98%89%E6%BA%90%E7%8E%AF%E4%BF%9D%E7%A7%91%E6%8A%80; pin=%E5%98%89%E6%BA%90%E7%8E%AF%E4%BF%9D%E7%A7%91%E6%8A%80; wskey=AAJisH5uAFCv4LK5oO4IuzPxqyvQD1vQc1rttsK7-HiLpYeLOFgNinCZWwNhYhrHJwHA-gj3gJvtR1nQVOGLppYN_NLkpX5VqeU5MsNFN43KZSaQWGD-aQ; pt_pin=%E5%98%89%E6%BA%90%E7%8E%AF%E4%BF%9D%E7%A7%91%E6%8A%80; unionwsws={"devicefinger":"eidAc891812095s4rMyRdrohSO69sAFA329WP6zMkvg7jzZlQ28wfhkPq69lm46JApv6ElFXI2TVaCj2pU+SGq7IZ2pE8EbzEDaqUy4969R8/6Ht7JM3","jmafinger":"zFp9TaNDBO6tpmfCdxYA2ersMNPT3cstwkQTpnFuDx3DVDsyXvxPBMHYsiEx21j_D"}'
     ck = '__jdv=76161171|direct|-|none|-|1655825028636; __jdu=16558250286341528565055; areaId=2; ipLoc-djd=2-2817-0-0; PCSYCityID=CN_310000_310100_0; shshshfp=a7868a0ffb8e3b7241b87cd4c082b56e; shshshfpa=9f2cb684-0ae9-3ecf-d7cc-63e05fcc0d6c-1655825037; shshshsID=bca9f607c89d497f06b28e1afb790835_1_1655825037347; shshshfpb=tmUHNidnmp_2Pn4B3q0bnrA; wlfstk_smdl=vd392gdk949eyi3h0lu7u3rqie2kl2bg; TrackID=1WL0wBK3AiGblbA6yUax2IzpcvMwuIUY2tXs2dBBUoVj6ZUNwcKk2lDvW3X2d8bJMqLnJOBdIXDZl8Oxpvu1E59Vit-gJAlh6j8EupZ15BaQ; pinId=VXIZioBx6seSKVnT643NWjMXwOoi02WX; pin=产业集团股份有; unick=产业集团股份有; ceshi3.com=000; _tp=gBZAN1WqE5xFaLPRUvDYCDvdLoOLXJ+ZXLJRJPYdAs6wW67Lt8nmoo4ENZDJSNKzdHvT9jh1cXgCfIYA5+PWmw==; _pst=产业集团股份有; bjd.advert.popup=5d439db642228edb0d4be141764f66c9; __jda=122270672.16558250286341528565055.1655825029.1655825029.1655825029.1; __jdc=122270672; __jdb=122270672.12.16558250286341528565055|1.1655825029; 3AB9D23F7A4B3C9B=IJL65WOVSHKB2GMRHGPI7RWEA7BTO44AMXHPWIVZUXY4JRBRK5I6MNAYNNE5JLO5SDO7SO3533ZOD5LFHSWWIRIAFA; thor=3C0038CA8C75F212E58D519F55E908CB37F0750FD8BD6AD5D928D5B05DE9EB2EA630B1845738E04753AB3DD97C2626849F39B63B1CCF3DAD833BF679CCE1BC33DF9A8DF95E050C9C260167297040A449091639B12ADD0A2309E4CA4F526EA18B91832F437147B33EEF4530EE2106226420EBFD5A951DB240DB6BAEB692CBC110E7391ED2636CA8C607C869819FE209A1'
     ck = 'mp=%E5%98%89%E6%BA%90%E7%8E%AF%E4%BF%9D%E7%A7%91%E6%8A%80;  TrackID=12a4FHA9A0hMOROeji4_em4krTDQnkmdO4fx59bHbAJbWs7zfKIuA7IyewimaCathpyzME71jaDhRGRnWpaLy_31IHVWqD7MlSBFE1fZsn3hE1xdceu7tcpuXb2nJBauemII3oqJm0cdnyWmQw5cFiw;  thor=878B256FC89FF576B3C220B32B34C2AC85AD871AE6AC848DC9316541D4FE6E467AF3E510B2DDFD323C982C3CDE2DC5DA71D9C030BFE013BB5637439E1DB3592DEDDFD71D888D496E57243D20F3FA6DD34E49694ADD3427EDAF1EE758D186AE76E213540412B12D14DD808412DBDE89EBBDE6E7C0943C02C1E2608CB788C6251A;  pinId=CMswon-sGCkz1Vso2Dx4SJ0crUj1-hPV;  pin=%E5%98%89%E6%BA%90%E7%8E%AF%E4%BF%9D%E7%A7%91%E6%8A%80;  unick=%E5%98%89%E6%BA%90%E7%8E%AF%E4%BF%9D%E7%A7%91%E6%8A%80;  _tp=QYAfdd7dZs%2BjGi8%2F0kK6gvalR3svCWPVmhT0vF1Py%2B2ngqHLHxl4HH9MAEnhHQlS%2FXZEroZYh83cwNBsTiYboQ%3D%3D;  _pst=%E5%98%89%E6%BA%90%E7%8E%AF%E4%BF%9D%E7%A7%91%E6%8A%80;'
+    # ck = 'mp=%E9%9B%84%E4%B8%9C%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90%E5%85%AC;  TrackID=1JMlVWijWQ-XMaaroR3zmOibYAL1r5q-6z9ZZKfrX0uC08Y_Uz5-6RWsqVAQ76My5_LeF_XsmiXgDNQxN6iuvZcIXKcCfSYdQr1wzteEloFIRO318kgqWZfBkUM1Dv869ddxj13gR2iApUjcqQoyhpA;  thor=2BE6597967491F53B1AD546E29A072B50DEFCFCBA5340907215946C3C64F17FA5BE64709AE0AC5D4C2EE1C3EBB91092AFFF14C3C083EFA45E6AAE6C32792FC29CBB39EB8156BF4EE10B2B5B3586BBEC3F1F69D5C1D21CA98A1ACCAAB11D85BED912259A81E227163AD8EDA9CABDAC7A181DE6B548EA3B7D7866BBBAC435C97B6168C5ED4114F8A33F1BC8AC338C1434B;  pinId=zwYcX3rPP3VOXhW6T63coLm2Ux3q-rZk;  pin=%E9%9B%84%E4%B8%9C%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90%E5%85%AC;  unick=%E9%9B%84%E4%B8%9C%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90%E5%85%AC;  _tp=aZ2yVK8i%2Beab%2FyPcvy3nDJ36%2Fay0%2BkLnGbTimMB5KdMuzxyYlhOn8IiqiNqM3DpmuXWnEKQKIwgVrENyB1%2BhWQ%3D%3D;  _pst=%E9%9B%84%E4%B8%9C%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90%E5%85%AC; pin=%E9%9B%84%E4%B8%9C%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90%E5%85%AC; wskey=AAJisaPtAFA1zNbnVVyO6K6QGQB14RNqeR2mA9Kffy5oA6X3Q6HtrRiLuL9uvSmLLnFlSb6Le-FZ_d3rMCiw8Cxej-Yj5a-Q13nUi6y6Tu8YibPM73HCnQ; pt_pin=%E9%9B%84%E4%B8%9C%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90%E5%85%AC; unionwsws={"devicefinger":"eidAf7ad812280s7Er5lyQ44Smix/uodb71NvBK+Z0qUIKOHrUfoPDaaeEcZSkvwvaR/n2hOrJuTzP0Px6UTXQOVtSraYT71XiQMQe8XYnMn4QxhM81Z","jmafinger":"mb--d7d8kfgwQWQl-ZP0Zmv66_gkqxla9GuWOHjNxCaPvDUGW_7M6lrpZdksSbsVr"}&辽宁省大连市'
+    ck = 'mp=%E9%9B%84%E4%B8%9C%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90%E5%85%AC;  TrackID=1JMlVWijWQ-XMaaroR3zmOibYAL1r5q-6z9ZZKfrX0uC08Y_Uz5-6RWsqVAQ76My5_LeF_XsmiXgDNQxN6iuvZcIXKcCfSYdQr1wzteEloFIRO318kgqWZfBkUM1Dv869ddxj13gR2iApUjcqQoyhpA;  thor=2BE6597967491F53B1AD546E29A072B50DEFCFCBA5340907215946C3C64F17FA5BE64709AE0AC5D4C2EE1C3EBB91092AFFF14C3C083EFA45E6AAE6C32792FC29CBB39EB8156BF4EE10B2B5B3586BBEC3F1F69D5C1D21CA98A1ACCAAB11D85BED912259A81E227163AD8EDA9CABDAC7A181DE6B548EA3B7D7866BBBAC435C97B6168C5ED4114F8A33F1BC8AC338C1434B;  pinId=zwYcX3rPP3VOXhW6T63coLm2Ux3q-rZk;  pin=%E9%9B%84%E4%B8%9C%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90%E5%85%AC;  unick=%E9%9B%84%E4%B8%9C%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90%E5%85%AC;  _tp=aZ2yVK8i%2Beab%2FyPcvy3nDJ36%2Fay0%2BkLnGbTimMB5KdMuzxyYlhOn8IiqiNqM3DpmuXWnEKQKIwgVrENyB1%2BhWQ%3D%3D;  _pst=%E9%9B%84%E4%B8%9C%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90%E5%85%AC; pin=%E9%9B%84%E4%B8%9C%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90%E5%85%AC; wskey=AAJisaPtAFA1zNbnVVyO6K6QGQB14RNqeR2mA9Kffy5oA6X3Q6HtrRiLuL9uvSmLLnFlSb6Le-FZ_d3rMCiw8Cxej-Yj5a-Q13nUi6y6Tu8YibPM73HCnQ; pt_pin=%E9%9B%84%E4%B8%9C%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90%E5%85%AC; unionwsws={"devicefinger":"eidAf7ad812280s7Er5lyQ44Smix/uodb71NvBK+Z0qUIKOHrUfoPDaaeEcZSkvwvaR/n2hOrJuTzP0Px6UTXQOVtSraYT71XiQMQe8XYnMn4QxhM81Z","jmafinger":"mb--d7d8kfgwQWQl-ZP0Zmv66_gkqxla9GuWOHjNxCaPvDUGW_7M6lrpZdksSbsVr"}&%E8%BE%BD%E5%AE%81%E7%9C%81%E5%A4%A7%E8%BF%9E%E5%B8%82'
     # pc_client = pc_jd(ck, None)
     # print(get_useful_unpay(ck, '586', None))
 
@@ -1661,10 +1681,11 @@ if __name__=='__main__':
     # print(order_knowkedge(ck, '', '100', '2325463432'))
     # url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=1c268751b4d3f5ec8ab255c01537372beaba8a259a056385a9bd95fcd26aa269940ec59282a6f63c01bd8878f9ecb403cb6b510cd1fa1d15aeca8ceb7551ed069dad0fe81d042f848ab3f603f57cf109'
     # url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=a8992807ee08692fed8c70bab00cf1bbb09d4f2da4444431ac45a211c20a4b5826cef82354c2cf661474df9c82776427122f64c16e897369932856dd0260db749dad0fe81d042f848ab3f603f57cf109'
-    # print(get_real_url(ck, url))
+    # url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=a3681dd087bed7e6bf2c1d770c99eb0962a19ad165c2428ac14e216c093c391df4e30ba9925146650c98343b03ffb52bc9959a97ea63e18bf916d3b009b1c9efb1690754538645aafc88422493a84187'
+    # print(get_real_url(ck, url, ''))
     # print(get_real_qb(ck, '248592464389=105'))
 
-    # order_appstore(ck, '', '10')
+    order_appstore(ck, '', '50')
     query_order_appstore(ck, '', '249018890987', '200')
 
     # print(query_order_qb(ck, '', DNF_SKUIDS['50'], '50'))

@@ -10,6 +10,7 @@ import base64
 import sqlite3
 import binascii
 from pyDes import des, CBC, PAD_PKCS5, ECB
+from urllib.parse import quote
 
 # 流量订单使用
 
@@ -244,16 +245,21 @@ if __name__ == '__main__':
     # key = '2E1ZMAF8'
     # card = des_descrypt(base64.b64decode(data), key)
     # print(str(int(time.time())))
-    result = {
-        'check_status': '1',
-        'pay_status': '0',
-        'ck_status': '1',
-        'time': str(int(time.time())),
-        'order_me': '17392345a9d7e3354415c2d0209996fe',
-        'order_pay': '249010732874',
-        'amount': '10',
-        'card_name': 'BA1D19C5BA1D19C5',
-        'card_password': 'BA1D19C5BA1D19C5'
-    }
+    # result = {
+        # 'check_status': '1',
+        # 'pay_status': '0',
+        # 'ck_status': '1',
+        # 'time': str(int(time.time())),
+        # 'order_me': '17392345a9d7e3354415c2d0209996fe',
+        # 'order_pay': '249010732874',
+        # 'amount': '10',
+        # 'card_name': 'BA1D19C5BA1D19C5',
+        # 'card_password': 'BA1D19C5BA1D19C5'
+    # }
+    # upload_callback_result(json.dumps(result))
 
-    upload_callback_result(json.dumps(result))
+    f = open('/home/police/project/pay_data/t')
+    for line in f.readlines():
+        line = line.replace('\n', '')
+        t = line.split('&')[0] + '&' + quote(line.split('&')[1])
+        print(t)
