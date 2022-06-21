@@ -1,7 +1,7 @@
 import base64
 import json
 import requests
-from time import time
+from time import sleep, time
 from urllib.parse import quote
 from jd_yk import getip_uncheck
 import tools
@@ -471,7 +471,7 @@ class pc_jd():
             if res.status_code == 302:
                 if '/success/fail' in res.headers['Location']:
                     tools.LOG_D(res.headers['Location'])
-                    return CK_UNVALUE, False
+                    return SUCCESS, False
                 else:
                     return SUCCESS, True
             return SUCCESS, True
@@ -601,27 +601,32 @@ class pc_jd():
             'Referer': 'https://chongzhi.jd.com/iframe_fast.action',
             'Cookie': self.ck
         }
+        try:
+            res = requests.get(url, headers=head, proxies=self.proxy, allow_redirects=False)
+            if res.status_code == 200:
+                for line in res.text.split('\n'):
+                    if 'hideKey' in line:
+                        line = line.replace(' ', '')
+                        return SUCCESS, True, line.replace('<inputtype="hidden"id="hideKey"value="', '').replace("\"name='hideKey'>", '')
+                return SUCCESS, None
+            elif res.status_code == 302:
+                if 'orderId' in res.headers['Location']:
+                    return SUCCESS, False, res.headers['Location']
+            return CK_UNVALUE, None, None
+        except Exception as e:
+            tools.LOG_D(e)
+            return NETWOTK_ERROR, None, None
+        # ==========================
         # try:
             # res = requests.get(url, headers=head, proxies=self.proxy, allow_redirects=False)
-            # if res.status_code == 200:
-                # for line in res.text.split('\n'):
-                    # if 'hideKey' in line:
-                        # line = line.replace(' ', '')
-                        # return SUCCESS, line.replace('<inputtype="hidden"id="hideKey"value="', '').replace("\"name='hideKey'>", '')
-                # return SUCCESS, None
+            # print(res.text)
+            # if res.status_code == 302:
+                # if 'orderId' in res.headers['Location']:
+                    # return SUCCESS, res.headers['Location']
             # return CK_UNVALUE, None
         # except Exception as e:
             # tools.LOG_D(e)
             # return NETWOTK_ERROR, None
-        try:
-            res = requests.get(url, headers=head, proxies=self.proxy, allow_redirects=False)
-            if res.status_code == 302:
-                if 'orderId' in res.headers['Location']:
-                    return SUCCESS, res.headers['Location']
-            return CK_UNVALUE, None
-        except Exception as e:
-            tools.LOG_D(e)
-            return NETWOTK_ERROR, None
 
 
 
@@ -636,6 +641,9 @@ class pc_jd():
         }
         try:
             res = requests.get(url, headers=head, proxies=self.proxy, allow_redirects=False)
+            if '销售火爆' in res.text:
+                LOG_D('销售火爆')
+                return CK_UNVALUE, None
             if res.status_code == 302:
                 if 'orderId' in res.headers['Location']:
                     return SUCCESS, res.headers['Location']
@@ -645,7 +653,7 @@ class pc_jd():
             return NETWOTK_ERROR, None
 
 
-def upload_order_result(order_me, order_no, img_url, amount, ck_status):
+def upload_order_result(order_me, order_no, img_url, amount, ck_status, phone):
     url = 'http://127.0.0.1:9393/api/preparenotify/notifyjdurl0069'
     head = {
         'content-type': 'application/json'
@@ -657,6 +665,7 @@ def upload_order_result(order_me, order_no, img_url, amount, ck_status):
         'order_me': order_me,
         'order_pay': order_no,
         'amount': amount,
+        'account': phone,
         'qr_url': img_url
     }
     if img_url == None:
@@ -679,12 +688,16 @@ def create_order(ck, amount, phone, proxy):
     code, skuid = pc_client.search_skuid(area, amount)
     if code != SUCCESS:
         return code, None, None
-    # code, hitkey = pc_client.order_confirm(skuid, mobile)
-    # if code != SUCCESS:
-        # return code, None, None
-    # code, cashier_url = pc_client.create_order(hitkey, skuid, mobile, amount)
+    code, need_create, hitkey = pc_client.order_confirm(skuid, phone)
+    if code != SUCCESS:
+        return code, None, None
+    if need_create:
+        code, cashier_url = pc_client.create_order(hitkey, skuid, phone, amount)
+    else:
+        cashier_url = hitkey
+    # ===================
+    # code, cashier_url = pc_client.order_confirm(skuid, phone)
 
-    code, cashier_url = pc_client.order_confirm(skuid, mobile)
     if code != SUCCESS:
         return code, None, None
     for i in cashier_url.split('?')[1].split('&'):
@@ -699,16 +712,25 @@ def create_order(ck, amount, phone, proxy):
     print(pay_sign, page_id, channel_sign)
     if code != SUCCESS:
         return code, None, None
-    code, weixin_page_url = pc_client.weixin_confirm(order_no, pay_sign, amount, page_id, channel_sign)
-    if code != SUCCESS:
-        return code, None, None
-    tools.LOG_D(weixin_page_url)
-    # weixin_page_url = 'https://pcashier.jd.com/weixin/weixinPage?cashierId=1&orderId=248572526985&sign=a2dbea7cfcbc9d5ba448d6b0ade9bb6b&appId=pcashier'
-    code, status = pc_client.weixin_page_qb(weixin_page_url)
-    if code != SUCCESS:
-        return code, None, None
+
+    for i in range(5):
+        code, weixin_page_url = pc_client.weixin_confirm(order_no, pay_sign, amount, page_id, channel_sign)
+        if code != SUCCESS:
+            return code, None, None
+        tools.LOG_D(weixin_page_url)
+
+        code, status = pc_client.weixin_page_qb(weixin_page_url)
+        if code != SUCCESS:
+            return code, None, None
+        if status == True:
+            break
+        code, pay_sign, page_id, channel_sign = pc_client.get_pay_channel_qq(cashier_url)
+        sleep(1)
+        i += 1
+
     if status == False:
         return CK_UNVALUE, None, None
+
     code, img_url = pc_client.get_weixin_img(weixin_page_url, order_no, pay_sign)
     tools.LOG_D(img_url)
     if code != SUCCESS:
@@ -747,7 +769,7 @@ def order(ck, order_me, amount, phone):
     # order_no = str(int(time()))
     # img_url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=77a008cf61301d9cbb9651771b952797f4245a8c9c698fabf6fc7b04857f5739bd950ccd2100377230016f15f941f7b10d18f8356738e997b2407dd18021474472285eb678746a57ab75c07ce71f6f46'
     # ck_status = '1'
-    upload_order_result(order_me, order_no, img_url, amount, ck_status)
+    upload_order_result(order_me, order_no, img_url, amount, ck_status, phone)
 
 
 def get_real_url(ck, pay_info, proxy):
@@ -895,11 +917,15 @@ if __name__=='__main__':
     # ck = 'pin=jd_4762c256ebfb3; wskey=AAJirtIfAECnCMjp7CTiPQshmrP2UiC94vV5VyRtUwUpOL_UvcsqTndgxWOT6SPCBw7-4kQYO6afK1o-EaYZQjx0_UyWY--b; pt_pin=jd_4762c256ebfb3; pt_key=app_openAAJirtIhADBtQsn-DLBo4zGKN0wOybtlj3sTru_4TbadxTZ5-e4jm70kMHjy296dpcPCv8LYbuo; unionwsws={"devicefinger":"eidAfc8a81224fsdWDeGZL7MTPGy+HpabTvTJlg3h+Y5sRl5irLtPixQKHjrBx04byjzK3VVOKfHecRIRtNs+VnBefcCkgD+p5mm8TgnO6u6C1s1gJQ5","jmafinger":"ix1aQXJ9OVWAlDm4MK5fEaosw-0X9PaOVqFe7s5U9XmsNHcSq3x2km9xi5R5mWdQM"}; DeviceSeq=5b45a2110d66443ea72f21d7efd3bd6a; TrackID=1OeXiGRLINsXryWK0NN9p6m-mG4YPuqU_oVm8hrtTr4yMhR1nMSNzfoXg1VLi-wfJGaod-QKWjqgHCYRlKEYYrI9sBwINj4mfQQno15yBkvM; thor=19850E4E8343798D4937C5D34955475980B0E79041E3C29C63BE896841E522A37BFF31FCB6064839424BEFF2613039B4EE1769F95674D799FD8B325F95EDA495C91201C68DAEB8E7FC517EF03C136649BFD918E3AC903EAFF8801E94EEA282DC5ED0F3B9623B3BDE263621A07A994BF8B1D8F39BEDC57D01B361393067B009EFC7DF1D331CF9AEC61230E1F929C06952E01ADF22CD7CAD7310E55869BCDF483B; pinId=vnctP4qicjRFItTY9RAg07V9-x-f3wj7; unick=jd_159752iwz; ceshi3.com=000; _tp=zYlkriRADD1%2FCvkf%2BcaAjvvNrBL6EIlmxlgrxuaxKII%3D; logining=1; _pst=jd_4762c256ebfb3; guid=811be59c61e44ba6a89934c9c19db814c8067da9cb74a0e87d3d88638f9fa5d7; pwdt_id=jd_4762c256ebfb3; sid=532c32066fb5e8c63056a1aacd4da71w'
     # ck = 'mp=jd_4762c256ebfb3;  TrackID=1UuHHF3GXVCjjXY6BlYcZnNctLg1BSOiy8EEAl26SulGwR0K9uOj1mMRxffsXa8_hXMJ-jP-m_f7GkDWMjUF2nvfrhRx48OAvEO5mKMBhtcsfXmgr0qBLQFqY6D6PbmefN3r-YYSQHA9fx0tfqWz8RA;  thor=19850E4E8343798D4937C5D34955475980B0E79041E3C29C63BE896841E522A3916C042B0E057B13F055028B506A4EDAABD2DB34706B6644CFC81D97F76F27751E8A5D1ADED9034BBBE3E11B633C70336EC2F96A3BBD1EE0AD715491CFD556A58BC43369E80DD135F382E59B21D28142CF1E6824FEF51C00071F6363A71BB00139A949A33569A7C2BE154DD67155BF6577C22CE3E4602981EBB79E86DB23A524;  pinId=vnctP4qicjRFItTY9RAg07V9-x-f3wj7;  pin=jd_4762c256ebfb3;  unick=jd_159752iwz;  _tp=zYlkriRADD1%2FCvkf%2BcaAjvvNrBL6EIlmxlgrxuaxKII%3D;  _pst=jd_4762c256ebfb3;'
     # ck = '__jdv=76161171|direct|-|none|-|1655627848479; __jdu=16556278484711553437989; areaId=21; ipLoc-djd=21-1827-0-0; shshshfp=75eab5f243e0e0369fab1aa388e3811f; shshshfpa=a59ce402-8a14-a9c6-ac6c-0111f28bd2da-1655627855; TrackID=1NgSXK7lVG681iwDTjEFVJ43-E8HdRuPDMl3HQDw4P9B1bNgOnViePKcTFVNjs7krIF4C31EImN8mn8fwVo4lp21ZLNMO6RSaZ4kIeVgGi8l8aw650t0cOsUYBTQ9qM-jyx7HurF8PWkK6OlN4pXWbQ; thor=63C48F15AFBF3EEB9A7FD8F3F7A9BF05D0817F049E308CC94A6938FF9A69A74540BB9EC1C38C8C3974BA639A2B659EB52FB959BBBCDDA26375EB90F65D445A18C90E5B054C2730D64B078D49DB0F63487896C0217815BC0AC20895D273A1CC294AA94CAA143CFDFE363F0471B3C35F9CD41977274505A1D162D4A39736FE0405742E15C651339CD406ACA2A7941FA1DC89CCE4B14FA5F6EF3B96FC48FB597445; pinId=tA352EW71edd9cU5JurDWrV9-x-f3wj7; pin=jd_4d9b500034155; unick=jd_4d9b500034155; ceshi3.com=201; _tp=VHnhiNi86OlY5d%2BSKBX0iW%2BQy5xFBy0C7MU1%2BoxmN9c%3D; _pst=jd_4d9b500034155; __jda=76161171.16556278484711553437989.1655627848.1655627848.1655627848.1; __jdb=76161171.4.16556278484711553437989|1.1655627848; __jdc=76161171; shshshsID=f57428a150a5f108156d4aeb469c3790_2_1655627875192; shshshfpb=p-wQtVi-LWL6GSAfesoLmrw; 3AB9D23F7A4B3C9B=QNCWC64QP4P2LVZKSMOYVQ5UVCXBVUAFAP3XXO4Q2JGY5MVLJ5CNJO5XE3NHQHT2XMBDWWZ24L3C6T75QSANI6DL6E'
-    ck = 'pin=jd_4762c256ebfb3; wskey=AAJiruKKAEBQCGistMVzX3Y32T_lWzDURSCFEDxjV-n21XY4TSgZlyeDDNzQQi3agepbi0yjnYFv9REJJ9EVlSiOxIrfBHTG; pt_pin=jd_4762c256ebfb3; pt_key=app_openAAJiruKNADDshSnkT-105J6ClurQXI3j8tV-5JrzMo-Eq2hlqurNV8-U043V-_ty9bfMqeH2kew; unionwsws={"devicefinger":"eidAe728812240sayNynC401T7Oc9xGXjfTj0sjcqI0IWkAExS27cCv2WlyXRiSGGHq/2Xht9TiklcNBqHHCoGewnD4ZLIenz0YWVG9kplqv/+TNgYV1","jmafinger":"e-2HqFR0kmiCP22UnESJ99dqD0udbXM4xjrRIv16VbzcrobdXqIeIoVRgipPMcV87"}; DeviceSeq=b9d82ffc828e4ebcb52799a3e531b39e; TrackID=1Qw5XwO__PAXY1rFrw95IuYdD6fxdTbuWUrxF-d_Zj7ShaWzBWGxSkKSZwzp-RMzC0MTy3Xl0IZCgxwxYOon02tcURYDygjnXq_EyAHNo4Y4; thor=19850E4E8343798D4937C5D34955475980B0E79041E3C29C63BE896841E522A3FE6F5528F8FC24E2902380115EBFD753713D6E70B879ADFE7C0C91D7584B515173BA1762353E5191CBC86272976933557C3334C942DE8FF3C5D576D1D89F155FDC5C12DD674D215DA50F835107F2C9C18A92A0A78EF2AEBE985E7AAC44C721BF77FB8656B42457442B3E7BBCB5102384B89293A8EC15BCF5E8847835A920567D; pinId=vnctP4qicjRFItTY9RAg07V9-x-f3wj7; unick=jd_159752iwz; ceshi3.com=000; _tp=zYlkriRADD1%2FCvkf%2BcaAjvvNrBL6EIlmxlgrxuaxKII%3D; logining=1; _pst=jd_4762c256ebfb3; guid=8e3be2586f13604e2069377dc396848f68b93834d05b52108a43c4bb75eddade; pwdt_id=jd_4762c256ebfb3; sid=5e57c84c006796ee8630d373e6ef146w'
-    'https://chongzhi.jd.com/order/order_confirm.action?&&entry=4&t=1655559214558 '
-    mobile='13784302409'
+    # ck = 'pin=jd_4762c256ebfb3; wskey=AAJiruKKAEBQCGistMVzX3Y32T_lWzDURSCFEDxjV-n21XY4TSgZlyeDDNzQQi3agepbi0yjnYFv9REJJ9EVlSiOxIrfBHTG; pt_pin=jd_4762c256ebfb3; pt_key=app_openAAJiruKNADDshSnkT-105J6ClurQXI3j8tV-5JrzMo-Eq2hlqurNV8-U043V-_ty9bfMqeH2kew; unionwsws={"devicefinger":"eidAe728812240sayNynC401T7Oc9xGXjfTj0sjcqI0IWkAExS27cCv2WlyXRiSGGHq/2Xht9TiklcNBqHHCoGewnD4ZLIenz0YWVG9kplqv/+TNgYV1","jmafinger":"e-2HqFR0kmiCP22UnESJ99dqD0udbXM4xjrRIv16VbzcrobdXqIeIoVRgipPMcV87"}; DeviceSeq=b9d82ffc828e4ebcb52799a3e531b39e; TrackID=1Qw5XwO__PAXY1rFrw95IuYdD6fxdTbuWUrxF-d_Zj7ShaWzBWGxSkKSZwzp-RMzC0MTy3Xl0IZCgxwxYOon02tcURYDygjnXq_EyAHNo4Y4; thor=19850E4E8343798D4937C5D34955475980B0E79041E3C29C63BE896841E522A3FE6F5528F8FC24E2902380115EBFD753713D6E70B879ADFE7C0C91D7584B515173BA1762353E5191CBC86272976933557C3334C942DE8FF3C5D576D1D89F155FDC5C12DD674D215DA50F835107F2C9C18A92A0A78EF2AEBE985E7AAC44C721BF77FB8656B42457442B3E7BBCB5102384B89293A8EC15BCF5E8847835A920567D; pinId=vnctP4qicjRFItTY9RAg07V9-x-f3wj7; unick=jd_159752iwz; ceshi3.com=000; _tp=zYlkriRADD1%2FCvkf%2BcaAjvvNrBL6EIlmxlgrxuaxKII%3D; logining=1; _pst=jd_4762c256ebfb3; guid=8e3be2586f13604e2069377dc396848f68b93834d05b52108a43c4bb75eddade; pwdt_id=jd_4762c256ebfb3; sid=5e57c84c006796ee8630d373e6ef146w'
+    # ck = 'mp=jd_7c4f910ec9c4a;  TrackID=1OUw5SgXcdeLq8rTzepNeF-GCipCtKbQQQKFhUHiSRm9ieuWlTIwaySVgWI6PiQTWT3wFDbGmfIfzeMdVnCeSl9GNZxnqGXlDob8wnQx9sfTKx37K4mTo8Ewl_-DA_LloRP474sdwXcwYEayFheo0xw;  thor=9B879A28E74F96C62CC442143F652B5F1383D3CA6550639B63C601B0E6D4A8B82CA808F0B242B46E2B1DFB3286F05488A1D03C84FA8A76A0CA57CABEE36D22A22DCC98058B81A7C6FD7DF32306CC853C1E7E14E2DBD7B4F586A00B9871F909D249F66EE254B5E08235D9DFC0B2653271294D0B348E2C4A97E6DE30B8B73C12FFB34B32EC0D0C400B340D3725E249E54A0E64A4E488223B0DA4C99DFCB730AA27;  pinId=ligEvkIMBthcQmeAslFuHLV9-x-f3wj7;  pin=jd_7c4f910ec9c4a;  unick=jd_159192tjj;  _tp=8lor4nyHaToV6EjiOzKojBiKrSW6izgdRzhfcyUNymo%3D;  _pst=jd_7c4f910ec9c4a; pin=jd_7c4f910ec9c4a; wskey=AAJir13SAEAd_EhOUHKFth1RWZo-JB1IwyWxsOj0_3Pwlr8TCeAn-QVAjik7Xli12lVXq_EcMSIXtRPEhsnuAFAE1j9O4Lxt; pt_pin=jd_7c4f910ec9c4a; pt_key=AAJir13TADBQQB7AWI6ap6FHKEASGgeEIpHuYhqiekUvpjBNqn7AdBD3fp8wCKa5SJA19O9OpN0; unionwsws={"devicefinger":"eidAefe381224bsbuBrLWXj/TjqFNqzh3+5JOrgazNr2BdDoQlEdpug3ta04EZAk1v9pr2lFGAi/E+3T4E6X5aZiV/OfzVVZdkHicCg9mjRoaAnk5gIy","jmafinger":"twVWf9_3A2tCZBfDjchBjboAiOJ9KdiDcvi_GJfGJfiTg_UXmfs37M3E925WaNEoP"}'
+    ck = 'pin=wdeQtrbjZGkGPg; wskey=AAJir2XlAEAZBXjYbajHQpOJUnOqs0n-J8q2RsLaMB-EIhpYs6iHD82nBHuO6nvO8yaoF9Bpd-tJJq4wQjU23dCmliBxNCBQ; pt_pin=wdeQtrbjZGkGPg; pt_key=AAJir2XmADBFFzaI51BczghnewT_k_5GFQ79BP14J2O0sfEzSWTm0QB2hzZ2OvH2g_JaHgQHs4U; unionwsws={"devicefinger":"eidA2a23812338s8sLuY8U9XQHSqqfKyvrtFprC7mnLMfUueboKfeSqduJp6BZiOZE0+82hT+VAZ0JhutZUgnUfSCK4R/9wflWpH0ezLuGcZepEc5udN","jmafinger":"j7lmEP-9WdiDjdbTPmo5FT300RULMpSa3S9NPOQjMr-LJa4Nbt7Z7hWd5YYteDF_m"}'
+    ck = '__jdv=76161171|direct|-|none|-|1655661859509; __jdu=16556618595081329726906; areaId=14; ipLoc-djd=14-1159-0-0; TrackID=1TXiubVDF6F1jU4t2EaqdUo-AeMvhSp-9wYg-e7PDRyt3AormSC98FAccM14-Kq01wI8jOquK5S3R-XfG2_cucKQ3n0i_VID9JleJWs7ANWk; pinId=5cIh1s8V6vnw90f3U2HISA; pin=wdeQtrbjZGkGPg; unick=eQtrbjZGkGPg; ceshi3.com=000; _tp=uec71obJjBj0W24efbJcPg==; _pst=wdeQtrbjZGkGPg; shshshfp=d537d0cbe1a5c489943d585a85c0541e; shshshfpa=b0b2a1cf-b21d-ad0d-dae4-9a21372738bf-1655661882; shshshsID=d0220b1b1ed086f97aa72cfc2ddfafdc_1_1655661883081; shshshfpb=qRNA559s6J4jH3ozhNDUznw; _distM=248950866433; qd_ad=-|-|-|-|0; qd_uid=L4LMDHO5-H19XYKPLMGCOW18QHMNO; qd_fs=1655661946035; qd_ls=1655661946035; qd_ts=1655661946035; qd_sq=1; qd_sid=L4LMDHO5-H19XYKPLMGCOW18QHMNO-1; 3AB9D23F7A4B3C9B=VS4TQP7U2PRQABBKVMCDVQGNXRFTUL5BVL7LOLTXTOOO5XWTEOT2574AILKVNDHNKQZZY7IQFBYJ4XNTHIDE6IFDCU; thor=F16C42E3749CEC96AA34BA6265776EF9D710B48BD23DC0DA17DD091DA2DFA6823ECF0A641040C6D9D9D01EB62E2BC3436D30CDC630E1B58BB641782C9B854D4C4A0D74D5457F6C1C57D710289D403F2106A27C3ED5AD9152ED6FC7C84E8DC1BE38AE893913E4E9CC342E340FE65398D88446E4B30417F5FF53B98EE51414DD15FA17FB42F5E489DDC8EED05F5B3DC08B; __jda=24961467.16556618595081329726906.1655661859.1655661859.1655661859.1; __jdb=24961467.26.16556618595081329726906|1.1655661859; __jdc=24961467; pin=wdeQtrbjZGkGPg; wskey=AAJir2XlAEAZBXjYbajHQpOJUnOqs0n-J8q2RsLaMB-EIhpYs6iHD82nBHuO6nvO8yaoF9Bpd-tJJq4wQjU23dCmliBxNCBQ; pt_pin=wdeQtrbjZGkGPg; pt_key=AAJir2XmADBFFzaI51BczghnewT_k_5GFQ79BP14J2O0sfEzSWTm0QB2hzZ2OvH2g_JaHgQHs4U; unionwsws={"devicefinger":"eidA2a23812338s8sLuY8U9XQHSqqfKyvrtFprC7mnLMfUueboKfeSqduJp6BZiOZE0+82hT+VAZ0JhutZUgnUfSCK4R/9wflWpH0ezLuGcZepEc5udN","jmafinger":"j7lmEP-9WdiDjdbTPmo5FT300RULMpSa3S9NPOQjMr-LJa4Nbt7Z7hWd5YYteDF_m"}'
+    ck = 'mp=wdeQulHIJNTrzK;  TrackID=1XnarqFv11GOkAbZQ79Cj64a5oO99RBzkGuJZnFAnZ4rlzxUkRXNEQwb9XLy-KECvljng8iJhiz5bQ6MEtZb4x3dtNJkX9A6nOaYoLfarTHyqBIcIZHr1hxW-Okkp3p3f;  thor=6607FD97C06EF71C631766633E45DDE9A0BB4F25215510AD81BE5134246999E16C4599D3D7917D205AD4806E9595C29439F6EF1866DEEB92D7E63FC46D385C2DC44B826CE7E18713C7EA5783F3B5546C14E9257EC69B269CDDD7D91D299A79760A4251E453A7EBE7E624688DA99F5DD4851FBA245B29D555360F6DFF0E2AC999A464EA91C24C953C52B6A16CC9760D01;  pinId=1I31wMePdFQNmdIoST1rzw;  pin=wdeQulHIJNTrzK;  unick=eQulHIJNTrzK;  _tp=9zj2lR4AYA5sTUaZZpQxnQ%3D%3D;  _pst=wdeQulHIJNTrzK; pin=wdeQulHIJNTrzK; wskey=AAJir3XDAED7SDXXzSNNkuwOC7I7F75Onzg_yXGp3yGaGtE44rTfuOzX8grUb8jVfbZKntxRpS7NLRfSiGwXSXoOaelgG_wv; pt_pin=wdeQulHIJNTrzK; pt_key=AAJir3XEADBoSwS-tmf9wcbksDRUp9xK0_EE26Oy5L7j8gmx9_vup_4Pi3Xqu-KgR755_1bb928; unionwsws={"devicefinger":"eidAf7f0812253sdFYH3UlaSSRiqGyFhPUMrexWB+NPT9k4Q8ZpEbrbgi+KegIsNUfj/N1hzdE3imqt0Tsah/7AQA0A2xdeukEBHukdYS/rOx4Vcn89J","jmafinger":"rOmrQoBoqkZPrOQtsR3EaIZa6VSPCqP60IK-98Cg4A3iBrv11afaevC21_S-2x8lF"}'
+    # 'https://chongzhi.jd.com/order/order_confirm.action?&&entry=4&t=1655559214558 '
+    mobile='13784302433'
     amount = '200'
-    # print(order(ck, '', amount, mobile))
-    u = 'https://pcashier.jd.com/image/virtualH5Pay?sign=fd2ea876ba2bb27e8fed4108a1d5aadf89646f6b1044c46341c232af344cb0397161d50a38f638e9e17aa3744c0317aedc2ff2ca661bf0f475996082e43abaf9c1b0c4ab88b7e0928f8872365c7dde35'
-    # print(real_url(ck, u))
-    jd_client = jd(ck)
+    print(order(ck, '', amount, mobile))
+    u = 'https://pcashier.jd.com/image/virtualH5Pay?sign=97247f8bd84689ce587a595e54033a161295cf43968a86cd66b5a16853c443eca25e3f18477ba0f8cd74ba43c3125bd573736f8177f965e0984623da134b8c723b9487beaf0dcae568f49411ab2e64b3'
+    print(real_url(ck, u))
+    # jd_client = jd(ck)

@@ -1417,18 +1417,23 @@ if __name__ == '__main__':
     # ck = 'guid=ef8fe7819990bed74458c7d31d9f7a4eb2e061f8d9a41918160ca5b75dc71695; pt_key=app_openAAJiq1deADA-qv594L13L09jPZ-ODqXb2uVKys9-iB66eF2aFcPUjDfMoW7w1gZFW673MrEksKk; pt_pin=jd_yaifaHleFaeT; pwdt_id=jd_yaifaHleFaeT; sid=cb52a1da252e32175cb1afcdfcd2992w; pin=jd_yaifaHleFaeT; wskey=AAJggSsoAECpKA6gUhXFgio0Hg4fuc-Ha9ECfK3mxfve3m6vin_HehqygQJN-VJaHhHHs2j281DCd_Ij7IVGbtj7kd5DEMRO;'
     # ck = 'pin=jd_7d1c1d0d7c8c6; wskey=AAJiimL_AEApaqYXOWKhJbDvkWEDaP-kreV2Go6HF5dJX7Z1ag0WrxxFZ-kHVeSAuOnLuVyKD-yr4wmWtoj05HgFEwI8YL0e; '
     # ck = 'pin=%E7%AD%89%E9%97%AE%E7%A1%AE%E7%BA%A6; wskey=AAJiNgPCAEApoy2Db9gLgwu9oK7ffQGOEkdGT_dXAePIcJ89lzR1VCwTfMDEao6SGa2uv2aPZ_Ic3zdIVnrezzLT2_dvY6vL;'
+    ck = 'pin=%E9%83%B4%E5%B7%9E%E5%B8%82%E6%83%A0%E9%A3%9E%E5%95%86%E8%B4%B8; wskey=AAJisJbhAFCfJKLDiUPNO-Uireh1UwkYWfCOzfG7iXtpiu3wZqS3Vq2eK_JTK1OBupE0YWB6uZ23lluxfxs6sTmfHIu9489dr8Wx75RiI0u2h2TXzD7j_g;'
     ip = getip_uncheck()
+    # client = jd(ck, ip)
+    create_order_appstore(ck, '200', ip)
+    
+
     # ip = None
-    jd_client = jd(ck, ip)
+    # jd_client = jd(ck, ip)
     # jd_client.get_appstore_detail('248300092259')
     # print(jd_client.delete_order('248300092259'))
     # url = 'https://m.jd.com'
     # url = 'https://st.jingxi.com/order/n_detail_v2.shtml?deal_id=248322658627&appCode=msc588d6d5&__navVer=1'
-    url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=e997760dabfe6ff502361ce4ea77666b9077749a65b2ce5e0057f934307e42a23fa5eea4af30c9bca6aab606e24ecc71c184d066df2d580afb5fa7da880e8e03c3f7ffc69162a5a830cdcd50f7b4f0dc'
-
-    code, token = jd_client.gen_token(url)
-    token_url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=' + token
-    print(token_url)
+    # url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=e997760dabfe6ff502361ce4ea77666b9077749a65b2ce5e0057f934307e42a23fa5eea4af30c9bca6aab606e24ecc71c184d066df2d580afb5fa7da880e8e03c3f7ffc69162a5a830cdcd50f7b4f0dc'
+# 
+    # code, token = jd_client.gen_token(url)
+    # token_url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=' + token
+    # print(token_url)
     # code, mck = jd_client.get_mck(token_url)
     # print(mck)
     # code, pay_id = jd_client.submit_appstore(mck, skuid, '100')

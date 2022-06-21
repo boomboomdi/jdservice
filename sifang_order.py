@@ -12,8 +12,9 @@ def md5(pw):
     return md.hexdigest()  # 返回16进制密文
 
 token = '032ebcd09e23b885fd4e568d8095dee2'
+token = '14e1b600b1fd579f47433b88e8d85291'
 def create_order(amount):
-    merchant_sign = 'ceshi'
+    merchant_sign = 'dv'
     order_no = 'dv' + str(randint(1000000, 99999999))
     payment = 'onlyalipay'
     # payment = 'weixin'
@@ -32,7 +33,8 @@ def create_order(amount):
     head = {
         'session': order_no
     }
-    url = 'http://175.178.195.147:9191/api/orderinfo/order?t=' + str(randint(100000,9999999))
+    # url = 'http://175.178.195.147:9191/api/orderinfo/order?t=' + str(randint(100000,9999999))
+    url = 'http://27.152.28.201:9393/api/orderinfo/order?t=' + str(randint(100000,9999999))
     data = json.dumps(order)
     print(data)
     res = requests.post(url, headers=head, data=data)
@@ -54,4 +56,4 @@ def test():
 
 if __name__ == '__main__':
     # test()
-    create_order('11')
+    create_order('100')

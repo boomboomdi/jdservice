@@ -4,8 +4,8 @@ import random
 import requests
 import base64
 import json
-from PIL import Image,ImageEnhance
-import pyzbar
+# from PIL import Image,ImageEnhance
+# import pyzbar
 from io import BytesIO
 import time
 import inspect
@@ -68,7 +68,9 @@ def LOG_E(log):
     print('[---]' + t, 'function', '[' + inspect.stack()[1][3] + ']' + ':', log)
 
 def getip_uncheck():
-    url = 'http://webapi.http.zhimacangku.com/getip?num=1&type=1&pro=0&city=0&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=&username=chukou01&spec=1'
+    # url = 'http://webapi.http.zhimacangku.com/getip?num=1&type=1&pro=0&city=0&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=&username=chukou01&spec=1'
+    # shanghai
+    url = 'http://webapi.http.zhimacangku.com/getip?num=1&type=1&pro=310000&city=310200&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=&username=chukou01&spec=1'
     response = requests.get(url)
     if response.status_code == 200:
         print(response.text)
