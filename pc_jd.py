@@ -329,7 +329,7 @@ class pc_jd():
             'Cookie': self.ck
         }
         try:
-            res = requests.get(url, headers=head, allow_redirects=False, proxies=self.proxy)
+            res = requests.get(url, headers=head, allow_redirects=False, proxies=self.proxy, timeout=5)
             print(res.text)
         except Exception as e:
             tools.LOG_D(e)
@@ -368,6 +368,9 @@ class pc_jd():
             'Cookie': self.ck
         }
         res = requests.get(url, headers=head, proxies=self.proxy)
+        card_id = None 
+        card_key = None 
+        pay_time = None 
         if res.status_code == 200:
             for line in res.text.split('\n'):
                 if 'onclick="copyToClipboard(' in line:
@@ -1345,7 +1348,7 @@ def query_order_appstore(ck, order_me, order_no, amount):
                 result['card_name'] = card_id
                 result['card_password'] = card_key
                 result['pay_status'] = '1'
-                tools.LOG_D(card_id, card_key, pay_time)
+                tools.LOG_D(card_id + ' = ' + card_key + ' = ' + pay_time)
                 result = json.dumps(result)
                 if upload_callback_result(result):
                     if order_status == True and status_name == '已完成':
@@ -1619,7 +1622,8 @@ if __name__=='__main__':
     # print(get_real_url(ck, url))
     # print(get_real_qb(ck, '248592464389=105'))
 
-    order_appstore(ck, '', '200')
+    # order_appstore(ck, '', '200')
+    query_order_appstore(ck, '', '249012682856', '10')
 
     # print(query_order_qb(ck, '', DNF_SKUIDS['50'], '50'))
     # test(ck)

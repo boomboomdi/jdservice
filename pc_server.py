@@ -104,9 +104,9 @@ def getRealurl():
     url = str(param.get('qr_url'))
     os = str(param.get('os'))
     if os == 'android':
-        return get_real_url(ck, url)
+        return get_real_url(ck, url, os)
     elif os == 'ios':
-        return get_real_url(ck, url)
+        return get_real_url(ck, url, os)
 
 @app.route('/callBackDv', methods=['POST'])
 def callBackDv():
