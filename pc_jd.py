@@ -399,7 +399,7 @@ class pc_jd():
                 if '_orderid' in line:
                     if order_no in line:
                         passkey = line.split('_passkey="')[1].replace('"></a>', '')
-                        return passkey
+                        return SUCCESS, passkey
 
     def get_recycle_passkey(self, order_no):
         url = 'https://order.jd.com/center/recycle.action?d=1'
@@ -598,6 +598,33 @@ class pc_jd():
             tools.LOG_D(e)
             return NETWOTK_ERROR, None
 
+    def get_unpay_appstore_passkey(self, order_id):
+        querylist = '[{"orderType":34,"erpOrderId":"' + order_id + '"}]'
+        url = 'https://ordergw.jd.com/orderCenter/app/1.0/?callback=jQuery4735171&queryList=' + quote(querylist) + '&_=' + str(int(time())) + '469'
+        head = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Safari/537.36 Edg/101.0.1210.53',
+            'Referer': 'https://order.jd.com/',
+            'Cookie': self.ck
+        }
+        try:
+            res = requests.get(url, headers=head, proxies=self.proxy, timeout=4)
+            # print(res.text)
+        except Exception as e:
+            tools.LOG_D(e)
+            return NETWOTK_ERROR, None
+        order_json = json.loads(res.text.split('(')[1][0:-1])
+        for item in order_json['appOrderInfoList']:
+            # print(item)
+            # print(item['operations'])
+            if str(item['orderInfo']['erpOrderId']) == order_id:
+                for operation in item['operations']:
+                    if operation['style'] == 'btn-pay':
+                        return SUCCESS, operation['url'].split('PassKey=')[1]
+        return SUCCESS, None
+
+
+
+
 
     def get_unpay_appstore(self):
         url = 'https://order.jd.com/center/list.action'
@@ -622,14 +649,6 @@ class pc_jd():
                                 order['order_id'] = s.split(':')[1]
                             if 'amount' in s:
                                 order['amount'] = s.split(':')[1].replace('.00', '')
-
-                        for line in res.text.split('\n'):
-                            # if ('https://card.jd.com/order/order_detail.action?orderId=' + order['order_id']) in line:
-                            if 'order_pay' in line:
-                                print(line)
-                                # line = line.replace(' ', '')
-                                # order_url = line.split('href=\'')[1].split('\'clstag')[0]
-                                # order['passkey'] = order_url.split('PassKey=')[1]
                         orders.append(json.dumps(order))
             return SUCCESS, orders
         except Exception as e:
@@ -803,34 +822,35 @@ def create_order_appstore(ck, order_me, amount, proxy):
     # ========test=========
     pc_client = pc_jd(ck, proxy)
 
-    # code, order_id, cashier_url = get_useful_unpay_appstore(ck, amount, proxy)
-    # if code != SUCCESS:
-        # return code, None, None
-    # return
+    code, order_no, cashier_url = get_useful_unpay_appstore(ck, amount, proxy)
+    if code != SUCCESS:
+        return code, None, None
+    if order_no == None:
+        code, win_id = pc_client.order_place(APPSTORE_SKUIDS[amount])
+        tools.LOG_D(win_id)
+        if code != SUCCESS:
+            return code, None, None
+        sleep(3)
 
-    code, win_id = pc_client.order_place(APPSTORE_SKUIDS[amount])
-    tools.LOG_D(win_id)
-    if code != SUCCESS:
-        return code, None, None
-    sleep(3)
+        code, order_no = pc_client.submit_order(APPSTORE_SKUIDS[amount], amount, win_id)
+        tools.LOG_D(order_no)
+        if code != SUCCESS:
+            return code, None, None
+        code, order_url = pc_client.get_order_url(order_no)
+        if code != SUCCESS:
+            return code, None, None
+        code, cashier_url = pc_client.get_jmiurl(order_url)
+        if code != SUCCESS:
+            return code, None, None
 
-    code, order_no = pc_client.submit_order(APPSTORE_SKUIDS[amount], amount, win_id)
-    tools.LOG_D(order_no)
-    if code != SUCCESS:
-        return code, None, None
-    code, order_url = pc_client.get_order_url(order_no)
-    if code != SUCCESS:
-        return code, None, None
-    code, jmi_url = pc_client.get_jmiurl(order_url)
-    if code != SUCCESS:
-        return code, None, None
-    code, cashier_url = pc_client.cashier_index(jmi_url)
+    code, cashier_url = pc_client.cashier_index(cashier_url)
     if code != SUCCESS:
         return code, None, None
     code, pay_sign, page_id, channel_sign = pc_client.get_pay_channel(cashier_url)
+    if code != SUCCESS:
+        return code, None, None
 
-
-    for i in range(5):
+    for i in range(7):
         code, weixin_page_url = pc_client.weixin_confirm(order_no, pay_sign, amount, page_id, channel_sign)
         if code != SUCCESS:
             return code, None, None
@@ -874,7 +894,7 @@ def order_appstore(ck, order_me, amount):
             return None
         ip_sql().insert_ip(account, proxy)
 
-    for i in range(3):
+    for i in range(5):
         code, order_no, img_url = create_order_appstore(ck, order_me, amount, proxy)
         if code == NETWOTK_ERROR:
             proxy = tools.getip_uncheck()
@@ -931,12 +951,14 @@ def get_useful_unpay_appstore(ck, amount, proxy):
         order = json.loads(order)
         if amount == str(order['amount']):
             order_id = str(order['order_id'])
-            passkey = str(order['passkey'])
             last_time = order_sql().search_order(order_id)
             now_time = str(int(time()))
             if last_time != None:
                 # if int(now_time) - int(last_time) > 600:
                 if int(now_time) - int(last_time) > 60:
+                    code, passkey = pc_client.get_unpay_appstore_passkey(order_id)
+                    if code != SUCCESS:
+                        return code, None, None
                     code, cashier_url = pc_client.jump_url_appstore(order_id, passkey)
                     # code, cashier_url = pc_client.locdetails_order(order_id)
                     if code != SUCCESS:
@@ -1606,6 +1628,7 @@ if __name__=='__main__':
     ck = '__jdv=76161171|direct|-|none|-|1655742458037; __jdu=1655742458034492679635; areaId=5; ipLoc-djd=5-142-0-0; PCSYCityID=CN_130000_130100_0; shshshfp=75eab5f243e0e0369fab1aa388e3811f; shshshfpa=637c5e74-580b-9649-3b82-284064f78995-1655742461; shshshsID=28739638ba3ac225daad943992ae41fc_1_1655742462467; shshshfpb=b9L-s6XK5l6yZL8AOmxxutw; TrackID=1gPfnXL4bkzUbXbzXn8WGK2ydkvEu89MLxFnj9VvM9FtTVPP34vGwf_KZNpFlJET_fqojPHZPBsMmmCXOGut10S1fYNHBSwEEkb3ikkWMAkpojz5ITSdlUBM5655VarQL6uedM5tUeOZj5EDOvz_g0w; thor=11F350161A639A8FFDEB2D927D14E00FD77F76958AFE38476DAC270A51DDA9AD0978E7B9E65A2511243B7535FD207AF341FF01B72393F39DF7315E83F798A8A4E38D2A4DCA509E2E1F65065E28A4D5CAD487BBA4A151D02ABD4FA04CBD15FA5A88BB730CF76D165A2F150B87C6FD1D62A1C9E0CF365A4D4986A7E934653AD45A5108C810DF2303E48DED65288C2653B7; pinId=Ww8ssFBYyPLlN2KL7Ev_q3wnzN6coHcK; pin=%E9%83%B4%E5%B7%9E%E5%B8%82%E6%83%A0%E9%A3%9E%E5%95%86%E8%B4%B8; unick=%E9%83%B4%E5%B7%9E%E5%B8%82%E6%83%A0%E9%A3%9E%E5%95%86%E8%B4%B8; ceshi3.com=000; _tp=rR3s0tEXqirKHl5VPSrdF35ngTQtCrdqeKVE7me0muzxckj7aH2XmVNGjjOxN0rmVOIDmyRP8YVQ4JeTQsWVoQ%3D%3D; _pst=%E9%83%B4%E5%B7%9E%E5%B8%82%E6%83%A0%E9%A3%9E%E5%95%86%E8%B4%B8; bjd.advert.popup=4fa91c0e04f159ddb42cfa2e2856b375; __jda=122270672.1655742458034492679635.1655742458.1655742458.1655742458.1; __jdc=122270672; __jdb=122270672.12.1655742458034492679635|1.1655742458; 3AB9D23F7A4B3C9B=QNCWC64QP4P2LVZKSMOYVQ5UVCXBVUAFAP3XXO4Q2JGY5MVLJ5CNJO5XE3NHQHT2XMBDWWZ24L3C6T75QSANI6DL6E'
     ck = 'mp=%E9%83%B4%E5%B7%9E%E5%B8%82%E6%83%A0%E9%A3%9E%E5%95%86%E8%B4%B8;  TrackID=17LKG441mUw5lDLoxFsgoodl5_RdURKBl2sS0p5i-k_8txH8Z0JTeM2fmY_nVVu226AXOpd304E1RjY4t4RHbnDPQ8DFJDb0PSMfA7qVpsrXmyfh8tTSREsz89jPfFNZUUqAMVof2FtGF5SMVXvaqVw;  thor=11F350161A639A8FFDEB2D927D14E00F41F1C3EDE8F8C482DE82F0612DE1828BEE240BD5E7718E12F0F9B0F624EA82E5F5AADE2661216B03799D52F3F526EC64D929AD7713F19AE3A9238452366F6CE3BC16133D612159FC85D57775F19F2E1E4FCDC5743016F1D29D72EB6A469ACC515869B996046DD9736F0AB8A9638A967DFC26C188D13E2F894E58A71DF7D2C8AD;  pinId=Ww8ssFBYyPLlN2KL7Ev_q3wnzN6coHcK;  pin=%E9%83%B4%E5%B7%9E%E5%B8%82%E6%83%A0%E9%A3%9E%E5%95%86%E8%B4%B8;  unick=%E9%83%B4%E5%B7%9E%E5%B8%82%E6%83%A0%E9%A3%9E%E5%95%86%E8%B4%B8;  _tp=rR3s0tEXqirKHl5VPSrdF35ngTQtCrdqeKVE7me0muzxckj7aH2XmVNGjjOxN0rmVOIDmyRP8YVQ4JeTQsWVoQ%3D%3D;  _pst=%E9%83%B4%E5%B7%9E%E5%B8%82%E6%83%A0%E9%A3%9E%E5%95%86%E8%B4%B8;'
     ck = 'mp=%E5%B8%B8%E5%BE%B7%E9%91%AB%E6%83%A0%E5%95%86%E8%B4%B8%E6%9C%89;  TrackID=1aOsz38LSQgwMbOHbccjt_Si3LXARhK5HPRzBtPGr5QSJ4YsbzTJM5tUGERem4eIMyfto-Ov_5iyCTcyf3YMlUiJNZHbWIehG5pgAUgD5GOGAqtWvD6_3HqHiY1HT_B214RYHLrZi4jNWprgKJd0hOQ;  thor=0944E0DC62EB44D00ADB370E1A55B5C489F4718BCC2A5B1658F0A9DBB543C3F2264F0B832FB0E0C6B4D6E2CF7E12B41F515477BBAE42E9381152B0A3AD20B28E3B13FBA1B173F366508D4E3473D329E616B097C4BCDFB5579A48DC8B909804893D580741FF12A7908A6DC633089111897566F1E6579DC74285AFB1986285C6A2128CF05D589BAEDAC23FA98382177BF6;  pinId=nGtUW9EFSAHh4DAIQ2YmPxNmbjgR5rvE;  pin=%E5%B8%B8%E5%BE%B7%E9%91%AB%E6%83%A0%E5%95%86%E8%B4%B8%E6%9C%89;  unick=%E5%B8%B8%E5%BE%B7%E9%91%AB%E6%83%A0%E5%95%86%E8%B4%B8%E6%9C%89;  _tp=S9ltnMsm4uGTQz2N9PhfaC3RfnBFdLQvtS8fb7z4GdhAShf80frD4jQJGjsfy%2Fvad1TbdL3IskTjXdDf06zgBw%3D%3D;  _pst=%E5%B8%B8%E5%BE%B7%E9%91%AB%E6%83%A0%E5%95%86%E8%B4%B8%E6%9C%89; pin=%E5%B8%B8%E5%BE%B7%E9%91%AB%E6%83%A0%E5%95%86%E8%B4%B8%E6%9C%89; wskey=AAJisV_SAFCkXgoWvHkkWOw81sWXTb6cbldM-6E8ksVUeoGtEDzsCDGAqUDWEsLf5m3lH2gXiJ-SYurdBEl9UbyGh3Tppg7WZ7mzVgI9OhGD4vVh830fEw; pt_pin=%E5%B8%B8%E5%BE%B7%E9%91%AB%E6%83%A0%E5%95%86%E8%B4%B8%E6%9C%89; unionwsws={"devicefinger":"eidAacf98120e3s6/AVdYbJhR9ih+YP9biegFfwFXuM3P5fAWZ7PJIH3km/EKCbUBkSgiHptwoEIHgrXY8TLXzyF0eT+M10T4HP7Jq8/TYm2x9y8C/ps","jmafinger":"mp6gtBiHYP0O0ZUhI2zeJzSLtjzuZya_oYUL7JMiURv2HWVMdzuOqlVsLn_EgpJH8"}'
+    ck = 'mp=%E5%B8%B8%E5%BE%B7%E9%91%AB%E6%83%A0%E5%95%86%E8%B4%B8%E6%9C%89;  TrackID=1_Ufvzb4jBnDGrMhATDhEG3s3eJ3hwvIviEKJg1At0m8beGF1E5TNVW5kwItiatMFThtAm1aEigJ_BcsqmV4ELh-Pkxz7Oo4gexgYoct-fvEje0vVFBwVfQefkMbb9alDh3vdXXlo2BxQSUbJi65bCw;  thor=0944E0DC62EB44D00ADB370E1A55B5C4945A738213E5744E7474A8A12CF846189840D8D1DD32E875BEA35F16F0DB7E3A6AF4B31EF65F3548F7D22A17C19FABD519B9777F0EED472BF6EDA7EC35C773B78A6027623822370CA569DB05417A7F301B7F755166E221830C5E937C94BF309BCD9F3D2F240CEE3E9CD0FDC02EA91B664A109988D5F225C2661545633D602A59;  pinId=nGtUW9EFSAHh4DAIQ2YmPxNmbjgR5rvE;  pin=%E5%B8%B8%E5%BE%B7%E9%91%AB%E6%83%A0%E5%95%86%E8%B4%B8%E6%9C%89;  unick=%E5%B8%B8%E5%BE%B7%E9%91%AB%E6%83%A0%E5%95%86%E8%B4%B8%E6%9C%89;  _tp=S9ltnMsm4uGTQz2N9PhfaC3RfnBFdLQvtS8fb7z4GdhAShf80frD4jQJGjsfy%2Fvad1TbdL3IskTjXdDf06zgBw%3D%3D;  _pst=%E5%B8%B8%E5%BE%B7%E9%91%AB%E6%83%A0%E5%95%86%E8%B4%B8%E6%9C%89; pin=%E5%B8%B8%E5%BE%B7%E9%91%AB%E6%83%A0%E5%95%86%E8%B4%B8%E6%9C%89; wskey=AAJisV_SAFCkXgoWvHkkWOw81sWXTb6cbldM-6E8ksVUeoGtEDzsCDGAqUDWEsLf5m3lH2gXiJ-SYurdBEl9UbyGh3Tppg7WZ7mzVgI9OhGD4vVh830fEw; pt_pin=%E5%B8%B8%E5%BE%B7%E9%91%AB%E6%83%A0%E5%95%86%E8%B4%B8%E6%9C%89; unionwsws={"devicefinger":"eidAacf98120e3s6/AVdYbJhR9ih+YP9biegFfwFXuM3P5fAWZ7PJIH3km/EKCbUBkSgiHptwoEIHgrXY8TLXzyF0eT+M10T4HP7Jq8/TYm2x9y8C/ps","jmafinger":"mp6gtBiHYP0O0ZUhI2zeJzSLtjzuZya_oYUL7JMiURv2HWVMdzuOqlVsLn_EgpJH8"}'
     # pc_client = pc_jd(ck, None)
     # print(get_useful_unpay(ck, '586', None))
 
@@ -1622,8 +1645,8 @@ if __name__=='__main__':
     # print(get_real_url(ck, url))
     # print(get_real_qb(ck, '248592464389=105'))
 
-    # order_appstore(ck, '', '200')
-    query_order_appstore(ck, '', '249012682856', '10')
+    order_appstore(ck, '', '10')
+    # query_order_appstore(ck, '', '249012682856', '10')
 
     # print(query_order_qb(ck, '', DNF_SKUIDS['50'], '50'))
     # test(ck)

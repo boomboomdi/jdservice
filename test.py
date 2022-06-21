@@ -215,6 +215,23 @@ def des_decrypt(data,secretkey):
     return des_obj.decrypt(decodebs64data).decode('utf-8')
 
 
+
+
+def upload_callback_result(result):
+    url = 'http://175.178.195.147:9191/api/ordernotify/notifyorderstatus0069'
+    print(url)
+    head = {
+        'content-type': 'application/json'
+    }
+    print(result)
+    res = requests.post(url, headers=head, data=result).json()
+    print(res)
+    if res['code'] == 0:
+        return True
+    else:
+        return False
+
+
 # conn = sqlite3.connect('/home/police/project/python/jd/jd.db') 
 if __name__ == '__main__':
     a = {
@@ -227,22 +244,16 @@ if __name__ == '__main__':
     # key = '2E1ZMAF8'
     # card = des_descrypt(base64.b64decode(data), key)
     # print(str(int(time.time())))
-
-    head = {
-        'User-Agent': 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.63 Safari/537.36 Edg/102.0.1245.39',
-        'sec-ch-ua-platform':'"Windows"',
-        'Sec-Fetch-Mode': 'navigate',
-        'Upgrade-Insecure-Requests': '1',
-        'sec-ch-ua': '" Not A;Brand";v="99", "Chromium";v="102", "Microsoft Edge";v="102"',
-        'Sec-Fetch-Dest': 'document',
-        'Accept-Language': 'zh-CN,zh;q=0.9'
+    result = {
+        'check_status': '1',
+        'pay_status': '0',
+        'ck_status': '1',
+        'time': str(int(time.time())),
+        'order_me': '17392345a9d7e3354415c2d0209996fe',
+        'order_pay': '249010732874',
+        'amount': '10',
+        'card_name': 'BA1D19C5BA1D19C5',
+        'card_password': 'BA1D19C5BA1D19C5'
     }
 
-    proxy = {
-                'http': '175.146.215.212:4256',
-                'https': '175.146.215.212:4256'
-            }
-    res = requests.get('http://www.ip111.cn/', headers=head, proxies=proxy )
-    for i in res.text.split('\n'):
-        if '.' in i:
-            print(i)
+    upload_callback_result(json.dumps(result))
