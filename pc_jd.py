@@ -4,7 +4,6 @@ import json
 import requests
 from time import time, sleep
 from urllib.parse import quote
-from jd_yk import getip_uncheck
 import tools
 from jingdong import LOG, jd
 from ip_sqlite import ip_sql
@@ -1258,6 +1257,8 @@ def get_real_url(ck, img_url, os):
         tools.LOG_D(token)
         if code == NETWOTK_ERROR:
             proxy = tools.getip_uncheck()
+            if proxy == None:
+                return None
             ip_sql().update_ip(account, proxy)
         elif code == CK_UNVALUE:
             result['msg'] = 'ck unvalue'
