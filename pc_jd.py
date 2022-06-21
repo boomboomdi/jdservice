@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import base64
 import json
+from pickle import EMPTY_TUPLE
 import requests
 from time import time, sleep
 from urllib.parse import quote
@@ -392,14 +393,19 @@ class pc_jd():
             'Referer': 'https://order.jd.com/',
             'Cookie': self.ck
         }          
-        res = requests.get(url, headers=head, proxies=self.proxy)
-        # print(res.text)
+        try:
+            res = requests.get(url, headers=head, proxies=self.proxy)
+        except Exception as e:
+            tools.LOG_D(e)
+            return NETWOTK_ERROR, None
         if res.status_code == 200:
             for line in res.text.split('\n'):
                 if '_orderid' in line:
                     if order_no in line:
                         passkey = line.split('_passkey="')[1].replace('"></a>', '')
                         return SUCCESS, passkey
+        return CK_UNVALUE, None
+        
 
     def get_recycle_passkey(self, order_no):
         url = 'https://order.jd.com/center/recycle.action?d=1'
@@ -518,14 +524,16 @@ class pc_jd():
 
     def clear_order(self, order_no):
         tools.LOG_D(order_no)
-        passkey = self.get_passkey(order_no)
+        code, passkey = self.get_passkey(order_no)
+        if code != SUCCESS:
+            return code
         code, status = self.recycle_order(order_no, passkey)
         if code != SUCCESS:
-            pass
+            return code
         if status == True:
             code, passkey = self.get_recycle_passkey(order_no)
             if code != SUCCESS:
-                pass
+                return code
             self.delete_order(order_no, passkey)
 
     def weixin_page(self, url):
@@ -1370,7 +1378,7 @@ def query_order_appstore(ck, order_me, order_no, amount):
                 result['card_name'] = card_id
                 result['card_password'] = card_key
                 result['pay_status'] = '1'
-                tools.LOG_D(card_id + ' = ' + card_key + ' = ' + pay_time)
+                # tools.LOG_D(card_id + ' = ' + card_key + ' = ' + pay_time)
                 result = json.dumps(result)
                 if upload_callback_result(result):
                     if order_status == True and status_name == '已完成':
@@ -1645,8 +1653,8 @@ if __name__=='__main__':
     # print(get_real_url(ck, url))
     # print(get_real_qb(ck, '248592464389=105'))
 
-    order_appstore(ck, '', '10')
-    # query_order_appstore(ck, '', '249012682856', '10')
+    # order_appstore(ck, '', '10')
+    query_order_appstore(ck, '', '249012682856', '10')
 
     # print(query_order_qb(ck, '', DNF_SKUIDS['50'], '50'))
     # test(ck)
