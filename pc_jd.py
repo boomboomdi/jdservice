@@ -548,8 +548,11 @@ class pc_jd():
         for i in range(5):
             tools.LOG_D('DELETE ORDER ' + str(i))
             code, passkey = self.get_passkey(order_no)
+            tools.LOG_D('passKey: ' + str(passkey))
             if code != SUCCESS:
                 return code, None
+            if passkey == None:
+                return code, False
             code, status = self.recycle_order(order_no, passkey)
             if code != SUCCESS:
                 return code, None
