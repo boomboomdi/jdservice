@@ -1453,6 +1453,8 @@ def query_order_appstore(ck, order_me, order_no, amount):
                         for i in range(8):
                             if just_del(ck, order_no) == False:
                                 continue
+                            else:
+                                return
             else:
                 result = json.dumps(result)
                 upload_callback_result(result)
