@@ -1593,12 +1593,12 @@ def just_del(ck, order_id):
         # code, orders = pc_client.just_delete()
         # for order in orders:
             # pc_client.clear_order(order)
+        sleep(10)
         code, status = pc_client.clear_order(order_id)
         if code == SUCCESS:
             if status == True:
                 return True
             else:
-                sleep(10)
                 continue
         elif code == NETWOTK_ERROR:
             proxy = tools.getip_uncheck(area)
