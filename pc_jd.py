@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 import base64
 import json
-from pickle import EMPTY_TUPLE
 from re import I
-from numpy import argwhere
 import requests
 from time import time, sleep
 from urllib.parse import quote
