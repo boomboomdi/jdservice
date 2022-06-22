@@ -2,6 +2,7 @@
 import base64
 import json
 from re import I
+from termios import OFDEL
 import requests
 from time import time, sleep
 from urllib.parse import quote
@@ -550,8 +551,9 @@ class pc_jd():
                 if code != SUCCESS:
                    continue               
                 if status == True:
-                    return
+                    return True
             sleep(1)
+        return False
 
     def weixin_page(self, url):
         head = {
@@ -1430,7 +1432,8 @@ def query_order_appstore(ck, order_me, order_no, amount):
                 result = json.dumps(result)
                 if upload_callback_result(result):
                     if order_status == True and status_name == '已完成':
-                        pc_client.clear_order(order_no)
+                        # pc_client.clear_order(order_no)
+                        just_del(ck, order_no)
             else:
                 result = json.dumps(result)
                 upload_callback_result(result)
@@ -1551,7 +1554,7 @@ def query_order_appstore_immediate(ck, order_me, order_no, amount):
         i += 1
 
 
-def just_del(ck):
+def just_del(ck, order_id):
     if '&' not in ck:
         area = '上海市'
     else:
@@ -1570,16 +1573,20 @@ def just_del(ck):
         pc_client = pc_jd(ck, proxy)
         code, orders = pc_client.just_delete()
         if code == SUCCESS:
-            for order in orders:
-                pc_client.clear_order(order)
-            break
+            # for order in orders:
+                # pc_client.clear_order(order)
+            status = pc_client.clear_order(order_id)
+            if status == True:
+                return True
+            else:
+                continue
         elif code == NETWOTK_ERROR:
             proxy = tools.getip_uncheck(area)
             ip_sql().update_ip(account, proxy)
         elif code == CK_UNVALUE:
             result['ck_status'] = '0'
             result = json.dumps(result)
-            return
+            return False
         i += 1
 
 
@@ -1751,7 +1758,7 @@ if __name__=='__main__':
     # print(get_real_qb(ck, '248592464389=105'))
 
     # order_appstore(ck, '', '50')
-    # query_order_appstore(ck, '', '249029759428', '100')
+    query_order_appstore(ck, '', '249029759428', '100')
 
     # print(query_order_qb(ck, '', DNF_SKUIDS['50'], '50'))
     # test(ck)
