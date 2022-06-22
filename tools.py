@@ -1,7 +1,4 @@
-from imaplib import Time2Internaldate
-from os import times
 import random
-from numpy import size
 import requests
 import base64
 import json

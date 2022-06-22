@@ -3,6 +3,7 @@ import base64
 import json
 from pickle import EMPTY_TUPLE
 from re import I
+from numpy import argwhere
 import requests
 from time import time, sleep
 from urllib.parse import quote
@@ -401,7 +402,7 @@ class pc_jd():
             'Cookie': self.ck
         }          
         try:
-            res = requests.get(url, headers=head, proxies=self.proxy)
+            res = requests.get(url, headers=head, proxies=self.proxy, timeout=4)
         except Exception as e:
             tools.LOG_D(e)
             return NETWOTK_ERROR, None
@@ -410,6 +411,7 @@ class pc_jd():
                 if '_orderid' in line:
                     if order_no in line:
                         passkey = line.split('_passkey="')[1].replace('"></a>', '')
+                        tools.LOG_D(passkey)
                         return SUCCESS, passkey
         return CK_UNVALUE, None
         
@@ -421,7 +423,7 @@ class pc_jd():
             'Referer': 'https://order.jd.com/',
             'Cookie': self.ck
         }          
-        res = requests.get(url, headers=head, proxies=self.proxy)
+        res = requests.get(url, headers=head, proxies=self.proxy, timeout=4)
         if res.status_code == 200:
             if '忘记密码' in res.text:
                 return UNLOGIN, None
@@ -429,6 +431,7 @@ class pc_jd():
                 if '_orderid' in line:
                     if order_no in line:
                         passkey = line.split('_passkey="')[1].replace('"></a>', '')
+                        tools.LOG_D(passkey)
                         return SUCCESS, passkey
         else:
             return RET_CODE_ERROR, None
@@ -442,9 +445,9 @@ class pc_jd():
             'Referer': 'https://order.jd.com/',
             'Cookie': self.ck
         }       
-        res = requests.get(url, headers=head, proxies=self.proxy)
+        res = requests.get(url, headers=head, proxies=self.proxy, timeout=4)
         if res.status_code == 200:
-            # tools.LOG_D(res.text)
+            tools.LOG_D(res.text)
             if 'success' in res.text:
                 return SUCCESS, True
             else:
@@ -458,11 +461,13 @@ class pc_jd():
             'Referer': 'https://order.jd.com/',
             'Cookie': self.ck
         }       
-        res = requests.get(url, headers=head, proxies=self.proxy)
+        res = requests.get(url, headers=head, proxies=self.proxy, timeout=4)
         if res.status_code == 200:
             tools.LOG_D(res.text)
             if 'success' in res.text:
                 return SUCCESS, True
+            else:
+                return SUCCESS, False
                
     # ==================== qb =====================
     def qb_get_repeatkey(self, skuid):
@@ -531,17 +536,23 @@ class pc_jd():
 
     def clear_order(self, order_no):
         tools.LOG_D(order_no)
-        code, passkey = self.get_passkey(order_no)
-        if code != SUCCESS:
-            return code
-        code, status = self.recycle_order(order_no, passkey)
-        if code != SUCCESS:
-            return code
-        if status == True:
-            code, passkey = self.get_recycle_passkey(order_no)
+        for i in range(5):
+            code, passkey = self.get_passkey(order_no)
             if code != SUCCESS:
-                return code
-            self.delete_order(order_no, passkey)
+                continue
+            code, status = self.recycle_order(order_no, passkey)
+            if code != SUCCESS:
+                continue
+            if status == True:
+                code, passkey = self.get_recycle_passkey(order_no)
+                if code != SUCCESS:
+                    continue
+                code, status = self.delete_order(order_no, passkey)
+                if code != SUCCESS:
+                   continue               
+                if status == True:
+                    return
+            sleep(1)
 
     def weixin_page(self, url):
         head = {
@@ -801,7 +812,24 @@ class pc_jd():
         return CK_UNVALUE, None
 
 
-    # def 
+    def just_delete(self):
+        url = 'https://order.jd.com/center/list.action?t=34-62&d=1&s=4096'
+        head = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Safari/537.36 Edg/101.0.1210.53',
+            'Referer': 'https://order.jd.com/center/list.action',
+            'Cookie': self.ck
+        }
+        try:
+            res = requests.get(url, headers=head, allow_redirects=False, proxies=self.proxy, timeout=4)
+        except Exception as e:
+            tools.LOG_D(e)
+            return NETWOTK_ERROR, None
+        if res.status_code == 200:       
+            for line in res.text.split('\n'):
+                if '$ORDER_CONFIG[\'pop_sign\']=' in line:
+                    i = line.replace('$ORDER_CONFIG[\'pop_sign\']=\'[{"orderType":34,"orderIds":["', '').replace('"]}]\';', '')
+                    return SUCCESS, i.split('","')
+        return SUCCESS, None
 
 
 
@@ -1320,6 +1348,7 @@ def get_real_url(ck, img_url, os):
     return json.dumps(result)
 
 def upload_callback_result(result):
+    return True
     url = 'http://127.0.0.1:9191/api/ordernotify/notifyorderstatus0069'
     head = {
         'content-type': 'application/json'
@@ -1523,6 +1552,40 @@ def query_order_appstore_immediate(ck, order_me, order_no, amount):
         i += 1
 
 
+def just_del(ck):
+    if '&' not in ck:
+        area = '上海市'
+    else:
+        area = ck.split('&')[1]
+        area = unquote(area)
+    tools.LOG_D(area)
+    account = tools.get_jd_account(ck)
+    tools.LOG_D(account)
+    proxy = ip_sql().search_ip(account)
+    tools.LOG_D(proxy)
+    if proxy == None:
+        proxy = tools.getip_uncheck(area)
+        ip_sql().delete_ip(account)
+        ip_sql().insert_ip(account, proxy)
+    for i in range(8):
+        pc_client = pc_jd(ck, proxy)
+        code, orders = pc_client.just_delete()
+        if code == SUCCESS:
+            for order in orders:
+                pc_client.clear_order(order)
+            break
+        elif code == NETWOTK_ERROR:
+            proxy = tools.getip_uncheck(area)
+            ip_sql().update_ip(account, proxy)
+        elif code == CK_UNVALUE:
+            result['ck_status'] = '0'
+            result = json.dumps(result)
+            return
+        i += 1
+
+
+
+
 
 def callback(ck, order_no, order_me, amount):
     result = {
@@ -1668,14 +1731,17 @@ if __name__=='__main__':
     ck = 'mp=%E5%98%89%E6%BA%90%E7%8E%AF%E4%BF%9D%E7%A7%91%E6%8A%80;  TrackID=12a4FHA9A0hMOROeji4_em4krTDQnkmdO4fx59bHbAJbWs7zfKIuA7IyewimaCathpyzME71jaDhRGRnWpaLy_31IHVWqD7MlSBFE1fZsn3hE1xdceu7tcpuXb2nJBauemII3oqJm0cdnyWmQw5cFiw;  thor=878B256FC89FF576B3C220B32B34C2AC85AD871AE6AC848DC9316541D4FE6E467AF3E510B2DDFD323C982C3CDE2DC5DA71D9C030BFE013BB5637439E1DB3592DEDDFD71D888D496E57243D20F3FA6DD34E49694ADD3427EDAF1EE758D186AE76E213540412B12D14DD808412DBDE89EBBDE6E7C0943C02C1E2608CB788C6251A;  pinId=CMswon-sGCkz1Vso2Dx4SJ0crUj1-hPV;  pin=%E5%98%89%E6%BA%90%E7%8E%AF%E4%BF%9D%E7%A7%91%E6%8A%80;  unick=%E5%98%89%E6%BA%90%E7%8E%AF%E4%BF%9D%E7%A7%91%E6%8A%80;  _tp=QYAfdd7dZs%2BjGi8%2F0kK6gvalR3svCWPVmhT0vF1Py%2B2ngqHLHxl4HH9MAEnhHQlS%2FXZEroZYh83cwNBsTiYboQ%3D%3D;  _pst=%E5%98%89%E6%BA%90%E7%8E%AF%E4%BF%9D%E7%A7%91%E6%8A%80;'
     # ck = 'mp=%E9%9B%84%E4%B8%9C%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90%E5%85%AC;  TrackID=1JMlVWijWQ-XMaaroR3zmOibYAL1r5q-6z9ZZKfrX0uC08Y_Uz5-6RWsqVAQ76My5_LeF_XsmiXgDNQxN6iuvZcIXKcCfSYdQr1wzteEloFIRO318kgqWZfBkUM1Dv869ddxj13gR2iApUjcqQoyhpA;  thor=2BE6597967491F53B1AD546E29A072B50DEFCFCBA5340907215946C3C64F17FA5BE64709AE0AC5D4C2EE1C3EBB91092AFFF14C3C083EFA45E6AAE6C32792FC29CBB39EB8156BF4EE10B2B5B3586BBEC3F1F69D5C1D21CA98A1ACCAAB11D85BED912259A81E227163AD8EDA9CABDAC7A181DE6B548EA3B7D7866BBBAC435C97B6168C5ED4114F8A33F1BC8AC338C1434B;  pinId=zwYcX3rPP3VOXhW6T63coLm2Ux3q-rZk;  pin=%E9%9B%84%E4%B8%9C%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90%E5%85%AC;  unick=%E9%9B%84%E4%B8%9C%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90%E5%85%AC;  _tp=aZ2yVK8i%2Beab%2FyPcvy3nDJ36%2Fay0%2BkLnGbTimMB5KdMuzxyYlhOn8IiqiNqM3DpmuXWnEKQKIwgVrENyB1%2BhWQ%3D%3D;  _pst=%E9%9B%84%E4%B8%9C%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90%E5%85%AC; pin=%E9%9B%84%E4%B8%9C%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90%E5%85%AC; wskey=AAJisaPtAFA1zNbnVVyO6K6QGQB14RNqeR2mA9Kffy5oA6X3Q6HtrRiLuL9uvSmLLnFlSb6Le-FZ_d3rMCiw8Cxej-Yj5a-Q13nUi6y6Tu8YibPM73HCnQ; pt_pin=%E9%9B%84%E4%B8%9C%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90%E5%85%AC; unionwsws={"devicefinger":"eidAf7ad812280s7Er5lyQ44Smix/uodb71NvBK+Z0qUIKOHrUfoPDaaeEcZSkvwvaR/n2hOrJuTzP0Px6UTXQOVtSraYT71XiQMQe8XYnMn4QxhM81Z","jmafinger":"mb--d7d8kfgwQWQl-ZP0Zmv66_gkqxla9GuWOHjNxCaPvDUGW_7M6lrpZdksSbsVr"}&辽宁省大连市'
     ck = 'mp=%E9%9B%84%E4%B8%9C%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90%E5%85%AC;  TrackID=1JMlVWijWQ-XMaaroR3zmOibYAL1r5q-6z9ZZKfrX0uC08Y_Uz5-6RWsqVAQ76My5_LeF_XsmiXgDNQxN6iuvZcIXKcCfSYdQr1wzteEloFIRO318kgqWZfBkUM1Dv869ddxj13gR2iApUjcqQoyhpA;  thor=2BE6597967491F53B1AD546E29A072B50DEFCFCBA5340907215946C3C64F17FA5BE64709AE0AC5D4C2EE1C3EBB91092AFFF14C3C083EFA45E6AAE6C32792FC29CBB39EB8156BF4EE10B2B5B3586BBEC3F1F69D5C1D21CA98A1ACCAAB11D85BED912259A81E227163AD8EDA9CABDAC7A181DE6B548EA3B7D7866BBBAC435C97B6168C5ED4114F8A33F1BC8AC338C1434B;  pinId=zwYcX3rPP3VOXhW6T63coLm2Ux3q-rZk;  pin=%E9%9B%84%E4%B8%9C%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90%E5%85%AC;  unick=%E9%9B%84%E4%B8%9C%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90%E5%85%AC;  _tp=aZ2yVK8i%2Beab%2FyPcvy3nDJ36%2Fay0%2BkLnGbTimMB5KdMuzxyYlhOn8IiqiNqM3DpmuXWnEKQKIwgVrENyB1%2BhWQ%3D%3D;  _pst=%E9%9B%84%E4%B8%9C%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90%E5%85%AC; pin=%E9%9B%84%E4%B8%9C%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90%E5%85%AC; wskey=AAJisaPtAFA1zNbnVVyO6K6QGQB14RNqeR2mA9Kffy5oA6X3Q6HtrRiLuL9uvSmLLnFlSb6Le-FZ_d3rMCiw8Cxej-Yj5a-Q13nUi6y6Tu8YibPM73HCnQ; pt_pin=%E9%9B%84%E4%B8%9C%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90%E5%85%AC; unionwsws={"devicefinger":"eidAf7ad812280s7Er5lyQ44Smix/uodb71NvBK+Z0qUIKOHrUfoPDaaeEcZSkvwvaR/n2hOrJuTzP0Px6UTXQOVtSraYT71XiQMQe8XYnMn4QxhM81Z","jmafinger":"mb--d7d8kfgwQWQl-ZP0Zmv66_gkqxla9GuWOHjNxCaPvDUGW_7M6lrpZdksSbsVr"}&%E8%BE%BD%E5%AE%81%E7%9C%81%E5%A4%A7%E8%BF%9E%E5%B8%82'
-    # pc_client = pc_jd(ck, None)
+    ck = 'mp=%E8%88%AA%E6%B8%AF%E7%89%A9%E6%B5%81%E6%9C%89%E9%99%90%E5%85%AC; TrackID=1xVDLSCO9SqEaUmiyIOtCUVSVb8x9u8NHiukhRbAha4jhz7hB7BbrjIMYlwF4uMzbrsExCCkRKx3Yfabk231RVRsZb_1L0OF_wQ_VhRtDp9Zis-5ES6TEokEufSILp9CvgjTQ3qvthRvCOUsxgCy9yw; thor=C4610FA120B08B7E0C8CA44F4ED60F2896D459CDDCE11249F64DF3FF5E6F3064E7EBDD20445826461ACDC75311D1E4EB6E9E6302EA7B5A1B326E266A1D8E7C14A5C8377415FD0914EC44097BB1F435FE73DA2786B32DE143DC46D3BFD3EB6EA0CB87AEB82DF68B4B48CA878232D24040555FBE02C4A860C162EA0FC0DFB43916ED2359FB24ACF0B7924D0AB9D9345131; pinId=EPdshBsFG6-30poYSZSUh7m2Ux3q-rZk; pin=%E8%88%AA%E6%B8%AF%E7%89%A9%E6%B5%81%E6%9C%89%E9%99%90%E5%85%AC; unick=%E8%88%AA%E6%B8%AF%E7%89%A9%E6%B5%81%E6%9C%89%E9%99%90%E5%85%AC; _tp=lt5eJCeXd1%2B4FzPqtodyW6eXrp%2B6Ji%2BPIyD8RxyjIiW0I%2FeLAPeGe%2FDB2FQi7c4SqqRCRiDoZlbZioCufkugbg%3D%3D; _pst=%E8%88%AA%E6%B8%AF%E7%89%A9%E6%B5%81%E6%9C%89%E9%99%90%E5%85%AC; pin=%E8%88%AA%E6%B8%AF%E7%89%A9%E6%B5%81%E6%9C%89%E9%99%90%E5%85%AC; wskey=AAJisfDZAFAoHKNiO_IV0Re_EGTaA8MKmdNNpERAmDgRYL1R9jfDmJoix94uYycKV0TsY923Tv8s8kjqY69vj0WsOYGsOawd6Dvtbx-O7DluCcDhhmWGRg; pt_pin=%E8%88%AA%E6%B8%AF%E7%89%A9%E6%B5%81%E6%9C%89%E9%99%90%E5%85%AC; unionwsws={"devicefinger":"eidAaced812138s2w+hpjfqjQSSMM8T/IC7ESsPoaw+BuBXqdo7H/o8+35nD+4hgMdx59kU4J7MzzaE09i3ORlkrvQ2YXg/YKl6bpWJ+bukMj/q/XYJk","jmafinger":"v6UfFwkwk9CJqlbACSHH9ZbQR3mFRTP136YGl5Kc8CPyCemdUALME37ucIZdgRZNC"}&%E5%AE%89%E5%BE%BD%E7%9C%81%E5%85%AD%E5%AE%89%E5%B8%82'
+    # ck = 'mp=%E5%AE%9C%E5%AE%89%E8%81%94%E5%90%88%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90; TrackID=19dXSu-PdIL5sKLV5m-2tcSBaexHEaxtNnamLibZn1OCcY2zC_wy8QsQH0gAARVai7YsTIvCq_waAyuurlwAXg628MQ_n9Shze5sXke2PgZ96WB5I0rai5guVhe9SF90aOiF2t8L1l61nfboTCVyptw; thor=0B8128A2312C954FB17116D901774178AC2AE0C71403E535A25FBB622F2D2C4B3A69B2342B952D69748BDBB6AA7012B8A69734AEC7343A744DC1CE1976A2715560B823FFA432BE10E0899E57E40A488879EB570C6D832D736537D52F7C326A4E6A4CB7CB03CC5988EC9FE6E430F92A28BB8E9E5D6D2A99D4DAAE9493711E20203518FDC47954530658E0413E9D889D48; pinId=hdPtoxycp3zGGyuoB7Yfgmh6bCaFRUtstX37H5_fCPs; pin=%E5%AE%9C%E5%AE%89%E8%81%94%E5%90%88%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90; unick=%E5%AE%9C%E5%AE%89%E8%81%94%E5%90%88%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90; _tp=eug6tG1Dn9%2FHAqPdcfXfv%2FbzmHcoj7RGzklsvxXHYD31wlOzfLBoJJp9zq%2FceQOU9ywnS2Xas1MfVnw4qMhdttzQHxURReV0qENsm0S8wkw%3D; _pst=%E5%AE%9C%E5%AE%89%E8%81%94%E5%90%88%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90; pin=%E5%AE%9C%E5%AE%89%E8%81%94%E5%90%88%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90; wskey=AAJisaTOAFDy7zfKF6XZAF2eFfksq5vb7ij2pTRU754dlyEkK0VeWNwbAIA-eTjhncvXcJYkKXovc7nzF8VKznYf3pBg6Io2H8O45GKujd4eZ9c366cxlg; pt_pin=%E5%AE%9C%E5%AE%89%E8%81%94%E5%90%88%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90; unionwsws={"devicefinger":"eidAe0b381215bs2GVjfoGGhShyfkVRq/VujkRlY4SHnjREd7+SIwxm01BXRFW3d50hJaGx1eNKHq0y8LUPq/BI28Qervf639hxr3NLBGTT2TKomKIt1","jmafinger":"flY-3biQ9-nmMghxlbc99Hx2-Eyu-XRx9xewcyPWHcnNmhY_k3skTqdArW3nEyMeK"}&%E9%99%95%E8%A5%BF%E7%9C%81%E6%B8%AD%E5%8D%97%E5%B8%82'
+    ck = '__jdu=16509706855941893098380; __jdv=76161171|direct|-|none|-|1654941522932; shshshfpa=24b6bb36-e2eb-935b-8da5-4244c2284385-1654941526; shshshfpb=zgH442FN956xyfHqjr4f9ag; user-key=b713e0dc-ea97-4f4b-8edb-4e1a16076df9; ipLocation=%u6cb3%u5317; PCSYCityID=CN_130000_130100_0; TrackID=1rAm-CpUUP-VSozlRVihp_H0XDYML8lobGMm6Xx_ne5iSXdMDv0LKLM-MbX4UjHmzdJL-2IPoYxrMmToG8yVc-0qsehkI6OXZjMKHul1FdfSRf-zudgfmP1nc_n_-eai9BOBaF13NWQWtRHQTYXHkqA; pinId=nGtUW9EFSAHh4DAIQ2YmPxNmbjgR5rvE; pin=%E5%B8%B8%E5%BE%B7%E9%91%AB%E6%83%A0%E5%95%86%E8%B4%B8%E6%9C%89; unick=%E5%B8%B8%E5%BE%B7%E9%91%AB%E6%83%A0%E5%95%86%E8%B4%B8%E6%9C%89; ceshi3.com=000; _tp=S9ltnMsm4uGTQz2N9PhfaC3RfnBFdLQvtS8fb7z4GdhAShf80frD4jQJGjsfy%2Fvad1TbdL3IskTjXdDf06zgBw%3D%3D; _pst=%E5%B8%B8%E5%BE%B7%E9%91%AB%E6%83%A0%E5%95%86%E8%B4%B8%E6%9C%89; shshshfp=f9e5fb552de10bec2545bcafa3a2d0f4; areaId=5; ipLoc-djd=5-142-42547-54561; bjd.advert.popup=1875ceae35bfa1f5c33ab2a3966ff631; _distM=245177796447; __jda=122270672.16509706855941893098380.1650970686.1655832042.1655848794.40; __jdc=122270672; __jdb=122270672.6.16509706855941893098380|40.1655848794; 3AB9D23F7A4B3C9B=L4VA3H3XRQXTHOSQML6VS3B7QYYN7GVIBS2KPYED4PB7WAMMO52MPHRJZLNNWXPSPTBNDJOKGTPD7SIYJTCJZFPFE4; thor=0944E0DC62EB44D00ADB370E1A55B5C44B18461C80634A2625BA21E8EABC3D19E74A58A0EAEA8329152F755BEBB1F436D36D77A7CE61B33692F5324C606F6A88624179D94370330496954ACD67AF00B007098D002C6D171A65243A4246CA82156DB329E4160AFD83416319C1FFDF19D99A1CD5E7C7DC0EDC75CEC9AAAFB33C176E54F3B06375C2CEC943F59C77751B45'
     # print(get_useful_unpay(ck, '586', None))
 
     # print(order_qb(ck, '', '305', '13562365463'))
     # dnf80 = '200153769485'
     # amount = '80'
     ck = ck.encode('utf-8').decode('latin-1')
-
+    # pc_client = pc_jd(ck, None)
+    just_del(ck)
     # print(create_order_knowkedge(ck, amount, DNF_SKUIDS[amount], '52313461', getip_uncheck()))
     # print(create_order_knowkedge(ck, amount, DNF_SKUIDS[amount], '52353462', None))
     # print(order_knowkedge(ck, '', '100', '2325463432'))
@@ -1685,8 +1751,8 @@ if __name__=='__main__':
     # print(get_real_url(ck, url, ''))
     # print(get_real_qb(ck, '248592464389=105'))
 
-    order_appstore(ck, '', '50')
-    query_order_appstore(ck, '', '249018890987', '200')
+    # order_appstore(ck, '', '50')
+    # query_order_appstore(ck, '', '249029759428', '100')
 
     # print(query_order_qb(ck, '', DNF_SKUIDS['50'], '50'))
     # test(ck)

@@ -232,6 +232,7 @@ def upload_callback_result(result):
     else:
         return False
 
+from pc_jd import just_del
 
 # conn = sqlite3.connect('/home/police/project/python/jd/jd.db') 
 if __name__ == '__main__':
@@ -250,16 +251,21 @@ if __name__ == '__main__':
         # 'pay_status': '0',
         # 'ck_status': '1',
         # 'time': str(int(time.time())),
-        # 'order_me': '17392345a9d7e3354415c2d0209996fe',
-        # 'order_pay': '249010732874',
-        # 'amount': '10',
-        # 'card_name': 'BA1D19C5BA1D19C5',
-        # 'card_password': 'BA1D19C5BA1D19C5'
+        # 'order_me': '9c0ffd700fcebd4fca44806ca6b53f78',
+        # 'order_pay': '249027036072',
+        # 'amount': '200.00',
+        # 'card_name': 'GCA3274920240264',
+        # 'card_password': 'XXCWMKD9NYJHK53T'
     # }
     # upload_callback_result(json.dumps(result))
-
+# 
     f = open('/home/police/project/pay_data/t')
     for line in f.readlines():
         line = line.replace('\n', '')
-        t = line.split('&')[0] + '&' + quote(line.split('&')[1])
-        print(t)
+        # t = line.split('&')[0] + '&' + quote(line.split('&')[1])
+        # print(t)
+        try:
+            just_del(line)
+        except Exception as e:
+            print(e)
+            continue
