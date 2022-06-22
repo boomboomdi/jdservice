@@ -1434,7 +1434,7 @@ def query_order_appstore(ck, order_me, order_no, amount):
         proxy = tools.getip_uncheck(area)
         ip_sql().delete_ip(account)
         ip_sql().insert_ip(account, proxy)
-    for i in range(8):
+    for i in range(3):
         pc_client = pc_jd(ck, proxy)
         code, order_status, status_name = pc_client.get_order_status(order_no)
         if code == SUCCESS:
@@ -1450,7 +1450,9 @@ def query_order_appstore(ck, order_me, order_no, amount):
                         # pc_client.clear_order(order_no)
                         tools.LOG_D('wait delete ' + order_no)
                         sleep(30)
-                        just_del(ck, order_no)
+                        for i in range(8):
+                            if just_del(ck, order_no) == False:
+                                continue
             else:
                 result = json.dumps(result)
                 upload_callback_result(result)
@@ -1609,9 +1611,7 @@ def just_del(ck, order_id):
             result = json.dumps(result)
             return False
         i += 1
-
-
-
+    return False
 
 
 def callback(ck, order_no, order_me, amount):
