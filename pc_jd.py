@@ -401,7 +401,7 @@ class pc_jd():
             'Cookie': self.ck
         }          
         try:
-            res = requests.get(url, headers=head, proxies=self.proxy, timeout=4)
+            res = requests.get(url, headers=head, proxies=self.proxy, timeout=8)
         except Exception as e:
             tools.LOG_D(e)
             return NETWOTK_ERROR, None
@@ -545,7 +545,7 @@ class pc_jd():
 
     def clear_order(self, order_no):
         tools.LOG_D(order_no)
-        for i in range(5):
+        for i in range(3):
             tools.LOG_D('DELETE ORDER ' + str(i))
             code, passkey = self.get_passkey(order_no)
             tools.LOG_D('passKey: ' + str(passkey))
@@ -1434,7 +1434,7 @@ def query_order_appstore(ck, order_me, order_no, amount):
         proxy = tools.getip_uncheck(area)
         ip_sql().delete_ip(account)
         ip_sql().insert_ip(account, proxy)
-    for i in range(3):
+    for i in range(8):
         pc_client = pc_jd(ck, proxy)
         code, order_status, status_name = pc_client.get_order_status(order_no)
         if code == SUCCESS:
@@ -1449,7 +1449,7 @@ def query_order_appstore(ck, order_me, order_no, amount):
                     if order_status == True and status_name == '已完成':
                         # pc_client.clear_order(order_no)
                         tools.LOG_D('wait delete ' + order_no)
-                        sleep(15)
+                        sleep(60)
                         just_del(ck, order_no)
             else:
                 result = json.dumps(result)
@@ -1596,12 +1596,14 @@ def just_del(ck, order_id):
             if status == True:
                 return True
             else:
+                sleep(10)
                 continue
         elif code == NETWOTK_ERROR:
             proxy = tools.getip_uncheck(area)
             if proxy == None:
                 return False
             ip_sql().update_ip(account, proxy)
+            continue
         elif code == CK_UNVALUE:
             result['ck_status'] = '0'
             result = json.dumps(result)
@@ -1760,6 +1762,7 @@ if __name__=='__main__':
     # ck = 'mp=%E5%AE%9C%E5%AE%89%E8%81%94%E5%90%88%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90; TrackID=19dXSu-PdIL5sKLV5m-2tcSBaexHEaxtNnamLibZn1OCcY2zC_wy8QsQH0gAARVai7YsTIvCq_waAyuurlwAXg628MQ_n9Shze5sXke2PgZ96WB5I0rai5guVhe9SF90aOiF2t8L1l61nfboTCVyptw; thor=0B8128A2312C954FB17116D901774178AC2AE0C71403E535A25FBB622F2D2C4B3A69B2342B952D69748BDBB6AA7012B8A69734AEC7343A744DC1CE1976A2715560B823FFA432BE10E0899E57E40A488879EB570C6D832D736537D52F7C326A4E6A4CB7CB03CC5988EC9FE6E430F92A28BB8E9E5D6D2A99D4DAAE9493711E20203518FDC47954530658E0413E9D889D48; pinId=hdPtoxycp3zGGyuoB7Yfgmh6bCaFRUtstX37H5_fCPs; pin=%E5%AE%9C%E5%AE%89%E8%81%94%E5%90%88%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90; unick=%E5%AE%9C%E5%AE%89%E8%81%94%E5%90%88%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90; _tp=eug6tG1Dn9%2FHAqPdcfXfv%2FbzmHcoj7RGzklsvxXHYD31wlOzfLBoJJp9zq%2FceQOU9ywnS2Xas1MfVnw4qMhdttzQHxURReV0qENsm0S8wkw%3D; _pst=%E5%AE%9C%E5%AE%89%E8%81%94%E5%90%88%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90; pin=%E5%AE%9C%E5%AE%89%E8%81%94%E5%90%88%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90; wskey=AAJisaTOAFDy7zfKF6XZAF2eFfksq5vb7ij2pTRU754dlyEkK0VeWNwbAIA-eTjhncvXcJYkKXovc7nzF8VKznYf3pBg6Io2H8O45GKujd4eZ9c366cxlg; pt_pin=%E5%AE%9C%E5%AE%89%E8%81%94%E5%90%88%E5%AE%9E%E4%B8%9A%E6%9C%89%E9%99%90; unionwsws={"devicefinger":"eidAe0b381215bs2GVjfoGGhShyfkVRq/VujkRlY4SHnjREd7+SIwxm01BXRFW3d50hJaGx1eNKHq0y8LUPq/BI28Qervf639hxr3NLBGTT2TKomKIt1","jmafinger":"flY-3biQ9-nmMghxlbc99Hx2-Eyu-XRx9xewcyPWHcnNmhY_k3skTqdArW3nEyMeK"}&%E9%99%95%E8%A5%BF%E7%9C%81%E6%B8%AD%E5%8D%97%E5%B8%82'
     ck = '__jdu=16509706855941893098380; __jdv=76161171|direct|-|none|-|1654941522932; shshshfpa=24b6bb36-e2eb-935b-8da5-4244c2284385-1654941526; shshshfpb=zgH442FN956xyfHqjr4f9ag; user-key=b713e0dc-ea97-4f4b-8edb-4e1a16076df9; ipLocation=%u6cb3%u5317; PCSYCityID=CN_130000_130100_0; TrackID=1rAm-CpUUP-VSozlRVihp_H0XDYML8lobGMm6Xx_ne5iSXdMDv0LKLM-MbX4UjHmzdJL-2IPoYxrMmToG8yVc-0qsehkI6OXZjMKHul1FdfSRf-zudgfmP1nc_n_-eai9BOBaF13NWQWtRHQTYXHkqA; pinId=nGtUW9EFSAHh4DAIQ2YmPxNmbjgR5rvE; pin=%E5%B8%B8%E5%BE%B7%E9%91%AB%E6%83%A0%E5%95%86%E8%B4%B8%E6%9C%89; unick=%E5%B8%B8%E5%BE%B7%E9%91%AB%E6%83%A0%E5%95%86%E8%B4%B8%E6%9C%89; ceshi3.com=000; _tp=S9ltnMsm4uGTQz2N9PhfaC3RfnBFdLQvtS8fb7z4GdhAShf80frD4jQJGjsfy%2Fvad1TbdL3IskTjXdDf06zgBw%3D%3D; _pst=%E5%B8%B8%E5%BE%B7%E9%91%AB%E6%83%A0%E5%95%86%E8%B4%B8%E6%9C%89; shshshfp=f9e5fb552de10bec2545bcafa3a2d0f4; areaId=5; ipLoc-djd=5-142-42547-54561; bjd.advert.popup=1875ceae35bfa1f5c33ab2a3966ff631; _distM=245177796447; __jda=122270672.16509706855941893098380.1650970686.1655832042.1655848794.40; __jdc=122270672; __jdb=122270672.6.16509706855941893098380|40.1655848794; 3AB9D23F7A4B3C9B=L4VA3H3XRQXTHOSQML6VS3B7QYYN7GVIBS2KPYED4PB7WAMMO52MPHRJZLNNWXPSPTBNDJOKGTPD7SIYJTCJZFPFE4; thor=0944E0DC62EB44D00ADB370E1A55B5C44B18461C80634A2625BA21E8EABC3D19E74A58A0EAEA8329152F755BEBB1F436D36D77A7CE61B33692F5324C606F6A88624179D94370330496954ACD67AF00B007098D002C6D171A65243A4246CA82156DB329E4160AFD83416319C1FFDF19D99A1CD5E7C7DC0EDC75CEC9AAAFB33C176E54F3B06375C2CEC943F59C77751B45'
     ck = 'mp=%E6%98%8E%E5%8D%8E%E8%AA%89%E5%BB%BA%E7%AD%91%E7%A7%91%E6%8A%80%E6%9C%89; TrackID=1L0v2d6AjspeTfrgKhRwu-vqGlyEmmGxDtW6FIQjSGrRKkZx7C5pIkpf2h4ERHqo-TOq-MEYZFsYfmhcX72JupGhG8z1YNt1qlMRDXbV1vICNm5g4BDcU3Z_TdcoAtfIDmmaJWi2psYXYqILaOUpKJQ; thor=87E7D01D4CA6CACAAF8D4E8728466C11A0EC977263B38D2A1EA8B5ADFB30BE5AC23975827B4700641FFFEB5D69C3FE5491163041BA33EAA6C6A9B5A1FE94C249666195FE189D33E4506776F82B07E8EAD8DF12AD1B8BDED2F273DCCE1C6D4F66AC926723BFA7E9D46FCCE228EABD7505067F4D2A2D18C6C686F9AB84875A2B12BA9385D342B3C6E5F47B991F5C600AF8; pinId=bfL9dXK9RKoilAxiT7rFNNdxcgEL7_httX37H5_fCPs; pin=%E6%98%8E%E5%8D%8E%E8%AA%89%E5%BB%BA%E7%AD%91%E7%A7%91%E6%8A%80%E6%9C%89; unick=%E6%98%8E%E5%8D%8E%E8%AA%89%E5%BB%BA%E7%AD%91%E7%A7%91%E6%8A%80%E6%9C%89; _tp=gta5A4Gea8Yi9j5fU8G6he4kCcHOy7gnpYBqDVrmvQdzGUdW72GGbvjZfT23AFd8UH2P45xFqkKZfrUITKNvpOiO3g0te7GajWnGWBh0If8%3D; _pst=%E6%98%8E%E5%8D%8E%E8%AA%89%E5%BB%BA%E7%AD%91%E7%A7%91%E6%8A%80%E6%9C%89; pin=%E6%98%8E%E5%8D%8E%E8%AA%89%E5%BB%BA%E7%AD%91%E7%A7%91%E6%8A%80%E6%9C%89; wskey=AAJisfDRAFDZdlogCKFf32ulzZfpP8Cu7agenH3a610CuvGem45yMjMp0yulfek9oNcSTRUcnyOKV0n1gRyFAaMm_S_WH-a-yqabWOETyxO1758Z73Vy7Q; pt_pin=%E6%98%8E%E5%8D%8E%E8%AA%89%E5%BB%BA%E7%AD%91%E7%A7%91%E6%8A%80%E6%9C%89; unionwsws={"devicefinger":"eidA109381226as4a6fX1iSrSquNLjHmmPXBl2un2Verv/+hIczdhZSvEbdENGWgRElcCUhMKywcKDAUqGXh6/qQPfg7ag6KfQS3V6U12BFzH7znCs1r","jmafinger":"sOFNTLiRPhljqq6-UdA0ez1Yu6C9045TwxJzHZy8_Y85i5LEXyJVX9BAMS15RKqIh"}&%E5%B1%B1%E4%B8%9C%E7%9C%81%E6%B5%8E%E5%8D%97%E5%B8%82'
+    ck = 'mp=%E6%B3%BD%E5%A4%A9%E5%BB%BA%E8%AE%BE%E5%B7%A5%E7%A8%8B%E6%9C%89%E9%99%90; TrackID=1LdBlCjvPPTmTr84DjqGlJHGCIs5wlQ7L4kTB7GfjEd0QEGh4np8AsAbfAOKNM3FiYYUofYJ9REpEaYLYaLbAkcNLrf5b6eoaDjs4p7u9Qq0bbW2AZo-NRaH6lkrphV7GTD31I2K5bB3Vp7QM7YYVaA; thor=5C64689316CAB34E5A90CDAF54FB9A9D013C27E81296A87DD782967482F404D13DA1551B6A0E5EAB00BFF63D706DBEC471CC397DE9AE5680096045FF83A0C3B1A6C93EE80851937E3D5DC288737DD4B17A6CA9617A3246DB60B1A73C5E516238032FB40D1FC0C7DBB784FB03527914EACF5497448796C233DFA1F337589F5738CA217598B168C0B93D364665B967E00F; pinId=8s1Qqh4869ULjPebgq2DJZ495OseFik_tX37H5_fCPs; pin=%E6%B3%BD%E5%A4%A9%E5%BB%BA%E8%AE%BE%E5%B7%A5%E7%A8%8B%E6%9C%89%E9%99%90; unick=%E6%B3%BD%E5%A4%A9%E5%BB%BA%E8%AE%BE%E5%B7%A5%E7%A8%8B%E6%9C%89%E9%99%90; _tp=3J9ZrnEifcozu%2Bj1nYnhYk6E3bAdw8wCCMuYYyckF0gbj21ABAq%2BTaLgWvj%2BW8TSS2VX5TbFFOSHSB3HtZGgY89WWatP6WUXhvPdnadJBiY%3D; _pst=%E6%B3%BD%E5%A4%A9%E5%BB%BA%E8%AE%BE%E5%B7%A5%E7%A8%8B%E6%9C%89%E9%99%90; pin=%E6%B3%BD%E5%A4%A9%E5%BB%BA%E8%AE%BE%E5%B7%A5%E7%A8%8B%E6%9C%89%E9%99%90; wskey=AAJisfDPAFCEdl30EtJht8KBW9B_rFgEiaxVzhjDlYr5Dd-Fw4BBC9OOMezYi8LGfXecAUaOATV59Qgn2iVJW4aJR4boqIWqjcqf_sDevXYvShaeDeu57w; pt_pin=%E6%B3%BD%E5%A4%A9%E5%BB%BA%E8%AE%BE%E5%B7%A5%E7%A8%8B%E6%9C%89%E9%99%90; unionwsws={"devicefinger":"eidA4d47812320sbjgMixvOsTIib4eflVLjvno4DJEh6wPinOJwVFstYlx4LUGWLZjsCy285kQRZYNIQw3n+8aisJvJ7eS0FSGuniUz3KQiXvAB4vb03","jmafinger":"qq6-8dTiBNsGcP9ifIX5YPiBy9kClEuRovCLuLsND5UI5XQJzl0i2qCcdjAsTTGJx"}&%E6%B2%B3%E5%8D%97%E7%9C%81%E4%B8%89%E9%97%A8%E5%B3%A1%E5%B8%82'
     # print(get_useful_unpay(ck, '586', None))
 
     # print(order_qb(ck, '', '305', '13562365463'))
@@ -1767,7 +1770,7 @@ if __name__=='__main__':
     # amount = '80'
     # ck = ck.encode('utf-8').decode('latin-1')
     # pc_client = pc_jd(ck, None)
-    just_del(ck, '249034333568')
+    # just_del(ck, '249031984259')
     # print(create_order_knowkedge(ck, amount, DNF_SKUIDS[amount], '52313461', getip_uncheck()))
     # print(create_order_knowkedge(ck, amount, DNF_SKUIDS[amount], '52353462', None))
     # print(order_knowkedge(ck, '', '100', '2325463432'))
