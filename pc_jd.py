@@ -535,6 +535,7 @@ class pc_jd():
     def clear_order(self, order_no):
         tools.LOG_D(order_no)
         for i in range(5):
+            tools.LOG_D('DELETE ORDER ' + str(i))
             code, passkey = self.get_passkey(order_no)
             if code != SUCCESS:
                 continue
@@ -1346,7 +1347,7 @@ def get_real_url(ck, img_url, os):
     return json.dumps(result)
 
 def upload_callback_result(result):
-    return True
+    # return True
     url = 'http://127.0.0.1:9191/api/ordernotify/notifyorderstatus0069'
     head = {
         'content-type': 'application/json'
