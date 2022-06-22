@@ -1021,7 +1021,7 @@ def get_useful_unpay_appstore(ck, amount, proxy):
             now_time = str(int(time()))
             if last_time != None:
                 # if int(now_time) - int(last_time) > 600:
-                if int(now_time) - int(last_time) > 60:
+                if int(now_time) - int(last_time) > 780:
                     code, passkey = pc_client.get_unpay_appstore_passkey(order_id)
                     if code != SUCCESS:
                         return code, None, None
@@ -1782,8 +1782,8 @@ if __name__=='__main__':
     # print(get_real_url(ck, url, ''))
     # print(get_real_qb(ck, '248592464389=105'))
 
-    # order_appstore(ck, '', '50')
-    query_order_appstore(ck, '', '249029759428', '100')
+    order_appstore(ck, '', '50')
+    # query_order_appstore(ck, '', '249029759428', '100')
 
     # print(query_order_qb(ck, '', DNF_SKUIDS['50'], '50'))
     # test(ck)
