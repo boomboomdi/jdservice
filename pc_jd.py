@@ -1449,7 +1449,7 @@ def query_order_appstore(ck, order_me, order_no, amount):
                     if order_status == True and status_name == '已完成':
                         # pc_client.clear_order(order_no)
                         tools.LOG_D('wait delete ' + order_no)
-                        sleep(60)
+                        sleep(30)
                         just_del(ck, order_no)
             else:
                 result = json.dumps(result)
