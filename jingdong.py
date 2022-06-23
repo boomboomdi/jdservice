@@ -663,7 +663,7 @@ class jd:
         body = 'body=' + quote(body)
         print(body)
         try:
-            resp = requests.post(url=url + params, data=body, headers=headers, proxies=self.proxy, timeout=4)
+            resp = requests.post(url=url + params, data=body, headers=headers, proxies=self.proxy, timeout=2)
             print(resp)
         except Exception as e:
             print(e)
@@ -1420,7 +1420,9 @@ if __name__ == '__main__':
     ck = 'pin=%E9%83%B4%E5%B7%9E%E5%B8%82%E6%83%A0%E9%A3%9E%E5%95%86%E8%B4%B8; wskey=AAJisJbhAFCfJKLDiUPNO-Uireh1UwkYWfCOzfG7iXtpiu3wZqS3Vq2eK_JTK1OBupE0YWB6uZ23lluxfxs6sTmfHIu9489dr8Wx75RiI0u2h2TXzD7j_g;'
     ip = getip_uncheck()
     # client = jd(ck, ip)
-    create_order_appstore(ck, '200', ip)
+    # create_order_appstore(ck, '200', ip)
+
+    get_real_url(ck, )
     
 
     # ip = None
