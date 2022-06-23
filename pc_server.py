@@ -49,7 +49,7 @@ def createOrderAppstore():
     # amount = str(param.get('amount'))
     # print(param)
     # qq = str(qqs[randint(0, 180)])
-    threading.Thread(target=order_qb, args=(ck, order_me, amount, qq)).start()
+    # threading.Thread(target=order_qb, args=(ck, order_me, amount, qq)).start()
     # threading.Thread(target=order_knowkedge, args=(ck, order_me, amount, qq)).start()
     # return 'success'
 

@@ -1,4 +1,6 @@
 import json
+import threading
+from gevent import sleep
 from rsa import decrypt
 from tools import yanzhengma
 import requests
@@ -234,6 +236,33 @@ def upload_callback_result(result):
 
 from pc_jd import just_del
 
+def test():
+    url = 'http://175.178.241.238/pay/#/wxsrc?order_id=P202206230035577530755&amount=100.00&apiUrl=http%3A%2F%2F175.178.195.147%3A9191%2Fapi%2Forderinfo%2Fgetorderinfo%5C'
+    head = {
+        'User-Agent': 'Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.91 Mobile Safari/537.36'
+    }
+    res = requests.get(url, headers=head)
+    print(res.text)
+
+def test_img():
+    url = 'http://175.178.241.238/pay/img/wxtitle.9820b9b8.png'
+    head = {
+        'User-Agent': 'Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.91 Mobile Safari/537.36'
+    }
+    res = requests.get(url, headers=head)
+    print(res.text)
+
+
+
+def test_order():
+    url = 'http://175.178.195.147:9191/api/orderinfo/getorderinfo/'
+    head = {
+        'Content-Type': 'application/json;charset=UTF-8'
+    }
+    data = '{"order_no":"P202206230035577530755","os":"android"}'
+    res = requests.post(url, headers=head, data=data)
+    print(res.text)
+
 # conn = sqlite3.connect('/home/police/project/python/jd/jd.db') 
 if __name__ == '__main__':
     a = {
@@ -248,24 +277,44 @@ if __name__ == '__main__':
     # print(str(int(time.time())))
     # result = {
         # 'check_status': '1',
-        # 'pay_status': '0',
+        # 'pay_status': '1',
         # 'ck_status': '1',
         # 'time': str(int(time.time())),
-        # 'order_me': '9c0ffd700fcebd4fca44806ca6b53f78',
-        # 'order_pay': '249027036072',
-        # 'amount': '200.00',
-        # 'card_name': 'GCA3274920240264',
-        # 'card_password': 'XXCWMKD9NYJHK53T'
+        # 'order_me': '439bca0a80710784f2d2a6ebaae29811',
+        # 'order_pay': '248981043887',
+        # 'amount': '10.00',
+        # 'card_name': '',
+        # 'card_password': ''
     # }
     # upload_callback_result(json.dumps(result))
+
+    # test()
+    # test_order()
+    # for i in range(100):
+        # threading.Thread(target=test_img)
+        # sleep(0.5)
+        
+
 # 
-    f = open('/home/police/project/pay_data/t')
-    for line in f.readlines():
-        line = line.replace('\n', '')
+    # f = open('/home/police/project/pay_data/t')
+    # for line in f.readlines():
+        # line = line.replace('\n', '')
         # t = line.split('&')[0] + '&' + quote(line.split('&')[1])
         # print(t)
-        try:
-            just_del(line)
-        except Exception as e:
-            print(e)
-            continue
+        # try:
+            # just_del(line)
+        # except Exception as e:
+            # print(e)
+            # continue
+    url = 'http://175.178.195.147:9191/admin/cammy/index?page=1&limit=246'
+    head = {
+        'Cookie': 'PHPSESSID=3h079gujknvr3iql69np5tjqu1',
+        'Referer':'http://175.178.195.147:9191/admin/cammy/index?mpi=m-p-i-1',
+        'X-Requested-With':'XMLHttpRequest'
+    }
+    res = requests.get(url, headers=head)
+    total = 0
+    for i in res.json()['data']:
+        print(i['amount'], i['card_name'], i['card_password'])
+        total += int(i['amount'])
+    print(total)

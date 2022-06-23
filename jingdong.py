@@ -944,7 +944,7 @@ class jd:
             resp = requests.post(url=url + params, data=body, headers=headers, proxies=self.proxy, timeout=4)
         except Exception as e:
             print(e)
-            return NETWOTK_ERROR, None
+            return NETWOTK_ERROR, None, None
         if resp.status_code == 200:
             if 'orderId' in resp.text:
                 if resp.json()['result']['orderStatusName'] == '充值成功':
