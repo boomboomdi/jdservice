@@ -1344,20 +1344,23 @@ def get_real_url(ck, img_url, os):
         'data': '',
         'msg': ''
     }
+    area = ck.split('&')[1]
+    area = unquote(area)
+    tools.LOG_D(area)
     account = tools.get_jd_account(ck)
     proxy = None
     if proxy == None:
-        proxy = tools.getip_uncheck()
+        proxy = tools.getip_uncheck(area)
         if proxy == None:
             return None
         ip_sql().insert_ip(account, proxy)
-    for i in range(3):
+    for i in range(6):
         app_client = jd(ck, proxy)
         tools.LOG_D(img_url)
         code, token = app_client.gen_token(img_url)
         tools.LOG_D(token)
         if code == NETWOTK_ERROR:
-            proxy = tools.getip_uncheck()
+            proxy = tools.getip_uncheck(area)
             if proxy == None:
                 return None
             ip_sql().update_ip(account, proxy)
@@ -1805,7 +1808,7 @@ if __name__=='__main__':
     print(get_real_url(ck, url, ''))
     # print(get_real_qb(ck, '248592464389=105'))
 
-    # order_appstore(ck, '', '100')
+    order_appstore(ck, '', '100')
     # query_order_appstore(ck, '', '249029759428', '100')
 # 
     # print(query_order_qb(ck, '', DNF_SKUIDS['50'], '50'))
