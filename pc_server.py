@@ -35,7 +35,7 @@ def createOrderAppstore():
     ck = ck.encode("utf-8").decode("latin1")
     order_me = str(param.get('order_me'))
     amount = str(param.get('amount'))
-    print(param)
+    # print(param)
     threading.Thread(target=order_appstore, args=(ck, order_me, amount)).start()
     return 'success'
     # return '{"code": 0, "msg": "SUCCESS", "data": {"phone": "' + phone + '", "amount": 469.19}, "sign": "488864C0AB51AEA0AF551074446FBCEC"}'
@@ -61,7 +61,7 @@ def queryAppstore():
     order_me = str(param.get('order_me'))
     order_pay = str(param.get('order_pay'))
     amount = str(param.get('amount'))
-    print(param)
+    # print(param)
     print('========')
     threading.Thread(target=query_order_appstore, args=(ck, order_me, order_pay, amount)).start()
     return "success"
