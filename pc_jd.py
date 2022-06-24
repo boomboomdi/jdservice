@@ -919,7 +919,7 @@ def create_order_appstore(ck, order_me, amount, proxy):
     if code != SUCCESS:
         return code, None, None
 
-    for i in range(6):
+    for i in range(1):
         code, weixin_page_url = pc_client.weixin_confirm(order_no, pay_sign, amount, page_id, channel_sign)
         if code != SUCCESS:
             return code, None, None

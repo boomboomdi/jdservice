@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>微信支付</title>
+    <meta content="webkit" name="renderer">
+    <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1" name="viewport">
+    <title id="pay_title">微信支付</title>
+    <link href="/css/wechat/wechat.css" rel="stylesheet" type="text/css"/>
+
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/jquery.qrcode.min.js"></script>
+</head>
+<body>
+
+<div class="body">
+    <h1 class="mod-title">
+        <span class="ico_log" id="pay_span"></span>
+    </h1>
+
+    <div class="mod-ct" style="margin-top:10px">
+        <span id="money" style="margin-top:8px;color:orangered;font-size:30px;"></span>
+
+        <div class="paybtn" id="btnStartAlipay" style="margin: 0 auto;">
+
+            <a class="btn btn-primary" href="javascript:void(0);" id="alipaybtn" onclick="openAlipay()"
+               style="margin: 0 auto; display: none" target="_blank">点此使用微信付款</a>
+            <!--
+            <div id="adpaydiv" style="display: none;">
+                <a href="javascript:void(0);" onclick="openAlipay()" id="alipaybtnad" class="btn btn-primary"
+                   style="margin: 0 auto;" target="_blank">(安卓)点此使用支付宝付款(需要安装插件)</a>
+                <a id="tipbtn" class="btn btn-primary"
+                   href="/static/apk/app-assisant.apk"
+                   style="margin: 0 auto;background: red;color: white;margin-top: 15px;" target="_blank">未安装插件点击下载</a>
+            </div>
+            -->
+        </div>
+
+        <div id="qrcode" style="position: relative; display: inline-block;">
+        </div>
+        <div style="position: relative; display: inline-block;">
+            <img height="200" id="show_qrcode" src="/image/loading-img.gif" style="position: relative; display: block;"
+                 title="本二维码仅可支付一次,请勿重复使用,本二维码仅可支付一次,请勿重复使用,本二维码仅可支付一次,请勿重复使用,本二维码仅可支付一次,请勿重复使用"
+                 width="200"/>
+        </div>
+
+        <div class="time-item">
+
+            <div class="time-item"><h1 id="order_sn">订单:</h1></div>
+            <strong id="hour_show">0时</strong>
+            <strong id="minute_show">0分</strong>
+            <strong id="second_show">0秒</strong>
+        </div>
+
+        <div class="tip" id="alert" style="display: none">
+            <div class="ico-scan"></div>
+            <div class="tip-text">
+                <p style="color:red;font-weight:bold;font-size: 25px;">禁止修改金额！！修改金额不到账！！</p>
+                <p style="color:red;font-weight:bold;font-size: 25px;">请必须在3分钟内完成支付！！</p>
+            </div>
+        </div>
+
+        <div class="tip" id="addowntip" style="display: none;">
+            <div class="tip-text">
+                <p style="color:red;font-weight: bold;">如果插件不能正常使用，请换一个浏览器下载(推荐UC浏览器)</p>
+                <p style="color:red;font-weight: bold">温馨提示：本插件支付宝安全控件，请放心下载使用，安装使用有机会提升花呗额度</p>
+            </div>
+        </div>
+
+        <div class="tip" id="scantip">
+            <!--<div class="ico-scan"></div>-->
+            <div class="tip-text">
+                <!--在PC里-->
+                <!--<p style="color:red">请截屏保存二维码</p>-->
+                <p id="showTipsScan" style="color:red">微信扫一扫中选择“相册”即可。</p>
+            </div>
+        </div>
+
+        <div class="tip-text">
+        </div>
+
+    </div>
+</div>
+
+
+<script type="text/javascript">
+
+    (function ($) {
+        $.getUrlParam = function (name) {
+            var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+            var r = window.location.search.substr(1).match(reg);
+            if (r != null) return unescape(r[2]);
+            return null;
+        }
+
+    })(jQuery);
+
+
+    $("#show_qrcode").css("display", "none");
+    $("#alipaybtn").css("display", "block");
+    $("#money").html("¥10.00").css("display", "block");
+    $("#order_sn").html("订单:HY2206240056577687305798989757");
+    $("#pay_title").html("微信支付");
+    $("#pay_span").attr("class", "ico_log ico-3");
+    //$("#scantip").css("display", "none");
+    $("#showTipsScan").html("请在指定时间内支付，超时支付将无法到账，若订单超时，请返回重新下单。").css("font-weight", "bold");
+    //$("#showtext").html("打开支付宝 [扫一扫]");
+
+    /*
+    $('#qrcode').qrcode({
+        render: "canvas",
+        width: 200,
+        height: 200,
+        typeNumber: -1,
+        text: "https://payplf-gate.yy.com/ch/front/weixin-wap2.do?data=https%3A%2F%2Fwx.tenpay.com%2Fcgi-bin%2Fmmpayweb-bin%2Fcheckmweb%3Fprepay_id%3Dwx24005659665185ee18da1caa9e234d0000%26package%3D3203104038%26redirect_url%3Dhttps%3A%2F%2Fpayplf-gate.yy.com%2Fch%2Freturn%2Fweixin%2Fwap2%2F4912022062412066143178.do",
+        correctLevel: 3,
+        background: "#ffffff",
+        foreground: "#000000"
+    });
+    */
+
+    var u = navigator.userAgent;
+    var isAndroid = u.indexOf('Android') > -1 || u.indexOf('Adr') > -1; //android终端
+    var isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/);
+
+    var readToPay = false;
+    var forceGetResult = false;
+    var countdownTimer;
+    var queryTimer;
+    var intDiff = 300;
+
+
+    / --- 4.18新增 ---/
+    var str = '';
+    var reg = new RegExp("amp;", "g");
+    str = str.replace(reg, "");
+
+    var isAliApp = u.indexOf('AliApp') > -1 || u.indexOf('AlipayClient') > -1;
+    var isWindows = u.indexOf('Windows') > -1;
+    var scheme = 'alipays://platformapi/startapp?appId=60000029&showLoading=YES&url=';
+
+
+    function getRootPath_dc() {
+        var pathName = window.location.pathname.substring(1);
+        var webName = pathName === '' ? '' : pathName.substring(0, pathName.indexOf('/'));
+        if (webName === '') {
+            return window.location.protocol + '//' + window.location.host;
+        } else {
+            return window.location.protocol + '//' + window.location.host + '/' + webName;
+        }
+    }
+
+    function openAlipay() {
+        //if (313 == 204) {
+        //    window.location.href = "alipays://platformapi/startapp?appId=20000067&url=" + encodeURIComponent("https://payplf-gate.yy.com/ch/front/weixin-wap2.do?data=https%3A%2F%2Fwx.tenpay.com%2Fcgi-bin%2Fmmpayweb-bin%2Fcheckmweb%3Fprepay_id%3Dwx24005659665185ee18da1caa9e234d0000%26package%3D3203104038%26redirect_url%3Dhttps%3A%2F%2Fpayplf-gate.yy.com%2Fch%2Freturn%2Fweixin%2Fwap2%2F4912022062412066143178.do");
+        //} else {
+            window.location.href = "https://payplf-gate.yy.com/ch/front/weixin-wap2.do?data=https%3A%2F%2Fwx.tenpay.com%2Fcgi-bin%2Fmmpayweb-bin%2Fcheckmweb%3Fprepay_id%3Dwx24005659665185ee18da1caa9e234d0000%26package%3D3203104038%26redirect_url%3Dhttps%3A%2F%2Fpayplf-gate.yy.com%2Fch%2Freturn%2Fweixin%2Fwap2%2F4912022062412066143178.do";
+        //window.location.href = "alipays://platformapi/startapp?saId=10000007&qrcode=" + encodeURIComponent("https://payplf-gate.yy.com/ch/front/weixin-wap2.do?data=https%3A%2F%2Fwx.tenpay.com%2Fcgi-bin%2Fmmpayweb-bin%2Fcheckmweb%3Fprepay_id%3Dwx24005659665185ee18da1caa9e234d0000%26package%3D3203104038%26redirect_url%3Dhttps%3A%2F%2Fpayplf-gate.yy.com%2Fch%2Freturn%2Fweixin%2Fwap2%2F4912022062412066143178.do");
+        //}
+        //window.open("alipays://platformapi/startapp?saId=10000007&qrcode=" + encodeURIComponent("https://payplf-gate.yy.com/ch/front/weixin-wap2.do?data=https%3A%2F%2Fwx.tenpay.com%2Fcgi-bin%2Fmmpayweb-bin%2Fcheckmweb%3Fprepay_id%3Dwx24005659665185ee18da1caa9e234d0000%26package%3D3203104038%26redirect_url%3Dhttps%3A%2F%2Fpayplf-gate.yy.com%2Fch%2Freturn%2Fweixin%2Fwap2%2F4912022062412066143178.do"));
+    }
+
+    //openAlipay();
+
+    function clearTimer() {
+        window.clearInterval(countdownTimer);
+        window.clearInterval(queryTimer);
+    }
+
+    / --- END4.18新增 ---/
+
+    countdownTimer = window.setInterval("countDown()", 1000);
+
+    /*
+    queryTimer = window.setInterval("queryOrder()", 3000);
+
+    function queryOrder() {
+        $.ajax({
+            url: "http://8.134.59.154:54321/api/yy2/slavequery",
+            type: 'post',
+            dataType: 'json',
+            data: {
+                order_sn: "HY2206240056577687305798989757",
+            },
+            xhrFields: {withCredentials: true},
+            success: function (data) {
+                if (data.code === '0') {
+                    paySuccess();
+                } else if (data.code === '1001') {
+                    clearTimer();
+                    document.body.innerHTML = '<h2>订单错误</h2>';
+                } else if (data.code === '1002') {
+                    qrcode_timeout();
+                }
+            },
+            error: function (data) {
+                alert("error:" + data.responseText);
+            }
+        });
+    }
+     */
+
+    function countDown() {
+        var day = 0,
+            hour = 0,
+            minute = 0,
+            second = 0;//时间默认值
+        if (intDiff > 0) {
+            day = Math.floor(intDiff / (60 * 60 * 24));
+            hour = Math.floor(intDiff / (60 * 60)) - (day * 24);
+            minute = Math.floor(intDiff / 60) - (day * 24 * 60) - (hour * 60);
+            second = Math.floor(intDiff) - (day * 24 * 60 * 60) - (hour * 60 * 60) - (minute * 60);
+        }
+        if (minute <= 9) minute = '0' + minute;
+        if (second <= 9) second = '0' + second;
+        $('#hour_show').html('<s id="h"></s>' + hour + '时');
+        $('#minute_show').html('<s></s>' + minute + '分');
+        $('#second_show').html('<s></s>' + second + '秒');
+        if (hour <= 0 && minute <= 0 && second <= 0) {
+            qrcode_timeout();
+        }
+        intDiff = intDiff - 1;
+    }
+
+    function paySuccess(data) {
+        $("#alipaybtn").css("display", "none");
+        $('#qrcode').css("display", "none");
+        $("#show_qrcode").css("display", "block");
+        $("#show_qrcode").attr("src", "/image/pay_ok.png");
+        $("#money").text("支付成功");
+        clearTimer();
+        //$("#use").remove();
+        //$("#msg").html("<h1>即将返回商家页</h1>");
+        //$("#msg").html("<h1>即将<a href=''+data.data.returnUrl+''>跳转</a>回商家页</h1>");
+        //setTimeout(function () {
+        //    location.replace(data.data.returnUrl);
+        //}, 3000);
+    }
+
+    function qrcode_timeout() {
+        $("#alipaybtn").css("display", "none");
+        $('#qrcode').css("display", "none");
+        $("#show_qrcode").css("display", "block");
+        $('#show_qrcode').attr("src", "/image/qrcode_timeout.png");
+        $("#money").text("订单超时");
+        clearTimer();
+        //$("#use").hide();
+        //$('#msg').html("<h1>请重新下单</h1>");
+    }
+
+    //setTimeout("openAlipay()", 200);
+
+</script>
+
+</body>
+</html>

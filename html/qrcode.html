@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title></title>
+  <meta charset="utf-8"/>
+  <script type="text/javascript" src="https://static.runoob.com/assets/qrcode/qrcode.min.js"></script>
+
+<style type="text/css">
+
+        .one-img {
+          width: 100%;
+          padding-top: 50%;
+          background-image: url('https://gpic.qpic.cn/gbar_pic/osL7w6JTehzgKuaKrPEJ8V3lia1zoLaPShY05MdBofOpBye0yNpRXYA/');
+          background-size: cover;
+          background-position: center center;
+        }
+
+        .qrcode_style {
+            margin-left: 42%;
+            -webkit-transform: translate(-50%);
+            transform: translate(-50%)
+        }
+        
+</style>
+
+
+</head>
+<body>
+
+	<div class="qrcode_style" id="qrcode" style="margin:0 auto; width:320px; height:100px; border:1px solid"></div>
+
+	<!-- <input type="text" id="getval"/>  -->
+    <!-- <button id="send">点击生成二维码</button> -->
+</body>
+<script>
+    console.log(screen.height)
+    console.log(screen.width)
+     var qrcode = new QRCode(document.getElementById("qrcode"), {
+		width : 410,//设置宽高
+		height :410 
+     });
+     qrcode.makeCode("http://www.baidu.com");
+    //  document.getElementById("send").onclick = function() {
+	// 	qrcode.makeCode(document.getElementById("getval").value);
+    //  }
+</script>
+</html>
