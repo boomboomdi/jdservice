@@ -6,7 +6,7 @@ from time import sleep, time
 from tools import LOG_D, LOG_E
 import uuid
 
-db = '/home/police/project/python/jdservice/ip.db'
+db = 'ip.db'
 
 class order_sql:
 

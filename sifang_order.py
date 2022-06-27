@@ -19,7 +19,7 @@ def create_order(amount):
     payment = 'onlyalipay'
     # payment = 'weixin'
     ts = str(int(time.time()))
-    notify_url = 'http://127.0.0.1:23943/callBackDv'
+    notify_url = 'http://127.0.0.1:23939/callBackDv'
     sign = md5(merchant_sign+ order_no+amount+ ts+token)
     order = {
         'merchant_sign': merchant_sign,

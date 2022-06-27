@@ -1372,57 +1372,9 @@ if __name__ == '__main__':
         if 'pt_pin' in i:
             user = i.split('=')[1].strip()
 
-    # ck = 'pin=jd_4669b501d6aaf; wskey=AAJiJa7kAECULkYddy8LrrDHTs41P3qFSsOi2rI2AInyJFKO0YpF3fRkG3Zc1zAAESOYWvbGqUyg8CmVRV3-sYeYJG2tH5Vj;'
-
-    # ck = 'pin=%E7%BB%86%E5%85%AB%E5%AE%8C%E5%85%A5; wskey=AAJiNW1dAED4C_lIGM1bsmJQ8U5yBvkZ3O03FZl0-VyuBWqfspTeiEtOiMPtr7Rq4mquSrCznFtj6xaZlbwcgjcI8JWsaaPZ;'
-    # ck = 'pin=bb17108392702; wskey=AAJijhQVAEAUuK5yxaGAiLVqJz3vy2eDcw4Mbk13xp2KJWAMbw8Ni2ihRP8D9e-mIYOsLhbPWOLy8edS4GfgUOx6trKMts4f;'
-    # ck = 'pin=%E8%AE%B7%E6%B2%B3%E5%B8%82%E9%91%AB%E9%80%B8%E8%BE%BE%E7%89%A9%E4%B8%9A%E7%AE%A1%E7%90%86; wskey=AAJikRpnAEBSn56VNxXKM7FGynMVwUvaTCjZomnscFak0591ObICL6VOKuCBPfsfrkDwvf8uLau2utGH51MGR_MqiqribS8e;'
-    # ck = 'pin=jd_JYAGIAzaLlWQ; wskey=AAJikS2nAEBWoqcfP9P0dQWfq4Y87A8LhEdaAlG-tt00ruaKXhnh2QzpNMfedSEVydE-y3OYmHYP0W7AzoR0dm9Ae4AvfDct;'
-    # ck = 'pin=%E8%AE%B7%E6%B2%B3%E5%B8%82%E4%BD%B3%E6%89%AC%E8%A3%85%E9%A5%B0%E8%A3%85%E6%BD%A2%E6%9C%89;wskey=AAJikkYfAFAgXEakpQ3A5vKOv_XopdQHyNXwOgIyWzinpb4vJ4pEa5Ys-xdfUsiLo_eBT29DW0ZnrPoBmOlokxBZij94z8zPMvFLrI6HibdzBRaF5zv_UQ;'
-    # ck = 'pin=%E8%AE%B7%E6%B2%B3%E5%B8%82%E9%B8%BF%E5%85%89%E7%83%AD%E5%8A%9B%E6%9C%89;wskey=AAJikkyeAFDY6a4fMRVCTVaFKsoHTAhCY1ufcASTPbKbz6MOYnJ3jDL44hfLhXuFW5gbns6Pb49g9uk-Je-S3wo7hJn11O9s0lBnReZx4z_cvN4mV1is_Q;'
-    # ck = 'pin=jd%5FsDveqlanuYKn; wskey=AAJhtG6AAECcTpsu-ewvhw_uxJEalmnkdyXGtNNwbzZa5hbdnDdwJMMlZmA3uAQcTYkgQlWOaybm2w5Rn9Il7IK4nKiqL1-P;'
-    # ck = 'pin=jd%5FPYOgqPwlOxMn; wskey=AAJhyyLLAEDMeSKbEdcqVPiZIkBkyqyXfShegIcv_gDJ9V01t3tJI2JzhG89Ehm4hgJ4wxc_uphMF6RkE-F76DR-CnX_1ZO5;'
-    # ck = 'pin=jd_765b4a1d1ff32; wskey=AAJiJgvJAEAqD_hptV7sjtQjXV_O2P1PWtq_EZBf5bhi-ySWDl0ujIGfXHpHEikn6ecmHyjdrBg5--2wwZHPbW_HTjPZmQYy;'
-    # ck = 'pin=%E5%8E%82%E9%80%82%E5%9C%86%E5%8F%A3; wskey=AAJiNcxIAEDF-beA1xlTtXHYonRHXWpW9Qmr3IfFQBypNmmEkYOS-8Kuq4--9o2nsEaBWyWSOul-oBfiRhKn6-swns1Y1f8M;'
-    # ck = 'pin=jd_7b3b6c0bfbbbf; wskey=AAJiik8NAEDle7sy1ILxFTBQezCHqbTaSnxCubDeI6R2JkKxzs3UxmCRKF3drtQLB5bwya1CWmqypqGYEwVD_03mK303Klxz;'
-    # ck = 'pin=jd%5FqCfPeqttaRcc; wskey=AAJhyxAEAEA3Y_TXrqD3L1EqBnhX6cieCTwRYCWIp6rSsxsrmnCBYBnHgrfDpJqM8dc00WwLJYown0l-tuK5Ig3zZ_Qx554P;'
-    # ck = 'pin=yNzZeCwSs; wskey=AAJiV5ZpAEBKFGrEnbFTW778jOez30cUmOHdMXTyb1ErXQfIEQnKsJD2arMPB1yOv_zxPevGpZfsNr6uaf2z2z1SqbByZcbI;'
-    # ck = 'pin=aa17108392698; wskey=AAJiiSo3AEBJB-dWUsuCrAPJmoSgvQ0fVhJ6z5YTJ8TZLh2ZfXhQiLmwtgkG90h8Uq7tt-ydge_d2JwmyDuQ9JX_hpMOaeBK;'
-    # ck = 'pin=%E7%BB%86%E5%9B%BA%E5%A8%9F%E8%8B%B1; wskey=AAJiNW1bAEDagQKqDECetiXtITfrWXlhk5Np-mL2RsRrGgsF0r_fs8ABYMKpfMxgTi5OrUhGUFIXPhp-oNRGCUIGVYt0tElE;'
-    # ck = 'pin=%E5%9F%8B%E6%B3%89%E4%B8%8B%E6%B3%A5%E9%94%80%E9%AA%A8ergJU; wskey=AAJirKsBAFDqkoJnxGdwAnNoctk5_ILxI_8WiDLFGDhkRnpKFFiorpY90yx-HREZuJtamaumlWhjxh1qDG9oiD6zwHH9GnOQrRnI-3iGx8OULGhXXrN53w; '
-    # ck = 'pin=%E5%9F%8B%E6%B3%89%E4%B8%8B%E6%B3%A5%E9%94%80%E9%AA%A8ergJU; wskey=AAJirLjEAFDfO37k10JsQmjMPg8Z9A2mbifa69OSGVmNgY3_NsoO1luEUCcjMfEmC76zaLM9g8v_K3PU_76w9wEYVyXtrnzRyK2EWwcT38BbyuelafZ-oQ; '
-
-    ck = 'pin=jd_4d9b500034155; wskey=AAJiqgJZAECd9g_DDWxJo3YPVOaYWwvDsU_BCxK7nZcTma51_nkgmKL3e4RfmW8vZ0r1bdc0B2FISHUA0CaxqLYzyy02KqUH;'
-    ck = 'pin=NKTYr%E5%B9%B3%E6%B1%9F%E5%8E%BF%E5%AE%89%E4%BF%9D; wskey=AAJirxk3AFBiEtYkE-qACcv_vrvMdXWspkdnZPSquKXQ4sEfD3jcCWQ_CQBEexl5AthJFdgaSXAKVJ6iW-dz_bjVtwyVoI7FG_BWdVMtiII0yoBQkD7giA; '
-    # ck = 'pin=KLPQa%E5%B9%B3%E6%B1%9F%E5%8E%BF%E5%AE%89%E4%BF%9D; wskey=AAJirxlJAFAxh9EyD3dvVSxseGMy3ymEFokeROlblOuZPzm-KoqENyzbzQ5BUj55Wh39FUfeEWk8Hgw4CCOvlTPAHj91k5U1T2irDIsJ68uQVbiApFeyuA; '
-
-    for i in ck.split(';'):
-        if 'pin' in i:
-            user = i.split('=')[1].strip()
-
-    # ip = get_ip()
-    skuid = '11183343342'
-
-
-    # ck = 'mp=jd_7b6b4d6d0b4bc;  TrackID=1vN4FH6zMhiQVuVxhYz58lTYTVkHiZyPRqTAHY3Ea-fwGWri0FYVTGv10VUCvXaX0dA5S39PcbF113un8NPeOHzXHwIvT88-Uax4bKeFSJdbHgwoD6Gzu0sFGqmFqjofRshWfS-RJ5eLjnVfPme152g;  thor=E7E196E8A12A5CE173405235B9239BDA4C5EFE63D32FC15163BC2AE71D121CC7C871D4390F7718332F9F1DC201A5FE3F548D608FE276529CC728805AAD8EAEA47B2D574F8F039D4895E039000EAA74623413FC1A8EB76DB38E54522D89BADA03CA56F04E9E594102539DAE1D551FE808B5DA6CD70591125E04F086DE519E56C5079850FFBB336446C5520082080A509945CDD9341BF0B6CCA47E55A9C4CDF95A;  pinId=SBr-25ouTZE_8n6hcfrbebV9-x-f3wj7;  pin=jd_7b6b4d6d0b4bc;  unick=jd_7b6b4d6d0b4bc;  _tp=iNluJKUSrG9Estty85fNU%2B70gQrhhPR47VpXn6whI9Y%3D;  _pst=jd_7b6b4d6d0b4bc; pin=jd_7b6b4d6d0b4bc; wskey=AAJiik9kAEBdr2TwInWTnN3Jipm_5cfQmeC9WGnkbrVkScACgyTBgrwkXbooQBbKpIR1UjE4gEwR8ltRD-Pu4c9nFQHpIDAC; pt_pin=jd_7b6b4d6d0b4bc; pt_key=AAJiik9lADCZ4B4g_7nme68g60_4QSEX-9yBJJk2cXW0aGAA8MhC4sCnKyVsKW50XApcjrIlMJ4; unionwsws={"devicefinger":"eidAbcb4812178sbg2crCUSyRlSY7J3VMNsceINnLIow+GfKPl8Q/s4aF200XmwBM9SLz0lNiTCG6Q5SjOWe2wAfRNFNh1+EObxi1jKrfb/sVkNoz1Ra","jmafinger":"lhd7wQWZNVefTprrDLTR3toDMe10RpaIFbIkscMU7CgR7PyQrRbHHeUDhiatJeqQf"}'
-    # ck = 'mp=jd_2IU8CuUAdQDl;  TrackID=1VYB2zCyFVXLBGOnW0JR7JX69bcjGVyPcg-YOlYzCPdHg_2cq2x7Jlg4KrpMkTK0AjWQDiUIFSBVcnCgZyrcgm_ZoPFShQxMc4tF6tw7KEpYtEaak_wECBtXCJ0FgJirf;  thor=089AD313F58DDAC701B41EEA5A0D2CBD08B96AD6709FA5C6162FDBB2860D909780AABD2E602E7F62D32E708C0936C5956362C1E55397A0ECADDC7B93DC81887BEC91AEE64A96461ED5287794A52948E384C0C2C6F99C68C4328C9828589A6D129AE02CD214376C6B54C4AE193770702EFD4874C451559F5EAAC8C02A8525853C7EE64197C951955404B642902EACAB6E8832CB8B2C388CB3FE623CF4AAD4ADF4;  pinId=VTx2BGFqgAMdwzRWCysLUA;  pin=jd_2IU8CuUAdQDl;  unick=jd_2IU8CuUAdQDl;  _tp=RDSrkxDoANK4TUuU0cYohw%3D%3D;  _pst=jd_2IU8CuUAdQDl;'
-
-    # ck = 'mp=jd_7b6b4d6d0b4bc;  TrackID=1vN4FH6zMhiQVuVxhYz58lTYTVkHiZyPRqTAHY3Ea-fwGWri0FYVTGv10VUCvXaX0dA5S39PcbF113un8NPeOHzXHwIvT88-Uax4bKeFSJdbHgwoD6Gzu0sFGqmFqjofRshWfS-RJ5eLjnVfPme152g;  thor=E7E196E8A12A5CE173405235B9239BDA4C5EFE63D32FC15163BC2AE71D121CC7C871D4390F7718332F9F1DC201A5FE3F548D608FE276529CC728805AAD8EAEA47B2D574F8F039D4895E039000EAA74623413FC1A8EB76DB38E54522D89BADA03CA56F04E9E594102539DAE1D551FE808B5DA6CD70591125E04F086DE519E56C5079850FFBB336446C5520082080A509945CDD9341BF0B6CCA47E55A9C4CDF95A;  pinId=SBr-25ouTZE_8n6hcfrbebV9-x-f3wj7;  pin=jd_7b6b4d6d0b4bc;  unick=jd_7b6b4d6d0b4bc;  _tp=iNluJKUSrG9Estty85fNU%2B70gQrhhPR47VpXn6whI9Y%3D;  _pst=jd_7b6b4d6d0b4bc; '
-
-    # ck = 'mp=5Y19QlPSdXZ0nIu;  TrackID=1QL70vtTuDzaff0BPWGd0OpZVyWDNrXcgfz31IGHXKSXWRczi8t7adk1tmEFF_XfkKnj-ctkN-l7WNIV_mP0WJ9xIjDwyRu7b02SkXzRzzppHd6BKR-DyI68m2y4av_8A;  thor=BCAC54CC1B2315EF1495D93A1A6B2AF16A64EE5056763C14D6A4E2C349C648648508F87F1F1385AD10642ED278CA4FD97350BAAC03C91E4C33E58DF5E577B76B5DBB0EF8E2F873F3A0F6BB31A0AAD2E730E9B83730946DD65A610F62637F4278640E199A418F8CB958057B50265975602FD575824E5BBC5904DBF9C11C31F57AC31CBB04022D18F17C8F8B20EDD50D8012DB02A5F07A91A84C33FDF94B24A13A;  pinId=NZ3IDQW-M5PMvYCv7PWLSg;  pin=5Y19QlPSdXZ0nIu;  unick=5Y19QlPSdXZ0nIu;  _tp=yhaAyCLYMqnbTcc7MKbWXg%3D%3D;  _pst=5Y19QlPSdXZ0nIu; pin=5Y19QlPSdXZ0nIu; wskey=AAJiqueFAED66ZZIzs23Uaeetyp1HmjkuVbcdh4o-AhCiRsobhQeq3-ILeE_q1XqnLRAfFmNXms4BgNv6mPF0L7NTEqQpRPb; pt_pin=5Y19QlPSdXZ0nIu; pt_key=AAJiqueGADDmv8gPRlz6fbvijF9fC_1vKU5wGyApUV4e_DM3tdXMV8_NjpDIlF6uDw1nHlQf0t4; unionwsws={"devicefinger":"eidAb6118120e8s2y+T2+gulRo2IXV6QVO1Xdsvk+Ht3PaoVXKrIKqZHRoUIDZ1SnE1492NmwThRnGlyP4aU97un2an/rxyNNlL77HR/NFgt0J4P0s54","jmafinger":"uFBrLn2iUVIoFlm5uzlBTlra9OJOOQ7g6mPvCJ5f-9LMEbPrXpAxVQuW4w1tlSFU-"}'
-    # ck = 'guid=47de2fb25294f66142674a6a29785e98daa924467b3f9e1d5349df39d4bbcf35; pt_key=app_openAAJiqtmqADAjTH2ShkBeaq1qCjaVdcv4U7ngsnVuzz71w3-Q_XuHNRV9r3PHEoaf3bxFTxiJv6o; pt_pin=jd_m3nGd7xgKCzs; pwdt_id=jd_m3nGd7xgKCzs; sid=e03a86472146848d71be27a4eabe79aw; pin=jd_m3nGd7xgKCzs; wskey=AAJiaOSmAECT_6zUtAs0lauy9irIqLgbIZfF85X6Sow1jOgLUrbPyaJUqc2F7dU-nnC3kKWZz1uWHTQz0ZSjigQeigjzkDj0;'
-    # ck = 'pin=8hIdWHSGZjAqMhJ; wskey=AAJiqze6AEAmkBoPNQmpSFCWkiXor_Ki8l7qxX5Wgge6EL-pcqOJtB_pSbQId5fQq5l1BIa3OIyuU9lumWq_ftgIc-WIAOtl; pt_pin=8hIdWHSGZjAqMhJ; pt_key=app_openAAJiqze7ADD9XBZEmJxiOggXDIBNHHpKZ5244XJ6KsS41J9PRXB8ehEeeZDzu_sejbeWu9aQ_xU; unionwsws={"devicefinger":"eidA8534812031s5h7XjPL59QIqJ5X/zbSbHIoe15L4rTvI9rsQTca5V9snD54HrOxbx+DBSyN49BEApZR61cqDH14B+2Sd9qjZKOXY2LbN76aGPqGdq","jmafinger":"iXMoamkDu7A1yKpzuK6XvuNKKJCduLfLU4nx-Jc4vO7U4spnqtxUWX_pVRogF5H3h"}; guid=e7e60e425161ab404a580249fe9fa761c9df7fc9533eeb7feaa8a3a08ae09f8d; pwdt_id=8hIdWHSGZjAqMhJ; sid=9825f3c7c522122fe89b0c7ebc0881dw'
-    # ck = 'pin=N04CaREvkvIouigH; wskey=AAJiqzWpAEB9c3WKkJBqTBK6JjQ-mSQ6EcTFw2ZjsCn-Kdh9HIHvXgVhxNxGQv-JcxRJeV9Cvo8-f8f_VLrBEKqdEGTF37L0; pt_pin=N04CaREvkvIouigH; pt_key=app_openAAJiqzWqADCLVBYApe16n8H2AU6zoPkuIS7DAHm-sEzzOIq3IfXq6eiipUm3Cux6pv-TmAtVRo4; unionwsws={"devicefinger":"eidA3b648123fcs8/xNQusz5ReCnbkl2TpTeDv8TUjw5wuXEr+jnl3fvlRWuSUCq+h2T7nBoUVdtT7w2ugCprW9OVKz7vMqniBEqBVxtB4YPgLqzSppD","jmafinger":"pH0ve8ig_tNIRN1tLnBsjAGS34eVWZ1mJKuMQrHW2F0gLa3WBf4AE3LZasW8xKAc3"}; guid=4d433752f944783be504718dd9375718392804f625bd03a4fa6cc8b973e42f80; pwdt_id=N04CaREvkvIouigH; sid=7fcdfcc076217da5f4e09cb51165c7fw'
-    # ck = 'pin=8hIdWHSGZjAqMhJ; wskey=AAJiqz44AEDYdkVFAEEu-G6-2QFqkkEfrIypeRXjP2AdR3KEnbaaMy0ug-ACGq-78Liy_HGdkBdtB5Zn6pNpUNP7t9FWa8t4; pt_pin=8hIdWHSGZjAqMhJ; pt_key=app_openAAJiqz46ADBgzpX4v8U2q3tFI0CIV4yh8bEsayvpjTgkfRH6ZFbcue9LYdnLJLF5w47t6TUYFS0; unionwsws={"devicefinger":"eidAd96e8121eas6XzWuye4VTvC0RUyK08xv2181sEtbAF3EnytPeXK70rsSYUqIwCvsa09wWasG+LOEKJWQ2DFM6e9NXlvS4bDd+wgPwsZ2uA1yoad2","jmafinger":"oNZezb8HrGmzeuGCEpR4LdTFsm3UXWlzOkQnKoI_4ZJr2ip8yAM2SOtCQHjK5S9c6"}; DeviceSeq=dfd1825fadeb4a889e9f8a272d2b3191; TrackID=18T_2HMW2l5SqQiRbN5M0aZ2jYqCu0XKowQcpU3v78ChGoQEXLnhrQwx0MOcTU0OREiDh4dct0IFZ9oBnqd4VtjjZloVjBZBWylYnnnVfBHY; thor=04BAC086CD93D5FD47B392CB12574E16E9AD2959EDB47C64E1282479F61986D5C05B619EC73D40FB1627B0E649C27D696F50ADB69587E586BCD721A57A90B619C67A6D28A6B6AAE576145AA44C84F8357FC796C4684033D929EB1A84D3FA59D3E2012FF1E492FD81EBA72DF9636147D5D95BCD409AEBF051693CE490B0B3A251F8400B8D50CD38077C8129F2A8D9918791A7F6F25D400ED95A35A485BAB48EFD; pinId=1hI1uxT3jeOkBbbjZjDJRw; unick=8hIdWHSGZjAqMhJ; ceshi3.com=000; _tp=mFP36iYd%2BpcELZ2E02A32g%3D%3D; logining=1; _pst=8hIdWHSGZjAqMhJ; guid=1497d3eec1d6e2f4b3dfdd485b0abdbc5c9c30ef8401106ad366e67e1e6e5714; pwdt_id=8hIdWHSGZjAqMhJ; sid=38d97be301f9cf078954d79c973c1d9w'
-    # ck = 'guid=ef8fe7819990bed74458c7d31d9f7a4eb2e061f8d9a41918160ca5b75dc71695; pt_key=app_openAAJiq1deADA-qv594L13L09jPZ-ODqXb2uVKys9-iB66eF2aFcPUjDfMoW7w1gZFW673MrEksKk; pt_pin=jd_yaifaHleFaeT; pwdt_id=jd_yaifaHleFaeT; sid=cb52a1da252e32175cb1afcdfcd2992w; pin=jd_yaifaHleFaeT; wskey=AAJggSsoAECpKA6gUhXFgio0Hg4fuc-Ha9ECfK3mxfve3m6vin_HehqygQJN-VJaHhHHs2j281DCd_Ij7IVGbtj7kd5DEMRO;'
-    # ck = 'pin=jd_7d1c1d0d7c8c6; wskey=AAJiimL_AEApaqYXOWKhJbDvkWEDaP-kreV2Go6HF5dJX7Z1ag0WrxxFZ-kHVeSAuOnLuVyKD-yr4wmWtoj05HgFEwI8YL0e; '
-    # ck = 'pin=%E7%AD%89%E9%97%AE%E7%A1%AE%E7%BA%A6; wskey=AAJiNgPCAEApoy2Db9gLgwu9oK7ffQGOEkdGT_dXAePIcJ89lzR1VCwTfMDEao6SGa2uv2aPZ_Ic3zdIVnrezzLT2_dvY6vL;'
-    ck = 'pin=%E9%83%B4%E5%B7%9E%E5%B8%82%E6%83%A0%E9%A3%9E%E5%95%86%E8%B4%B8; wskey=AAJisJbhAFCfJKLDiUPNO-Uireh1UwkYWfCOzfG7iXtpiu3wZqS3Vq2eK_JTK1OBupE0YWB6uZ23lluxfxs6sTmfHIu9489dr8Wx75RiI0u2h2TXzD7j_g;'
-    ip = getip_uncheck()
-    # client = jd(ck, ip)
     # create_order_appstore(ck, '200', ip)
 
-    get_real_url(ck, )
+    # get_real_url(ck, )
     
 
     # ip = None
@@ -1451,16 +1403,24 @@ if __name__ == '__main__':
     # code = jd_client.current_order(good_id, address)
     # code, order_id_s = jd_client.submit_order(id, address)
     # url = 'weixin://wxpay/bizpayurl?pr=W0VhsEuzz'
-    # url = 'https://wqs.jd.com/order/n_detail_jdm.shtml?deal_id=244737756703&sceneval=2&appCode=ms0ca95114'
+    # url = 'https://wqs.jd.com/order/n_detail_jdm.shtml?deal_id=249134154507&sceneval=2&appCode=ms0ca95114'
     # url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=35e63cd8e2759b7b61a352950e199a5be7fd9b33af78959511a3a9e1ba2af6c7fb9c748e5eb8642576f2bf821e57796849575b6380eeee0733a3b398749e879d7468d1105e2aae7f367203b13dcff177'
     # url = 'https://passport.jd.com/new/login.aspx?ReturnUrl=https%3A%2F%2Fwww.jd.com%2Fb'
     # url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=85ba07a8357daaffe73450b9e5ca00bfebd5562e067c21e082b47a92e971cbeed62c171c87bc4aa79d3cee8cd6e542bc8eaccb975963e8f46aa057c4774c7ecdc1b0c4ab88b7e0928f8872365c7dde35'
     # url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=b40653a2a42cd78a492916bdb8ce459a48c563c58ceb58b85a2d1772e18858d526cef82354c2cf661474df9c82776427122f64c16e897369932856dd0260db749dad0fe81d042f848ab3f603f57cf109'
     # url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=91cdd3c81ca4eb0e567ae1aa974c0edc26ca3884223ba250dbcfa8810261853e2328b54465304f257d4cf742590d02052b86033b07b653b048611091e50a63b4c1b0c4ab88b7e0928f8872365c7dde35'
     # url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=77a008cf61301d9cbb9651771b952797f4245a8c9c698fabf6fc7b04857f5739bd950ccd2100377230016f15f941f7b10d18f8356738e997b2407dd18021474472285eb678746a57ab75c07ce71f6f46'
-    # status, token = jd_client.gen_token(url)
-    # pay_url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=' + token 
-    # print(pay_url)
+    # url = 'https://payc.m.jd.com/api-d-cashier/image/qrCodePay.action?sign=34e9bb1027b0035fd24dd2ab831ff7e7449a0fb326b909bcdcc1034f7c9ea231'
+
+    ck = 'pin=%E5%95%86%E8%B4%B8%E7%89%A9%E6%B5%81%E7%A7%91%E6%8A%80%E6%9C%89%E9%99%90; wskey=AAJisaQQAFDQxD5bAPHLi-TN3JjT3s3H858P8Vwj6pzRkHFuJKJz5_MJBTwEWHeE8kVRP7vnUF8veY43POImJYlmefbVZW9ZpnuC3xGXVumn-GOqDlGATg; pt_pin=%E5%95%86%E8%B4%B8%E7%89%A9%E6%B5%81%E7%A7%91%E6%8A%80%E6%9C%89%E9%99%90; unionwsws={"devicefinger":"eidA39bc8123a8sfBgV631kiSNWfDZiVkFyWbQYFfGDfCyrUhh+z2vXsvsNieqZo6sVYOzVxqp4PjUIE7jgYVnuK0jkUSfL/nBtSvFhz2idU9XAtQ81U","jmafinger":"f5F7ZwKhbfi6tCLTyyD9z0U5cfiQuKaEQHrMjgWaw4fyBxR45H6LFuWO6D-Uk1cVs"};'
+    ck = 'pin=jd_NzjJNSQfaUdD;wskey=AAJhnw5-AEDNcqCp8obD7wUBWKanbgUaJXjqiw9TfItKN5yFtfjipa0py5m9sc8JtsVgXNDJdQfm6TR8eES5GuNBGqkWp4nD;'
+    url = 'https://m.jd.com'
+    # ip = getip_uncheck()
+    client = jd(ck, None)
+    status, token = client.gen_token(url)
+    pay_url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=' + token 
+    print(pay_url)
+
     # ck = 'guid=565a406d6271d4a4978f3c43e5efab123b307323f9a344b981164e268315b531; pt_key=app_openAAJipsscADDBi0pEYaB97guiLrL9sS4v1Un_hPTmgeJMVvb8e-JrqJqcRypjXt8BnnPukPzZfpE; pt_pin=jd_JAAsikWhNxem; pwdt_id=jd_JAAsikWhNxem; sid=24dd47f9d082bae65366f9162a08f25w; pin=jd_JAAsikWhNxem;wskey=AAJifdadAEDOi_tzRdBaoHUkiHDqm5lJpibdiz98f8DprVM33w816q7fYHgQRPVz4LGtGbMrrE2oD6shp6Blg01K13CA64Q0;'
     # create_order_appstore(ck, '100', getip_uncheck())
     # jd_client = jd(ck, ip)

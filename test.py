@@ -13,6 +13,7 @@ import sqlite3
 import binascii
 from pyDes import des, CBC, PAD_PKCS5, ECB
 from urllib.parse import quote
+from jingdong import jd
 
 # 流量订单使用
 
@@ -264,6 +265,7 @@ def test_order():
     print(res.text)
 
 # conn = sqlite3.connect('/home/police/project/python/jd/jd.db') 
+from tools import getip_uncheck
 if __name__ == '__main__':
     a = {
         'modile': '13283544122'
@@ -306,15 +308,43 @@ if __name__ == '__main__':
         # except Exception as e:
             # print(e)
             # continue
-    url = 'http://175.178.195.147:9191/admin/cammy/index?page=1&limit=246'
-    head = {
-        'Cookie': 'PHPSESSID=3h079gujknvr3iql69np5tjqu1',
-        'Referer':'http://175.178.195.147:9191/admin/cammy/index?mpi=m-p-i-1',
-        'X-Requested-With':'XMLHttpRequest'
-    }
-    res = requests.get(url, headers=head)
-    total = 0
-    for i in res.json()['data']:
-        print(i['amount'], i['card_name'], i['card_password'])
-        total += int(i['amount'])
-    print(total)
+    # url = 'http://175.178.195.147:9191/admin/cammy/index?page=1&limit=446'
+    # head = {
+    #     'Cookie': 'PHPSESSID=3h079gujknvr3iql69np5tjqu1',
+    #     'Referer':'http://175.178.195.147:9191/admin/cammy/index?mpi=m-p-i-1',
+    #     'X-Requested-With':'XMLHttpRequest'
+    # }
+    # res = requests.get(url, headers=head)
+    # total = 0
+    # for i in res.json()['data']:
+    #     if i['amount'] == 200:
+    #         print(i['amount'], i['card_name'], i['card_password'])
+    #     total += int(i['amount'])
+    # print(total)
+
+    ck = 'pin=jd_CltrcYCAUeQM; wskey=AAJits-hAECnLlYa49U8uDyLjSmx9_00AE7hMR-xkIhN3MS6qLJNXjB3bAfJvLNZHEb18vZVCHx5bqPIMJNBsSPuCZCmc3km;'
+    ck = 'pin=jd_NzjJNSQfaUdD;wskey=AAJhnw5-AEDNcqCp8obD7wUBWKanbgUaJXjqiw9TfItKN5yFtfjipa0py5m9sc8JtsVgXNDJdQfm6TR8eES5GuNBGqkWp4nD'
+    ck = 'pin=jd_AzNriYibHqye; wskey=AAJiOFfrAEBpHas-0yK7UHkFqcmFk2WzlWgGZUrmJhrsrIdLBXcYlvc-J035mwa8VwuXC6An7lmFReCHvtVmmcSj0_12VxQV;'
+    ck = 'pin=jd_qf9WGE9cGKXR; wskey=AAJiOFgSAECC8IvhpEHdlOW5rmGG879M2HE69X50fhZlxFDZDam67zCmJOnRemZ3lxZPiLflWrFrb5solZxnNy5sDHUTY2uI;'
+    ck = 'pin=jd_n1R056zplaIPySs;wskey=AAJiuQCtAFAnrRLuQfVqWFH-oRdYdSjmym-yo4Le2g-hfhibR1ZZJx2D28NwCrNb0eQS1OrU7UxmkBymvf-PlwF9ldmTurmNy-o_eeZvsscbF_1sfTG2CA;'
+    ck = 'pin=jd_zzKhEoX7BghTC3O;wskey=AAJiuQEgAFCk2MkyFzHngZ_NxOux4NRyaOjcu4iJGpMZXX7bUmhzZNQiANhgDohO0TlraCF8wxG4_Oly-ycNQw7wOvEHBBmpS8KP0xFhaK5vwjGLZYZjXg;'
+    ck = 'pin=jd_4VQCTwcjvi3M5CC;wskey=AAJiuQGIAFAIvY617XZem0YoCYO2ORWaWP54HPLRxEYd9s8pgQrNIuuWp_qu6MoreVYzHkl6spj5t2N-KCSWK0p9Oqm8JGYkyn3qV-wGhUi60LqCDw9nRg;'
+    ck = 'TrackID=1tewj3MOVwdCFuslu5WQ2wQ0FBwtdGoMpk5A_41sOu5UqYhG-BHlH39YObd6poV2rI4h3qdelR_EHLFWNe_P9zUHwNq91OUrOLLMxECxg8Uw; thor=D046550577BB0131576C22649B502BE2EFE3D6EFE27FFF58806C6D506EDA349D10041F11326E2CFC7931894EC6D8413B1E748F104F809C8BA789801D6BA296AC246FC3062A56FFE3707859D1A496A5FFD53F029549929385231269D4E5D4E846BEA7C4B1296CFAE30E550E276DB293D619088ADF254A0ED66740D1BAB1EB1A84CE2832D553D44F13CB0FF76D98335965AB269F0D220262698353B9D79E9F3EE6; pinId=zPa3uRlxethAvhgsmmAGUOjur-jFCHph; pin=jd_9cfB1U73ElvRFmp; unick=jd_9cfB1U73ElvRFmp; _tp=V1iADZHLxTprAJT%2F6rf3KlGr%2BQqb%2Beug941iNkagld8%3D; _pst=jd_9cfB1U73ElvRFmp; upn=4cFy4Mhb44xC4sVN4X3Y4chB; pin=jd_9cfB1U73ElvRFmp; wskey=AAJiC797AFDmNazEksmnI5Nq7NtPdSGGW0Qska3yOhUoydJt_osmDJhE6LeTYJhCF_SRNf5Reexy-7Q1MKWcKEVH02SmqiJVdDZ83vwQ0hu9G81eExLU_g;'
+    url = 'https://payc.m.jd.com/api-d-cashier/image/qrCodePay.action?sign=34e9bb1027b0035fd24dd2ab831ff7e7449a0fb326b909bcdcc1034f7c9ea231'
+
+    # url = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx32e4d3446c02b4b5&redirect_uri=https%3A%2F%2Fpay.m.jd.com%2Fpay%2Fweixin-pay.html%3FappId%3Djd_android_app4%26payId%3Dc79f4ecae1ab494f81c9e781a69a9444&response_type=code&scope=snsapi_base&state=123#wechat_redirect'
+    url = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx32e4d3446c02b4b5&redirect_uri=https%3A%2F%2Fpay.m.jd.com%2Fpay%2Fweixin-pay.html%3FappId%3Djd_android_app4%26payId%3D55765b2b67424235bad7e0f2cc5c3fd4&response_type=code&scope=snsapi_base&state=123#wechat_redirect'
+    url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=fb034616799882d9f6877d972fb4a35fa241a6f065b14db7d8a524a9d3f08a07b8398d248dd9976eb131c0013d8054c1d550191137c2305a4aa5feb3dffdab0272285eb678746a57ab75c07ce71f6f46'
+    url = 'https://m.jd.com'
+    url = 'https://pcashier.jd.com/weixin/weixinPage?cashierId=1&orderId=249149759215&sign=c5c058e2c1fdb88d4fed89cdfda425a2&appId=pcashier'
+    url = 'https://wqs.jd.com/order/n_detail_jdm.shtml?deal_id=249149759215&sceneval=2&appCode=ms0ca95114'
+    print(url)
+    # url = 'https://pay.m.jd.com/pay/weixin-pay.html?appId=jd_m_pay&payId=cc00f1c3cab14dc8b399aac2d7036c9e&code=091trr0w3xDoKY2JvXZv3NYfVO2trr0m&state=123'
+    # url = 'https://pay.jd.com/d/cashier/?orderId=249072861996&reqInfo=eyJjYXRlZ29yeSI6IjEiLCJvcmRlckFtb3VudCI6IjEwMC4wMCIsIm9yZGVyRXJwUGxhdCI6IkpEIiwidmVyc2lvbiI6IjMuMCIsIm9yZGVySWQiOiIyNDkwNzI4NjE5OTYiLCJwYXlBbW91bnQiOiIxMDAuMDAiLCJjb21wYW55SWQiOiI2Iiwib3JkZXJUeXBlIjoiMzciLCJ0b1R5cGUiOiIxMCJ9&sign=285efbe203f1df8f164d48b968ff9c43&appId=pcashier&cashierId=1'
+    ip = getip_uncheck('山东省济南市')
+    # url = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx32e4d3446c02b4b5&redirect_uri=https%3A%2F%2Fpay.m.jd.com%2Fpay%2Fweixin-pay.html%3FappId%3Djd_pc_pay%26payId%3D07656299260746a79060d40fcef7b07c&response_type=code&scope=snsapi_base&state=123#wechat_redirect'
+    client = jd(ck, ip)
+    status, token = client.gen_token(url)
+    pay_url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=' + token 
+    print(pay_url)
+

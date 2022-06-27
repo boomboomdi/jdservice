@@ -65,6 +65,19 @@ def LOG_E(log):
     t = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())) 
     print('[---]' + t, 'function', '[' + inspect.stack()[1][3] + ']' + ':', log)
 
+
+def xor(text):
+    out = []
+    for i in text:
+        out.append(ord(i)^1)
+    return byte2str(out)
+
+def byte2str(b):
+    text = ''
+    for i in b:
+        text += chr(i)
+    return str(text)
+
 AREA = ['重庆市', '上海市', '天津市', '北京市', '福建省福州市', '广东省广州市', '广东省佛山市', '浙江省金华市', '湖南省长沙市', '福建省莆田市', '山东省济南市', 
         '山东省日照市', '辽宁省大连市', '安徽省六安市', '江苏省连云港市', '四川省成都市', '陕西省西安市', '陕西省渭南市', '河南省三门峡市']
 PROXY_API = {
@@ -89,9 +102,12 @@ PROXY_API = {
     AREA[18]: 'http://webapi.http.zhimacangku.com/getip?num=1&type=1&pro=410000&city=411200&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=&username=chukou01&spec=1'
 }
 
-def getip_uncheck(area):
+def getip_uncheck(area=None):
     for i in range(3):
-        url = PROXY_API[area]
+        if area == None:
+            url = 'http://webapi.http.zhimacangku.com/getip?num=1&type=1&pro=&city=0&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=&username=chukou01&spec=1'
+        else:
+            url = PROXY_API[area]
         response = requests.get(url)
         if response.status_code == 200:
             print(response.text)
