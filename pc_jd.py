@@ -955,6 +955,9 @@ def create_order_appstore(ck, order_me, amount, proxy):
 
 
 def order_appstore(ck, order_me, amount):
+    if 'upn=' not in ck:
+        upload_order_result(order_me, '', '', amount, '0')
+        return
     for i in ck.split(';'):
         if 'upn=' in i:
             area = i.split('=')[1].replace(' ', '')
@@ -1844,7 +1847,7 @@ if __name__=='__main__':
     # print(get_real_url(ck, url, ''))
     # print(get_real_qb(ck, '248592464389=105'))
 
-    # order_appstore(ck, '', '200')
+    order_appstore(ck, '', '200')
     query_order_appstore(ck, '', '249213928011', '100')
 # 
     # print(query_order_qb(ck, '', DNF_SKUIDS['50'], '50'))
