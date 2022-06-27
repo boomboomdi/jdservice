@@ -1352,8 +1352,11 @@ def get_real_url(ck, img_url, os):
         'data': '',
         'msg': ''
     }
-    area = ck.split('&')[1]
-    area = unquote(area)
+    for i in ck.split(';'):
+        if 'upn=' in i:
+            area = i.split('=')[1].replace(' ', '')
+    area = xor(area)
+    area = str(base64.b64decode(bytes(area, encoding='utf-8')), encoding='utf-8')
     tools.LOG_D(area)
     account = tools.get_jd_account(ck)
     proxy = None
@@ -1844,7 +1847,7 @@ if __name__=='__main__':
     # url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=1c268751b4d3f5ec8ab255c01537372beaba8a259a056385a9bd95fcd26aa269940ec59282a6f63c01bd8878f9ecb403cb6b510cd1fa1d15aeca8ceb7551ed069dad0fe81d042f848ab3f603f57cf109'
     # url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=a8992807ee08692fed8c70bab00cf1bbb09d4f2da4444431ac45a211c20a4b5826cef82354c2cf661474df9c82776427122f64c16e897369932856dd0260db749dad0fe81d042f848ab3f603f57cf109'
     # url = 'https://m.jd.com'
-    # print(get_real_url(ck, url, ''))
+    print(get_real_url(ck, url, ''))
     # print(get_real_qb(ck, '248592464389=105'))
 
     order_appstore(ck, '', '200')
