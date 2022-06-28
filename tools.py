@@ -2,12 +2,11 @@ import random
 import requests
 import base64
 import json
-# from PIL import Image,ImageEnhance
-# import pyzbar
 from io import BytesIO
 import time
 import inspect
 from pyDes import des, CBC, PAD_PKCS5, ECB
+from urllib.parse import unquote
 
 
 def random_phone():
@@ -145,6 +144,19 @@ def time_2_ts(time_str):
     # 转换为时间戳
     timeStamp = int(time.mktime(timeArray))
     return timeStamp
+
+def get_area(ck):
+    if '&' in ck:
+        area = ck.split('&')[1].replace(' ', '')
+        area = unquote(area)
+    elif 'upn=' in ck:
+        for i in ck.split(';'):
+            if 'upn=' in ck:
+                area = i.split('=')[1].replace(' ', '')
+        area = xor(area)
+        area = str(base64.b64decode(bytes(area, encoding='utf-8')), encoding='utf-8')
+    return area
+        
 
 def get_ipinfo(ip):
     url = 'https://ip.taobao.com/outGetIpInfo'

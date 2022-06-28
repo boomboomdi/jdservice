@@ -5,11 +5,14 @@ from pebble import ProcessPool
 
 
 def order_appstore(ck, order_me, amount):
-    for i in ck.split(';'):
-        if 'upn=' in i:
-            area = i.split('=')[1].replace(' ', '')
-    area = xor(area)
-    area = str(base64.b64decode(bytes(area, encoding='utf-8')), encoding='utf-8')
+    if '&' in ck:
+        area = unquote(ck.split('&')[1])
+    else:
+        for i in ck.split(';'):
+            if 'upn=' in i:
+                area = i.split('=')[1].replace(' ', '')
+        area = xor(area)
+        area = str(base64.b64decode(bytes(area, encoding='utf-8')), encoding='utf-8')
     tools.LOG_D(area)
     code = NETWOTK_ERROR
     ck_status = '1'
@@ -45,6 +48,7 @@ def order_appstore(ck, order_me, amount):
 if __name__ == '__main__':
     appck_f = open('ck', encoding='utf-8')
     true_ck_f = open('true_ck', 'a', encoding='utf-8')
+    false_ck_f = open('false_ck', 'a', encoding='utf-8')
     # print(address_f.readlines())
     # with ProcessPool(max_workers=10, max_tasks=5) as pool:
     for line in appck_f.readlines():
@@ -59,6 +63,10 @@ if __name__ == '__main__':
                 print('================ true ==============')
                 print(ck)
                 true_ck_f.write(ck + '\n')
+            else:
+                print('================ false ==============')
+                print(ck)
+                false_ck_f.write(ck + '\n')
         except Exception as e:
             print(e)
             continue

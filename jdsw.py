@@ -1,0 +1,2 @@
+
+# https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx32e4d3446c02b4b5&redirect_uri=https%3A%2F%2Fpay.m.jd.com%2Fpay%2Fweixin-pay.html%3FappId%3Djd_pc_pay%26payId%3Dea3d45a07fe847c297c3ce1e1ccd55f9&response_type=code&scope=snsapi_base&state=123#wechat_redirect
