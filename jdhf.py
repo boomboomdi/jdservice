@@ -12,6 +12,7 @@ from order_sqlite import order_sql
 from tools import LOG_D
 from jingdong import jd
 from yk_server import ORDER_NO
+from tools import xor
 
 SUCCESS = 1
 WEB_CK_UNVALUE = 2
@@ -740,6 +741,12 @@ def create_order(ck, amount, phone, proxy):
 
 
 def order(ck, order_me, amount, phone):
+    for i in ck.split(';'):
+        if 'upn=' in i:
+            area = i.split('=')[1].replace(' ', '')
+    area = xor(area)
+    area = str(base64.b64decode(bytes(area, encoding='utf-8')), encoding='utf-8')
+    tools.LOG_D(area)
     code = NETWOTK_ERROR
     ck_status = '1'
     account = tools.get_jd_account(ck)
@@ -747,7 +754,7 @@ def order(ck, order_me, amount, phone):
     proxy = ip_sql().search_ip(account)
     tools.LOG_D('searchip: ' + str(proxy))
     if proxy == None:
-        proxy = tools.getip_uncheck()
+        proxy = tools.getip_uncheck(area)
         if proxy == None:
             return None
         ip_sql().insert_ip(account, proxy)
@@ -755,7 +762,7 @@ def order(ck, order_me, amount, phone):
     for i in range(3):
         code, order_no, img_url = create_order(ck, amount, phone, proxy)
         if code == NETWOTK_ERROR:
-            proxy = tools.getip_uncheck()
+            proxy = tools.getip_uncheck(area)
             ip_sql().update_ip(account, proxy)
         elif code == CK_UNVALUE:
             ck_status = '0'
@@ -782,6 +789,12 @@ def get_real_url(ck, pay_info, proxy):
 
 
 def real_url(ck, pay_info):
+    for i in ck.split(';'):
+        if 'upn=' in i:
+            area = i.split('=')[1].replace(' ', '')
+    area = xor(area)
+    area = str(base64.b64decode(bytes(area, encoding='utf-8')), encoding='utf-8')
+    tools.LOG_D(area)
     result = {
         'code': '-1',
         'data': '',
@@ -790,14 +803,14 @@ def real_url(ck, pay_info):
     account = tools.get_jd_account(ck)
     proxy = None
     if proxy == None:
-        proxy = tools.getip_uncheck()
+        proxy = tools.getip_uncheck(area)
         if proxy == None:
             return None
         ip_sql().insert_ip(account, proxy)
     for i in range(3):
         code, pay_url = get_real_url(ck, pay_info, proxy)
         if code == NETWOTK_ERROR:
-            proxy = tools.getip_uncheck()
+            proxy = tools.getip_uncheck(area)
             ip_sql().update_ip(account, proxy)
         elif code == CK_UNVALUE:
             result['msg'] = 'ck unvalue'
@@ -835,6 +848,12 @@ def upload_callback_result(result):
 
 
 def query_order(ck, order_me, order_no, amount):
+    for i in ck.split(';'):
+        if 'upn=' in i:
+            area = i.split('=')[1].replace(' ', '')
+    area = xor(area)
+    area = str(base64.b64decode(bytes(area, encoding='utf-8')), encoding='utf-8')
+    tools.LOG_D(area)
     result = {
         'check_status': '1',
         'pay_status': '0',
@@ -849,7 +868,7 @@ def query_order(ck, order_me, order_no, amount):
     proxy = ip_sql().search_ip(account)
     tools.LOG_D(proxy)
     if proxy == None:
-        proxy = tools.getip_uncheck()
+        proxy = tools.getip_uncheck(area)
         ip_sql().delete_ip(account)
         ip_sql().insert_ip(account, proxy)
     for i in range(3):
@@ -865,7 +884,7 @@ def query_order(ck, order_me, order_no, amount):
                 result = json.dumps(result)
                 upload_callback_result(result)
         elif code == NETWOTK_ERROR:
-            proxy = tools.getip_uncheck()
+            proxy = tools.getip_uncheck(area)
             ip_sql().update_ip(account, proxy)
         elif code == CK_UNVALUE:
             result['ck_status'] = '0'

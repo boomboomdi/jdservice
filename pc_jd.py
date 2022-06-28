@@ -341,7 +341,7 @@ class pc_jd():
         }
         try:
             res = requests.get(url, headers=head, allow_redirects=False, proxies=self.proxy, timeout=5)
-            # print(res.text)
+            print(res.text)
         except Exception as e:
             tools.LOG_D(e)
             return NETWOTK_ERROR, None, None
@@ -1847,11 +1847,13 @@ if __name__=='__main__':
     # url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=1c268751b4d3f5ec8ab255c01537372beaba8a259a056385a9bd95fcd26aa269940ec59282a6f63c01bd8878f9ecb403cb6b510cd1fa1d15aeca8ceb7551ed069dad0fe81d042f848ab3f603f57cf109'
     # url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=a8992807ee08692fed8c70bab00cf1bbb09d4f2da4444431ac45a211c20a4b5826cef82354c2cf661474df9c82776427122f64c16e897369932856dd0260db749dad0fe81d042f848ab3f603f57cf109'
     # url = 'https://m.jd.com'
-    print(get_real_url(ck, url, ''))
+    # print(get_real_url(ck, url, ''))
     # print(get_real_qb(ck, '248592464389=105'))
 
-    order_appstore(ck, '', '200')
-    query_order_appstore(ck, '', '249213928011', '100')
+    # order_appstore(ck, '', '200')
+    ck = 'TrackID=1tewj3MOVwdCFuslu5WQ2wQ0FBwtdGoMpk5A_41sOu5UqYhG-BHlH39YObd6poV2rI4h3qdelR_EHLFWNe_P9zUHwNq91OUrOLLMxECxg8Uw; thor=D046550577BB0131576C22649B502BE2EFE3D6EFE27FFF58806C6D506EDA349D10041F11326E2CFC7931894EC6D8413B1E748F104F809C8BA789801D6BA296AC246FC3062A56FFE3707859D1A496A5FFD53F029549929385231269D4E5D4E846BEA7C4B1296CFAE30E550E276DB293D619088ADF254A0ED66740D1BAB1EB1A84CE2832D553D44F13CB0FF76D98335965AB269F0D220262698353B9D79E9F3EE6; pinId=zPa3uRlxethAvhgsmmAGUOjur-jFCHph; pin=jd_9cfB1U73ElvRFmp; unick=jd_9cfB1U73ElvRFmp; _tp=V1iADZHLxTprAJT%2F6rf3KlGr%2BQqb%2Beug941iNkagld8%3D; _pst=jd_9cfB1U73ElvRFmp; upn=4cFy4Mhb44xC4sVN4X3Y4chB; pin=jd_9cfB1U73ElvRFmp; wskey=AAJiC797AFDmNazEksmnI5Nq7NtPdSGGW0Qska3yOhUoydJt_osmDJhE6LeTYJhCF_SRNf5Reexy-7Q1MKWcKEVH02SmqiJVdDZ83vwQ0hu9G81eExLU_g;'
+    ck = 'TrackID=1YsrP4DfZ_T5XPm887V0GQfucNnsFe4NKmdCvHZAdcAF-jfjImGkTan27QwHLFdZhhVutbZ18mCc5HbEAwWY5edE8-68D7rxaGn4n72l1DOI; thor=81D42119B9F2A33B047950CE309063E97DD83A2C16ECC348E3358C68764593ED7BF69FA8063A2E1C56258649A1ABF95C71EB07F023C78F32680781D09877A3241BBD29BF2729DC1B81AA5E5AEA3B1EDAC34EA4903D13E411A5DA6FF18C5EE323922573BE58C3E20D32AA1416B8CF9B06EBF269ECB24A3A0FA8B536D586176562B819244D1D573B09A42D055B1AB8B5232FD438964452A849BB8DA49F1083F61C; pinId=DOZYRqJkvND6xc0z4-I2DVQEbIwgajo3; pin=jd_tQTQWJv8jKbqHfB; unick=jd_tQTQWJv8jKbqHfB; _tp=5xVNa2pMhC0a%2BQSp2fFBQZEmx3jsA1i795kt7nQL7HM%3D; _pst=jd_tQTQWJv8jKbqHfB; upn=47`Q4ct744xC7H7F44Rv4chB; pin=jd_tQTQWJv8jKbqHfB; wskey=AAJiC80OAFBnBat3rt-XlKGMjBrZamXt-uRBrWYMUwWv_Xuca5Y8vBm2eM4RAyt4QsLfmsA2CJM7o5-L_KxgYWeGDjkv7WXCgIRWTxsO957Kd1FU4bemYQ;'
+    query_order_appstore(ck, '', '249205499938', '200')
 # 
     # print(query_order_qb(ck, '', DNF_SKUIDS['50'], '50'))
     # test(ck)
