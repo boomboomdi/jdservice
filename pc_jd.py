@@ -1353,7 +1353,7 @@ def get_real_url(ck, img_url, os):
     account = tools.get_jd_account(ck)
     proxy = None
     if proxy == None:
-        proxy = tools.getip_uncheck(area)
+        area, proxy = tools.getip_uncheck(area)
         if proxy == None:
             return None
         ip_sql().insert_ip(account, proxy)
@@ -1363,7 +1363,7 @@ def get_real_url(ck, img_url, os):
         code, token = app_client.gen_token(img_url)
         tools.LOG_D(token)
         if code == NETWOTK_ERROR:
-            proxy = tools.getip_uncheck(area)
+            area, proxy = tools.getip_uncheck(area)
             if proxy == None:
                 return None
             ip_sql().update_ip(account, proxy)
@@ -1476,7 +1476,7 @@ def query_order_appstore(ck, order_me, order_no, amount):
                 upload_callback_result(result)
             return
         elif code == NETWOTK_ERROR:
-            proxy = tools.getip_uncheck(area)
+            area, proxy = tools.getip_uncheck(area)
             if proxy == None:
                 result = json.dumps(result)
                 upload_callback_result(result)
@@ -1620,7 +1620,7 @@ def just_del(ck, order_id):
     proxy = ip_sql().search_ip(account)
     tools.LOG_D(proxy)
     if proxy == None:
-        proxy = tools.getip_uncheck(area)
+        area, proxy = tools.getip_uncheck(area)
         ip_sql().delete_ip(account)
         ip_sql().insert_ip(account, proxy)
     for i in range(8):
@@ -1636,7 +1636,7 @@ def just_del(ck, order_id):
             else:
                 continue
         elif code == NETWOTK_ERROR:
-            proxy = tools.getip_uncheck(area)
+            area, proxy = tools.getip_uncheck(area)
             if proxy == None:
                 return False
             ip_sql().update_ip(account, proxy)
