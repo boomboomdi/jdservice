@@ -963,5 +963,5 @@ if __name__=='__main__':
     # print(order(ck, '', amount, mobile))
     query_order(ck, '', '245383997207', '100')
     # u = 'https://pcashier.jd.com/image/virtualH5Pay?sign=4137e710e43594ce63978e1b18a7736493f63a1b82878ee5f9c140df36b6d5f4679b159cf57c1a112d9c16fb99c52e61d87bea5c65bd464ed37150286789927572285eb678746a57ab75c07ce71f6f46'
-    # print(real_url(ck, u))
+    print(real_url(ck, u))
     # jd_client = jd(ck)
