@@ -754,7 +754,7 @@ def order(ck, order_me, amount, phone):
     proxy = ip_sql().search_ip(account)
     tools.LOG_D('searchip: ' + str(proxy))
     if proxy == None:
-        proxy = tools.getip_uncheck(area)
+        area, proxy = tools.getip_uncheck(area)
         if proxy == None:
             return None
         ip_sql().insert_ip(account, proxy)
@@ -762,7 +762,7 @@ def order(ck, order_me, amount, phone):
     for i in range(3):
         code, order_no, img_url = create_order(ck, amount, phone, proxy)
         if code == NETWOTK_ERROR:
-            proxy = tools.getip_uncheck(area)
+            area, proxy = tools.getip_uncheck(area)
             ip_sql().update_ip(account, proxy)
         elif code == CK_UNVALUE:
             ck_status = '0'
@@ -803,14 +803,14 @@ def real_url(ck, pay_info):
     account = tools.get_jd_account(ck)
     proxy = None
     if proxy == None:
-        proxy = tools.getip_uncheck(area)
+        area, proxy = tools.getip_uncheck(area)
         if proxy == None:
             return None
         ip_sql().insert_ip(account, proxy)
     for i in range(3):
         code, pay_url = get_real_url(ck, pay_info, proxy)
         if code == NETWOTK_ERROR:
-            proxy = tools.getip_uncheck(area)
+            area, proxy = tools.getip_uncheck(area)
             ip_sql().update_ip(account, proxy)
         elif code == CK_UNVALUE:
             result['msg'] = 'ck unvalue'
@@ -868,7 +868,7 @@ def query_order(ck, order_me, order_no, amount):
     proxy = ip_sql().search_ip(account)
     tools.LOG_D(proxy)
     if proxy == None:
-        proxy = tools.getip_uncheck(area)
+        area, proxy = tools.getip_uncheck(area)
         ip_sql().delete_ip(account)
         ip_sql().insert_ip(account, proxy)
     for i in range(3):
@@ -879,12 +879,14 @@ def query_order(ck, order_me, order_no, amount):
                 result['pay_status'] = '1'
                 result = json.dumps(result)
                 upload_callback_result(result)
+                return
             else:
                 result['pay_status'] = '0'
                 result = json.dumps(result)
                 upload_callback_result(result)
+                return
         elif code == NETWOTK_ERROR:
-            proxy = tools.getip_uncheck(area)
+            area, proxy = tools.getip_uncheck(area)
             ip_sql().update_ip(account, proxy)
         elif code == CK_UNVALUE:
             result['ck_status'] = '0'
@@ -954,10 +956,12 @@ if __name__=='__main__':
     ck = 'pin=jd_MJeXCVSpSPmF; wskey=AAJitBh6AEASeRc2oY7eppvWmhxctDlQSd_RlYCOwcPs7opn7B4ui6FtAh6rQZW575-q_P0BahwYNd8hZ_jSYsO_PDw8WHLa; pt_pin=jd_MJeXCVSpSPmF; pt_key=AAJitBh7ADDeKX-SSvh9VYS8eJ61M32C_R-unM3jqtew2toZaJtaUJCj1ZU_KtyrBsbw7BHvH6Q; unionwsws={"devicefinger":"eidA226181226es17hyfyAXdTtCPKdhGTgLX8e4coUmVXPGsnydS4aqLMsbpxVbEpI7Hi1pkNphfVla2Fr0ZO6OPMv+VCaS6kcQhBZq0U5i/rMP2F7JV","jmafinger":"l18B00Se11nCLM2-xy2wjGXMYxOx39op7xk8BKIV6IEUu776DT6vo9YN3lx1o6sbU"}; DeviceSeq=6dcbb0ef393c48fd8680a792b5287744; TrackID=1yYZh8F_fmKitga002yjus0-FNkMqROyPJ35xc5Iqp-BQnW8LObWkZPbutzFxcs7SRVkvrTWfj-UCMLoB9mGxbz76j4zOC3xfsJlKEPT0pu8; thor=6747CECC33807B9DB377AB93EF1BFE5715F809EE2FC887B2D0F4E8F3DD23BEEAF3F7B4E8C62907B87AF723DB86E5B5860B1A29744519B719C8E4164BDD85ED6FEEA0E1ABA851DC454DB568024D1B4DF40D99D1EDED485D6C3AAC0A7BFC123599E3AA80B85FC2ACD9B196452EBE651BD2D2EAB400856F013FA66ED30AF94A26463060FB9061606BD691A1E5D1F0E7C3723195A6F93E60F624A530E90077E884ED; pinId=F2Te-vh7VUE0M6xtTMKo5A; unick=jd_MJeXCVSpSPmF; ceshi3.com=000; _tp=C2B0B8wx7NdjjREbRXWqXQ%3D%3D; logining=1; _pst=jd_MJeXCVSpSPmF'
     ck = 'TrackID=1fwEq5HSXihwQ4z4ER-aWSEgSpFWSshz8k3D4beU8CUhvqNE9-KmpL2mX9vA_h0gVGkFNP7Fk1G0Av3VEjUyPuk7RbdFdiHIg0KjrK9hhyu0; thor=6747CECC33807B9DB377AB93EF1BFE5715F809EE2FC887B2D0F4E8F3DD23BEEAF3CC468519237B61FE6B745DAC6840A616FC418D3F8D15BF6ADB910650CBE841E2ACEA2D2941908F42325B6102712FE06A457B4341C9240246FFF1B1BF73413E285CB8D4EEC08E2D7345D28984218196494B643DCAB07D6BB22D418CB7EBB54F2895F2AE3C9A724C23C95DBA3856499E1D52FE9246816E57B557A333867F83EC; pinId=F2Te-vh7VUE0M6xtTMKo5A; pin=jd_MJeXCVSpSPmF; unick=jd_MJeXCVSpSPmF; _tp=C2B0B8wx7NdjjREbRXWqXQ%3D%3D; _pst=jd_MJeXCVSpSPmF; upn=4cl.4Mhb44xC4cl.4cdd4chB; pin=jd_MJeXCVSpSPmF; wskey=AAJitBh6AEASeRc2oY7eppvWmhxctDlQSd_RlYCOwcPs7opn7B4ui6FtAh6rQZW575-q_P0BahwYNd8hZ_jSYsO_PDw8WHLa;'
     # 'https://chongzhi.jd.com/order/order_confirm.action?&&entry=4&t=1655559214558 '
+    ck = 'TrackID=1Ktw9ylhL-GYYcycohQwr0hDpQwhot66CSNYn7Wb7QZAXHFgWxy8MCvnPQGYNkoLBk9n4rxLXZBBvfWzoEOCpVEeJYBjtgGOmFkwVwhmhYIc; thor=357C782282E25E788042CA34F39B7F79EC5E1641533AD09E5AAE486741153722E420E3DAE1C23ED71C5E1AD612539D08C1F7F4494B6EBF8943CFF7B5F0298A4A1E58720052042E2E0538290DF511106A17C86DEDB791B41CCE2E4807D002BDFE3BB34E4DB66E5F94C2E25742EF8CC5294515FA8D85E5BA956C9F74FA918F2A6E7207C80C800D5EB9EEDF1A76143242E21D7A03D072747787EEF45F8926EA63F6; pinId=KklU2_ObtBggWoTyP1TrNdgbjeU3V8yF; pin=jd_lRtPvfOKKtcdt1j; unick=jd_lRtPvfOKKtcdt1j; _tp=RrPbRXfzdeB5pRjfVTqOHcCLYN7yTQlRcmwnOGaw4Eg%3D; _pst=jd_lRtPvfOKKtcdt1j; upn=4slV4X3Y44xC7[V.4sJ[4chB; pin=jd_lRtPvfOKKtcdt1j; wskey=AAJiOwnxAFBk46oa4B4lvZ0m9VKt4u59ACO5TLuT9BfuOenwRg5Y8xZh-K5KH9rMy3If4d-xkcSqqRMyKvDCD9B6MS99IlRFcCOHOqQaQszbH7gI1anO8Q;'
+
     mobile='13784302433'
     amount = '200'
-    print(order(ck, '', amount, mobile))
-    # query_order(ck, '', '249076344964', '200')
+    # print(order(ck, '', amount, mobile))
+    query_order(ck, '', '245383997207', '100')
     # u = 'https://pcashier.jd.com/image/virtualH5Pay?sign=4137e710e43594ce63978e1b18a7736493f63a1b82878ee5f9c140df36b6d5f4679b159cf57c1a112d9c16fb99c52e61d87bea5c65bd464ed37150286789927572285eb678746a57ab75c07ce71f6f46'
     # print(real_url(ck, u))
     # jd_client = jd(ck)

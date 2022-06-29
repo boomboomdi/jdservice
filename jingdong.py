@@ -1414,6 +1414,7 @@ if __name__ == '__main__':
 
     ck = 'pin=%E5%95%86%E8%B4%B8%E7%89%A9%E6%B5%81%E7%A7%91%E6%8A%80%E6%9C%89%E9%99%90; wskey=AAJisaQQAFDQxD5bAPHLi-TN3JjT3s3H858P8Vwj6pzRkHFuJKJz5_MJBTwEWHeE8kVRP7vnUF8veY43POImJYlmefbVZW9ZpnuC3xGXVumn-GOqDlGATg; pt_pin=%E5%95%86%E8%B4%B8%E7%89%A9%E6%B5%81%E7%A7%91%E6%8A%80%E6%9C%89%E9%99%90; unionwsws={"devicefinger":"eidA39bc8123a8sfBgV631kiSNWfDZiVkFyWbQYFfGDfCyrUhh+z2vXsvsNieqZo6sVYOzVxqp4PjUIE7jgYVnuK0jkUSfL/nBtSvFhz2idU9XAtQ81U","jmafinger":"f5F7ZwKhbfi6tCLTyyD9z0U5cfiQuKaEQHrMjgWaw4fyBxR45H6LFuWO6D-Uk1cVs"};'
     ck = 'pin=jd_NzjJNSQfaUdD;wskey=AAJhnw5-AEDNcqCp8obD7wUBWKanbgUaJXjqiw9TfItKN5yFtfjipa0py5m9sc8JtsVgXNDJdQfm6TR8eES5GuNBGqkWp4nD;'
+    ck = 'pin=%E5%8E%BF%E9%B8%BF%E9%A1%BA%E5%95%86%E8%B4%B8%E6%9C%89; wskey=AAJit_fdAFDfRqno4vj92xjPpGYUSDTCEXM8OXWHyMpPRwd_JXDW3FjbloBdR24odZw_4Uaa5CgEsPKmeC90GiVPv-Q0GQkGCwSRdYooh16c_VWJ2CYvwQ; '
     url = 'https://m.jd.com'
     # ip = getip_uncheck()
     client = jd(ck, None)

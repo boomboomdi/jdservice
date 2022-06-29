@@ -308,19 +308,7 @@ if __name__ == '__main__':
         # except Exception as e:
             # print(e)
             # continue
-    # url = 'http://175.178.195.147:9191/admin/cammy/index?page=1&limit=446'
-    # head = {
-    #     'Cookie': 'PHPSESSID=3h079gujknvr3iql69np5tjqu1',
-    #     'Referer':'http://175.178.195.147:9191/admin/cammy/index?mpi=m-p-i-1',
-    #     'X-Requested-With':'XMLHttpRequest'
-    # }
-    # res = requests.get(url, headers=head)
-    # total = 0
-    # for i in res.json()['data']:
-    #     if i['amount'] == 200:
-    #         print(i['amount'], i['card_name'], i['card_password'])
-    #     total += int(i['amount'])
-    # print(total)
+
 
     ck = 'pin=jd_CltrcYCAUeQM; wskey=AAJits-hAECnLlYa49U8uDyLjSmx9_00AE7hMR-xkIhN3MS6qLJNXjB3bAfJvLNZHEb18vZVCHx5bqPIMJNBsSPuCZCmc3km;'
     ck = 'pin=jd_NzjJNSQfaUdD;wskey=AAJhnw5-AEDNcqCp8obD7wUBWKanbgUaJXjqiw9TfItKN5yFtfjipa0py5m9sc8JtsVgXNDJdQfm6TR8eES5GuNBGqkWp4nD'
@@ -332,11 +320,16 @@ if __name__ == '__main__':
     ck = 'TrackID=1tewj3MOVwdCFuslu5WQ2wQ0FBwtdGoMpk5A_41sOu5UqYhG-BHlH39YObd6poV2rI4h3qdelR_EHLFWNe_P9zUHwNq91OUrOLLMxECxg8Uw; thor=D046550577BB0131576C22649B502BE2EFE3D6EFE27FFF58806C6D506EDA349D10041F11326E2CFC7931894EC6D8413B1E748F104F809C8BA789801D6BA296AC246FC3062A56FFE3707859D1A496A5FFD53F029549929385231269D4E5D4E846BEA7C4B1296CFAE30E550E276DB293D619088ADF254A0ED66740D1BAB1EB1A84CE2832D553D44F13CB0FF76D98335965AB269F0D220262698353B9D79E9F3EE6; pinId=zPa3uRlxethAvhgsmmAGUOjur-jFCHph; pin=jd_9cfB1U73ElvRFmp; unick=jd_9cfB1U73ElvRFmp; _tp=V1iADZHLxTprAJT%2F6rf3KlGr%2BQqb%2Beug941iNkagld8%3D; _pst=jd_9cfB1U73ElvRFmp; upn=4cFy4Mhb44xC4sVN4X3Y4chB; pin=jd_9cfB1U73ElvRFmp; wskey=AAJiC797AFDmNazEksmnI5Nq7NtPdSGGW0Qska3yOhUoydJt_osmDJhE6LeTYJhCF_SRNf5Reexy-7Q1MKWcKEVH02SmqiJVdDZ83vwQ0hu9G81eExLU_g;'
     ck = 'pin=jd_b2KhIVxuopzpFQU;wskey=AAJiuqjrAFD8ag6Q18qSyV99ytBRpSAQxChDK9pfIpVHZI6DOX_rC2UEuUmTjHbud5rsGTaSzYnM2VY-0wIEStbIwZauGXWIToCIJgiw7OBz3uiUj-sRIg;whwswswws=yfOZIuT2O2beMto6O9H3XUmq7oqIqEUWRcQo8jf4X_CH5U9YNUXgk58r6QvJ6gx67xsHUHWLiVXU1be6d4eVKM75LaMTdkLCygstgmW8v2JY65q5p2JZpw-8E8SqNnze5;unionwsws={"devicefinger":"eidA1659812345sdKW+MRDYhSeKLnyCcdr2mgSlvjcXYx68sL9Y6ROqrlHY2Y2IljGBDXmZnzArcL\/4Wzx2xqUfMT4bZaKNDbudZ9uuPyV9wkcUd50hU","jmafinger":"yfOZIuT2O2beMto6O9H3XUmq7oqIqEUWRcQo8jf4X_CH5U9YNUXgk58r6QvJ6gx67xsHUHWLiVXU1be6d4eVKM75LaMTdkLCygstgmW8v2JY65q5p2JZpw-8E8SqNnze5"};'
     ck = 'pin=jd_4d9b500034155;wskey=AAJiussbAEC7VxcofMvhtWrHU-Bu8OBYzUVl2RKHGCfuq3ShtZiK9OLp7N3AobVN3owJNOr0oDkUuLl8-pPBf1PdcmTytHjY;'
+    ck = 'pin=%E5%8E%BF%E9%B8%BF%E9%A1%BA%E5%95%86%E8%B4%B8%E6%9C%89; wskey=AAJit_fdAFDfRqno4vj92xjPpGYUSDTCEXM8OXWHyMpPRwd_JXDW3FjbloBdR24odZw_4Uaa5CgEsPKmeC90GiVPv-Q0GQkGCwSRdYooh16c_VWJ2CYvwQ; '
+    ck = 'pin=%E5%8D%97%E6%9F%92%E5%96%9C%E5%95%86%E8%B4%B8%E6%9C%89; wskey=AAJit_f0AFD-tbnW3-R8p5TWA4D5TfQzaJzFr9BiiZwKd54aTrOcVggc5u5JCydtM9Juc0FSewQeVL24evDOdu6Elau5hE_6g78EVJdf_je3REd7zdJaOQ;'
     # ck = 'pin=%E9%99%B5%E5%8E%BF%E7%BB%AA%E6%B1%9F%E5%95%86%E8%B4%B8; wskey=AAJit_fcAFDe08AnsJWdtDo5BgGcK8P25nwtf5A10OCQeWE3iCVjTdo-yuTdUNDJ0dDTxaUjok2tY70trJbHTFJDXtd2PBYURak_sREVhcyuW8TyWDgWWg; pt_pin=%E9%99%B5%E5%8E%BF%E7%BB%AA%E6%B1%9F%E5%95%86%E8%B4%B8; unionwsws={"devicefinger":"eidA08d181227dsdfAlgwd1bSteaCN48BDfIpnwJYkN7+4F9XxZsaQezHXkadeMmIDcBRDlnXirb7DrF+YeNCwmSLb+Q+O6sfzDj7r9y3/qZ16hIoiVW","jmafinger":"vHUquSh-aYec_WsqA-NQ8MBI1X1XMNU6uqPKaJR8N3Zxoro3_p33JursAL20KVXoG"}; guid=3521bf0c90b82078be1b4ef68235f716b4e298d5d8a2d29aa906d7c74e31671b; pt_key=app_openAAJit_fdAEBufPt0vfPQ9Lp6NyHMSEK7btGZcRBDoikDKfLgnEzKn36V5IBc2ehLOSlJUBrlrUgL1LoPSLBqIT-bjK0imLW5; pwdt_id=%E9%99%B5%E5%8E%BF%E7%BB%AA%E6%B1%9F%E5%95%86%E8%B4%B8; sid=c31b55a0b28b78ca5fc466c2ee373e7w; buy_uin=100001099666077985; jdpin=%5Cu9675%5Cu53bf%5Cu7eea%5Cu6c5f%5Cu5546%5Cu8d38; refer_v=real-url; wq_skey=zmDAF678F411D56DB4C2E9B392578B77E2E152C755FAE2985E8AD46D36C23E16A807D36E526ACB8FF54C98170BBAE2077D8EC73D10718FCDCCACF9753417273DA10E7103F8F40A3A89753EFDFDF4D170BB8A0D18AE7ACA49B09BEC3D3935D87D43; '
     url = 'https://m.jd.com'
     # url = 'https://payc.m.jd.com/api-d-cashier/image/qrCodePay.action?sign=abacb348d8996adfecd19614d5a81a8c449a0fb326b909bcdcc1034f7c9ea231'
     #                                                                  wxe75a2e68877315fb
-    url = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx32e4d3446c02b4b5&redirect_uri=https%3A%2F%2Fpay.m.jd.com%2Fpay%2Fweixin-pay.html%3FappId%3Djd_pc_pay%26payId%3D65bb7480007f4d7bbb718eb386ac27f5&response_type=code&scope=snsapi_base&state=123#wechat_redirect'
+    # url = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx32e4d3446c02b4b5&redirect_uri=https%3A%2F%2Fwx.tenpay.com%2Fcgi-bin%2Fmmpayweb-bin%2Fcheckmweb%3Fprepay_id%3Dwx2904462661482672851647d334af0f0000%26package%3D640493505%26redirect_url%3Dhttps%253A%252F%252Fpay.m.jd.com%252FwapWeiXinPay%252FweiXinH5PayQuery.action%253FappId%253Djd_m_pay%2526payId%253D7649dd043076481b91117080db880b82&response_type=code&scope=snsapi_base&state=123#wechat_redirect'
+    # url = 'https://pay.m.jd.com/cpay/newPay-index.html?appId=jd_m_pay&payId=7649dd043076481b91117080db880b82'
+    # url = 'https://pcashier.jd.com/weixin/weixinPage?cashierId=1&orderId=249183965516&sign=3d28c48937269389a7485667f657895c&appId=pcashier'
+    # url = 'https://wx.tenpay.com/cgi-bin/mmpayweb-bin/checkmweb?prepay_id=wx2904462661482672851647d334af0f0000&package=640493505&redirect_url=https%3A%2F%2Fpay.m.jd.com%2FwapWeiXinPay%2FweiXinH5PayQuery.action%3FappId%3Djd_m_pay%26payId%3D7649dd043076481b91117080db880b82'
     # url = 'https://pcashier.jd.com/weixin/weixinPage?cashierId=1&orderId=245350310425&sign=b3143f6bace2d7a70411c34bb2b98d29&appId=pc_ls_mall'
     print(url)
     # url = 'https://pay.m.jd.com/pay/weixin-pay.html?appId=jd_m_pay&payId=cc00f1c3cab14dc8b399aac2d7036c9e&code=091trr0w3xDoKY2JvXZv3NYfVO2trr0m&state=123'

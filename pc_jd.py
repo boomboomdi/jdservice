@@ -967,7 +967,7 @@ def order_appstore(ck, order_me, amount):
     proxy = ip_sql().search_ip(account)
     # tools.LOG_D('searchip: ' + str(proxy))
     if proxy == None:
-        proxy = tools.getip_uncheck(area)
+        area, proxy = tools.getip_uncheck(area)
         if proxy == None:
             return None
         ip_sql().insert_ip(account, proxy)
@@ -975,7 +975,7 @@ def order_appstore(ck, order_me, amount):
     for i in range(5):
         code, order_no, img_url = create_order_appstore(ck, order_me, amount, proxy)
         if code == NETWOTK_ERROR:
-            proxy = tools.getip_uncheck(area)
+            area, proxy = tools.getip_uncheck(area)
             if proxy == None:
                 return NETWOTK_ERROR
             ip_sql().update_ip(account, proxy)
@@ -1011,7 +1011,7 @@ def get_useful_unpay(ck, amount, proxy):
             now_time = str(int(time()))
             if last_time != None:
                 # if int(now_time) - int(last_time) > 600:
-                if int(now_time) - int(last_time) > 60:
+                if int(now_time) - int(last_time) > 600:
                     code, cashier_url = pc_client.jump_url(order_id)
                     # code, cashier_url = pc_client.locdetails_order(order_id)
                     if code != SUCCESS:
@@ -1447,7 +1447,7 @@ def query_order_appstore(ck, order_me, order_no, amount):
     proxy = ip_sql().search_ip(account)
     tools.LOG_D(proxy)
     if proxy == None:
-        proxy = tools.getip_uncheck(area)
+        area, proxy = tools.getip_uncheck(area)
         ip_sql().delete_ip(account)
         ip_sql().insert_ip(account, proxy)
     for i in range(3):
@@ -1838,10 +1838,11 @@ if __name__=='__main__':
     # print(get_real_url(ck, url, ''))
     # print(get_real_qb(ck, '248592464389=105'))
     ck = 'mp=19892811%E5%AD%90%E6%AA%80%E5%A4%A7%E9%9A%90%E7%82%AD%E7%83%A7;  TrackID=1oECydINC9nxIq99zTTyn3CfecJKZ6zLTPeYVLaYD_Lde_B5307Cgu6dmrkjknBhRjX3iMlvF85RHlYJ1jabngV8fsnSIUeaQDdSkcZ2hEWXbCodvLmsULakfKTYNCRjNk4TCtqZgPdLhVnI5--xXxQ;  thor=BBBE5BF5A94E6AE682F2A79540686087A6A7F3738289642E5BE0C897A68686BF1FE1D01511A6A37051F02CED5F7F1AD07812FAB17403B5DE6D5930BF6D47F8E5E2BD214144A3CD54A0DBA6CB904D45DE74F18A4F6A64D0D92F4EB88AE05D79083B013B1A1DBDD42C896E334B25F8B7F0B9833A33F2097B9E6494492B3AEA62F15677D4A488D322026B20CA3BBD677A90;  pinId=sLnRO6k-ZruR6jlBZIUdaPo8ycNWIVQJZcEmGXww4e8;  pin=19892811%E5%AD%90%E6%AA%80%E5%A4%A7%E9%9A%90%E7%82%AD%E7%83%A7;  unick=19892811%E5%AD%90%E6%AA%80%E5%A4%A7%E9%9A%90%E7%82%AD%E7%83%A7;  _tp=7QWi3CyQESz7hpj3VEm5ZJTyhHNW9q49cHGP9AWW04a6T6EpqLU4hlLgwsQv9dXI861yBOZXNl%2FAg5ceduhhyw%3D%3D;  _pst=19892811%E5%AD%90%E6%AA%80%E5%A4%A7%E9%9A%90%E7%82%AD%E7%83%A7; &%E5%B9%BF%E4%B8%9C%E7%9C%81%E5%B9%BF%E5%B7%9E%E5%B8%82'
-    order_appstore(ck, '', '200')
+    # order_appstore(ck, '', '200')
     ck = 'TrackID=1tewj3MOVwdCFuslu5WQ2wQ0FBwtdGoMpk5A_41sOu5UqYhG-BHlH39YObd6poV2rI4h3qdelR_EHLFWNe_P9zUHwNq91OUrOLLMxECxg8Uw; thor=D046550577BB0131576C22649B502BE2EFE3D6EFE27FFF58806C6D506EDA349D10041F11326E2CFC7931894EC6D8413B1E748F104F809C8BA789801D6BA296AC246FC3062A56FFE3707859D1A496A5FFD53F029549929385231269D4E5D4E846BEA7C4B1296CFAE30E550E276DB293D619088ADF254A0ED66740D1BAB1EB1A84CE2832D553D44F13CB0FF76D98335965AB269F0D220262698353B9D79E9F3EE6; pinId=zPa3uRlxethAvhgsmmAGUOjur-jFCHph; pin=jd_9cfB1U73ElvRFmp; unick=jd_9cfB1U73ElvRFmp; _tp=V1iADZHLxTprAJT%2F6rf3KlGr%2BQqb%2Beug941iNkagld8%3D; _pst=jd_9cfB1U73ElvRFmp; upn=4cFy4Mhb44xC4sVN4X3Y4chB; pin=jd_9cfB1U73ElvRFmp; wskey=AAJiC797AFDmNazEksmnI5Nq7NtPdSGGW0Qska3yOhUoydJt_osmDJhE6LeTYJhCF_SRNf5Reexy-7Q1MKWcKEVH02SmqiJVdDZ83vwQ0hu9G81eExLU_g;'
     ck = 'TrackID=1YsrP4DfZ_T5XPm887V0GQfucNnsFe4NKmdCvHZAdcAF-jfjImGkTan27QwHLFdZhhVutbZ18mCc5HbEAwWY5edE8-68D7rxaGn4n72l1DOI; thor=81D42119B9F2A33B047950CE309063E97DD83A2C16ECC348E3358C68764593ED7BF69FA8063A2E1C56258649A1ABF95C71EB07F023C78F32680781D09877A3241BBD29BF2729DC1B81AA5E5AEA3B1EDAC34EA4903D13E411A5DA6FF18C5EE323922573BE58C3E20D32AA1416B8CF9B06EBF269ECB24A3A0FA8B536D586176562B819244D1D573B09A42D055B1AB8B5232FD438964452A849BB8DA49F1083F61C; pinId=DOZYRqJkvND6xc0z4-I2DVQEbIwgajo3; pin=jd_tQTQWJv8jKbqHfB; unick=jd_tQTQWJv8jKbqHfB; _tp=5xVNa2pMhC0a%2BQSp2fFBQZEmx3jsA1i795kt7nQL7HM%3D; _pst=jd_tQTQWJv8jKbqHfB; upn=47`Q4ct744xC7H7F44Rv4chB; pin=jd_tQTQWJv8jKbqHfB; wskey=AAJiC80OAFBnBat3rt-XlKGMjBrZamXt-uRBrWYMUwWv_Xuca5Y8vBm2eM4RAyt4QsLfmsA2CJM7o5-L_KxgYWeGDjkv7WXCgIRWTxsO957Kd1FU4bemYQ;'
-    query_order_appstore(ck, '', '249205499938', '200')
+    ck = 'pin=%E5%8E%BF%E5%BA%95%E4%B8%9C%E4%B8%9C%E7%89%9B%E8%82%89HGFHRT; wskey=AAJiuyx8AFDLmGpbRN35KqLrDizV2OvpCiVtnPZlp9Bvb3_LQ-hOXJ-xtBlslIWdq0fly4ELrggLgcz7D1no8RKCMc4ffmvnvkkOupNVTNkYv1srSiQbMQ; pt_pin=%E5%8E%BF%E5%BA%95%E4%B8%9C%E4%B8%9C%E7%89%9B%E8%82%89HGFHRT; unionwsws={"devicefinger":"eidA040c81238es575JwSDfUTXmYqNSZWMiXTu+Sccni+hQE6hmOGx1bPiyhJLnn5mN+dmdhapLTJ+ZbHpKPdqicI1XvbSEcVMZJxW8TqeGlyuxvk5lX","jmafinger":"xkj8ZKG2M6UeKQyx-ljhpPtuiN233BfJA-xyrjpwgz5TFKUgt9O6h_aGromiGoeO4"}; mp=%E5%8E%BF%E5%BA%95%E4%B8%9C%E4%B8%9C%E7%89%9B%E8%82%89HGFHRT; TrackID=1kEv1wo4JNDYGYceCdlzxVNZ62dGjcX9sodWcAZvdAatDril6vAC-DcWRz4Ky6yoRoJkjfkDAluz5pClFKiKri7lJ_hol9SSlKFkxjLfmGlhs70AFwyLaI-UPZBiJ2Cq_-babmz6z29WMtmqDd6kEeg; thor=EA2319D6A111B631D986D62AEFDA8EF707E2E13ABB80C7CB5970D8F7428C7B45BDD333801E4AB8B7D96A21709E9D05BECBAD96447C956166EDC9E153157DD70B8DD0349E6D790276CF566F70C8203510838CB255D12886E465EADCEC02C6C9D8E94FDDD3228ADAA62BEAB94C14778E7F808A48391E0C2F4A83EA05F51FE0513D30DC1AC300B9C4CF4A27D3F24755FBB2; pinId=4-b-oeKae1Cmrp0owF9DW-qZ2GysW2_itX37H5_fCPs; pin=%E5%8E%BF%E5%BA%95%E4%B8%9C%E4%B8%9C%E7%89%9B%E8%82%89HGFHRT; unick=%E5%8E%BF%E5%BA%95%E4%B8%9C%E4%B8%9C%E7%89%9B%E8%82%89HGFHRT; _tp=OS%2BJYaN4puyht9hKCQ37kd3EIIc%2FQcs47cXqWc9RKmH%2B1xEoOMfMPdDDlBCI0e4gDfv2hS%2Fb3rz2OV7wy4nTrA%3D%3D; _pst=%E5%8E%BF%E5%BA%95%E4%B8%9C%E4%B8%9C%E7%89%9B%E8%82%89HGFHRT; &%E6%B1%9F%E8%8B%8F%E7%9C%81%E8%BF%9E%E4%BA%91%E6%B8%AF%E5%B8%82'
+    query_order_appstore(ck, '', '249271476713', '100')
 # 
     # print(query_order_qb(ck, '', DNF_SKUIDS['50'], '50'))
     # test(ck)

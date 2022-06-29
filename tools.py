@@ -102,9 +102,10 @@ PROXY_API = {
 }
 
 def getip_uncheck(area=None):
-    for i in range(3):
+    for i in range(6):
         if area == None:
-            url = 'http://webapi.http.zhimacangku.com/getip?num=1&type=1&pro=&city=0&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=&username=chukou01&spec=1'
+            area = AREA[random.randint(0, len(AREA)-1)]
+            url = PROXY_API[area]
         else:
             url = PROXY_API[area]
         response = requests.get(url)
@@ -117,7 +118,7 @@ def getip_uncheck(area=None):
             ip = response.text
             ip = ip.replace('\n', '')
             ip = ip.replace('\r', '')
-            return ip
+            return area, ip
     return None, None
 
 
@@ -145,13 +146,21 @@ def time_2_ts(time_str):
     timeStamp = int(time.mktime(timeArray))
     return timeStamp
 
+def get_time():
+    now = int(time.time())
+    #转换为其他日期格式,如:"%Y-%m-%d %H:%M:%S"
+    timeArray = time.localtime(now)
+    otherStyleTime = time.strftime("%Y_%m_%d_%H_%M_%S", timeArray)
+    # print(otherStyleTime)
+    return otherStyleTime
+
 def get_area(ck):
     if '&' in ck:
         area = ck.split('&')[1].replace(' ', '')
         area = unquote(area)
     elif 'upn=' in ck:
         for i in ck.split(';'):
-            if 'upn=' in ck:
+            if 'upn=' in i:
                 area = i.split('=')[1].replace(' ', '')
         area = xor(area)
         area = str(base64.b64decode(bytes(area, encoding='utf-8')), encoding='utf-8')
@@ -181,4 +190,5 @@ if __name__ == '__main__':
     # print(time_2_ts(a1))
     # pass
     # print(get_ipinfo('223.83.132.229'))
-    print(getip_uncheck())
+    # print(getip_uncheck())
+    get_time()
