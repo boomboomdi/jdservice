@@ -11,7 +11,6 @@ import uuid
 import requests
 import json
 from hashlib import md5
-from jd_app_web import get_ip
 from tools import LOG_D, parse_card_info, get_jd_account, getip_uncheck
 from ip_sqlite import ip_sql
 import re
@@ -947,9 +946,11 @@ class jd:
             return NETWOTK_ERROR, None, None
         if resp.status_code == 200:
             if 'orderId' in resp.text:
-                if resp.json()['result']['orderStatusName'] == '充值成功':
-                    return SUCCESS, True, resp.json()['result']['orderStatusName']
+                if resp.json()['result']['orderStatusName'] == '充值成功' or '正在充值' in resp.json()['result']['orderStatusName'] or '充值中' in resp.json()['result']['orderStatusName']:
+                    if '退款' not in resp.json()['result']['orderStatusName'] and '异常' not in resp.json()['result']['orderStatusName']:
+                        return SUCCESS, True, resp.json()['result']['orderStatusName']
                 else:
+                    print(resp.text)
                     return SUCCESS, False,resp.json()['result']['orderStatusName']
             return CK_UNVALUE, None, None
         return CK_UNVALUE, None, None

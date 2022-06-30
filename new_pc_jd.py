@@ -763,82 +763,6 @@ class pc_jd():
         return SUCCESS, None
 
 
-    def jump_url_knowledge(self, order_id):
-        url = 'https://kami.jd.com/order/getJmiUrl/' + order_id + '/39'
-        head = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Safari/537.36 Edg/101.0.1210.53',
-            'Referer': 'https://order.jd.com/',
-            'Cookie': self.ck
-        }
-        try:
-            res = requests.get(url, headers=head, proxies=self.proxy, allow_redirects=False)
-            if res.status_code == 302:
-                return SUCCESS, res.headers['Location']
-        except Exception as e:
-            tools.LOG_D(e)
-            return NETWOTK_ERROR, None
-        return SUCCESS, None
-
-    def test(self):
-        tools.LOG_D('enter')
-
-    
-    def knowledge_get_repetkey(self, skuid):
-        tools.LOG_D('enter')
-        url = 'https://v-knowledge.jd.com/order/confirm?skuId=' + skuid + '&quantity=1&source=6'
-        head = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Safari/537.36 Edg/101.0.1210.53',
-            'Referer': 'https://cartv.jd.com/',
-            'Cookie': self.ck
-        }       
-        try:
-            res = requests.get(url, headers=head, proxies=self.proxy, timeout=5)
-        except Exception as e:
-            tools.LOG_D(e)
-            return NETWOTK_ERROR, None
-        if res.status_code == 200:
-            for line in res.text.split('\n'):
-                if 'repeatKey' in line:
-                    repeakey = line.replace(' ', '').replace('<inputtype="hidden"id="repeatKey"name="repeatKey"value="', '').replace('">', '').replace('\r', '')
-                    repeakey = repeakey.encode("utf-8").decode("latin1")
-                    # repeakey = repeakey.encode("UTF-8").decode("UTF-8")
-                    print(repeakey)
-                    return SUCCESS, repeakey
-            return CK_UNVALUE, None
-        else:
-            return RET_CODE_ERROR, None
-
-
-
-    def knowledge_submit(self, skuid, repeatKey, price, qq):
-        tools.LOG_D('enter')
-        url = 'https://v-knowledge.jd.com/order/submitOrder'
-        data = 'skuParam.quantity=1&skuParam.skuId=' + skuid + '&businessType=6&source=6&repeatKey=' + repeatKey + \
-            '&salePrice=' + price + '.00&payType=0&orderAmount=' + price + '.00&onlineAmount=' + price + '.00&balanceAmount=0' + \
-            '&jingdouAmount=0&jingquanAmount=0&dongquanAmount=0&couponIds=&rechargeNum=' + qq + '&password=d41d8cd98f00b204e9800998ecf8427e' + \
-            '&features=&skuParam.activityId='
-        head = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Safari/537.36 Edg/101.0.1210.53',
-            'Referer': 'https://v-knowledge.jd.com/order/confirm?skuId=' + skuid + '&quantity=1&source=6',
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Cookie': self.ck
-        }              
-        try:
-            res = requests.post(url, headers=head, data=data, allow_redirects=False, proxies=self.proxy)
-        except Exception as e:
-            tools.LOG_D(e)
-            return NETWOTK_ERROR, None
-        if res.status_code == 200:
-            if 'redirectUrl' in res.text:
-                if '销售火爆' in res.text:
-                    return CK_UNVALUE, None
-                return SUCCESS, res.json()['redirectUrl']
-        if res.status_code == 302:
-            if 'orderId' in res.headers['Location']:
-                return SUCCESS, res.headers['Location']
-        return CK_UNVALUE, None
-
-
     def just_delete(self):
         url = 'https://order.jd.com/center/list.action?t=34-62&d=1&s=4096'
         head = {
@@ -858,6 +782,8 @@ class pc_jd():
                     return SUCCESS, i.split('","')
         return SUCCESS, None
 
+
+    # ============================== new ========================== #    
     def weixin_new(self, order_id, pay_sign, amount, page_id, channel_sign):
         url = 'https://pcashier.jd.com/weixin/weiXinNew?cashierId=1&appId=pc_ls_mall'
         head = {
@@ -916,7 +842,6 @@ def create_order_appstore(ck, order_me, amount, proxy):
     tools.LOG_D('create_order_appstore')
     # ========test=========
     pc_client = pc_jd(ck, proxy)
-
     code, order_no, cashier_url = get_useful_unpay_appstore(ck, amount, proxy)
     if code != SUCCESS:
         return code, None, None
@@ -946,8 +871,7 @@ def create_order_appstore(ck, order_me, amount, proxy):
         return code, None, None
 
     for i in range(2):
-        # code, weixin_page_url = pc_client.weixin_confirm(order_no, pay_sign, amount, page_id, channel_sign)
-        code, weixin_page_url = pc_client.weixin_new(order_no, pay_sign, amount, page_id, channel_sign)
+        code, weixin_page_url = pc_client.weixin_confirm(order_no, pay_sign, amount, page_id, channel_sign)
         if code != SUCCESS:
             return code, None, None
         tools.LOG_D(weixin_page_url)
@@ -962,13 +886,6 @@ def create_order_appstore(ck, order_me, amount, proxy):
         sleep(1)
         i += 1
 
-    # code, weixin_page_url = pc_client.weixin_confirm(order_no, pay_sign, amount, page_id, channel_sign)
-    # if code != SUCCESS:
-        # return code, None, None
-    # tools.LOG_D(weixin_page_url)
-    # code, status = pc_client.weixin_page(weixin_page_url)
-    # if code != SUCCESS:
-        # return code, None, None
     if status == False:
         return CK_UNVALUE, None, None
     code, img_url = pc_client.get_weixin_img(weixin_page_url, order_no, pay_sign)
@@ -976,6 +893,48 @@ def create_order_appstore(ck, order_me, amount, proxy):
     if code != SUCCESS:
         return code, None, None
     return code, order_no, img_url
+
+
+def test_create_order_appstore(ck, order_me, amount, proxy):
+    tools.LOG_D('create_order_appstore')
+    # ========test=========
+    pc_client = pc_jd(ck, proxy)
+
+    order_no = '249240135597'
+    cashier_url = 'https://pcashier.jd.com/cashier/index.action?orderId=249240135597&reqInfo=eyJjYXRlZ29yeSI6IjEiLCJjb21wYW55SWQiOiI2Iiwib3JkZXJBbW91bnQiOiIyMDAuMDAiLCJvcmRlcklkIjoiMjQ5MjQwMTM1NTk3Iiwib3JkZXJUeXBlIjoiMzQiLCJwYXlBbW91bnQiOiIyMDAuMDAiLCJ0b1R5cGUiOiIxMCIsInZlcnNpb24iOiIzLjAifQ==&sign=5ad314d41181af1a2adc9765899b2e05'
+    code, cashier_url = pc_client.cashier_index(cashier_url)
+    if code != SUCCESS:
+        return code, None, None
+    code, pay_sign, page_id, channel_sign = pc_client.get_pay_channel(cashier_url)
+    if code != SUCCESS:
+        return code, None, None
+
+    for i in range(2):
+        code, weixin_page_url = pc_client.weixin_confirm(order_no, pay_sign, amount, page_id, channel_sign)
+        if code != SUCCESS:
+            return code, None, None
+        tools.LOG_D(weixin_page_url)
+        code, status = pc_client.weixin_page_qb(weixin_page_url)
+        if code != SUCCESS:
+            return code, None, None
+        if status == True:
+            break
+        code, pay_sign, page_id, channel_sign = pc_client.get_pay_channel_qq(cashier_url)
+        if code != SUCCESS:
+            return code, None, None
+        sleep(1)
+        i += 1
+
+    if status == False:
+        return CK_UNVALUE, None, None
+    code, img_url = pc_client.get_weixin_img(weixin_page_url, order_no, pay_sign)
+    LOG_D(img_url)
+    if code != SUCCESS:
+        return code, None, None
+    return code, order_no, img_url
+
+
+
 
 
 def order_appstore(ck, order_me, amount):
@@ -1071,74 +1030,6 @@ def get_useful_unpay_appstore(ck, amount, proxy):
     return SUCCESS, None, None
 
 
-
-def get_useful_unpay_knowledge(ck, amount, proxy):
-    pc_client = pc_jd(ck, proxy)
-    code, orders =  pc_client.get_unpay()
-    if code != SUCCESS:
-        return code, None, None
-    if orders == None:
-        return SUCCESS, None, None
-    for order in orders:
-        order = json.loads(order)
-        if amount == str(order['amount']):
-            order_id = str(order['order_id'])
-            last_time = order_sql().search_order(order_id)
-            now_time = str(int(time()))
-            if last_time != None:
-                # if int(now_time) - int(last_time) > 600:
-                if int(now_time) - int(last_time) > 100:
-                    code, cashier_url = pc_client.jump_url(order_id)
-                    # code, cashier_url = pc_client.locdetails_order(order_id)
-                    if code != SUCCESS:
-                        return code, None, None
-                    return SUCCESS, order_id, cashier_url
-    return SUCCESS, None, None
-
-
-
-
-def order_qb(ck, order_me, amount, qq):
-    code = NETWOTK_ERROR
-    ck_status = '1'
-    account = tools.get_jd_account(ck)
-    tools.LOG_D('account: ' + account)
-    proxy = ip_sql().search_ip(account)
-    tools.LOG_D('searchip: ' + str(proxy))
-    if proxy == None:
-        proxy = tools.getip_uncheck()
-        if proxy == None:
-            return None
-        ip_sql().insert_ip(account, proxy)
-
-    for i in range(3):
-        code, order_no, img_url = create_order_qb(ck, order_me, amount, qq, proxy)
-        if code == NETWOTK_ERROR:
-            proxy = tools.getip_uncheck()
-            ip_sql().update_ip(account, proxy)
-        elif code == CK_UNVALUE:
-            ck_status = '0'
-            break
-        elif code == SUCCESS:
-            order_sql().insert_order(order_no, amount)
-            order_sql().update_order_time(order_no)
-            break
-        elif code == RET_CODE_ERROR:
-            return None
-        i += 1
-    tools.LOG_D(img_url)
-    order_no = '1234567891'
-    img_url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=91cdd3c81ca4eb0e567ae1aa974c0edc26ca3884223ba250dbcfa8810261853e2328b54465304f257d4cf742590d02052b86033b07b653b048611091e50a63b4c1b0c4ab88b7e0928f8872365c7dde35'
-    upload_order_result(order_me, order_no, img_url, amount, ck_status)
-
-
-def create_order_dnf(ck, order_me, amoung):
-
-    pass
-
-
-
-
 def test_order_appstore(ck, order_me, amount):
     code = NETWOTK_ERROR
     ck_status = '1'
@@ -1159,210 +1050,6 @@ def test_order_appstore(ck, order_me, amount):
         i += 1
     tools.LOG_D(img_url)
     upload_order_result(order_me, order_no, img_url, amount, ck_status)
-    # upload_order_result(order_me, '', '', amount, ck_status)
-
-
-
-def create_order_qb(ck, order_me, amount, qq, proxy):
-    pc_client = pc_jd(ck, proxy)
-    code, order_no, cashier_url = get_useful_unpay(ck, amount, proxy)
-    if code != SUCCESS:
-        return code, None, None
-    if cashier_url == None:
-        code, repeatkey = pc_client.qb_get_repeatkey(QB_SKUIDS[amount])
-        print(repeatkey)
-        if code != SUCCESS:
-            return code, None, None
-        code, cashier_url = pc_client.qb_submit_order(amount, repeatkey, qq)
-        for i in cashier_url.split('?')[1].split('&'):
-            if 'orderId' in i:
-                order_no = i.split('=')[1]
-    # return SUCCESS, order_no, order_no
-    # print(order_no)
-    # print(cashier_url)
-    code, cashier_url = pc_client.cashier_index(cashier_url)
-    if code != SUCCESS:
-        return code, None, None
-    code, pay_sign, page_id, channel_sign = pc_client.get_pay_channel_qq(cashier_url)
-    print(pay_sign, page_id, channel_sign)
-    if code != SUCCESS:
-        return code, None, None
-    code, weixin_page_url = pc_client.weixin_confirm(order_no, pay_sign, amount, page_id, channel_sign)
-    if code != SUCCESS:
-        return code, None, None
-    tools.LOG_D(weixin_page_url)
-    # weixin_page_url = 'https://pcashier.jd.com/weixin/weixinPage?cashierId=1&orderId=248572526985&sign=a2dbea7cfcbc9d5ba448d6b0ade9bb6b&appId=pcashier'
-    # weixin_page_url = 'https://pcashier.jd.com/weixin/weixinPage?cashierId=1&orderId=248609542688&sign=bdcfdb8be07588b1e1cc8e6a6d688c49&appId=pcashier'
-    code, status = pc_client.weixin_page_qb(weixin_page_url)
-    if code != SUCCESS:
-        return code, None, None
-    if status == False:
-        return CK_UNVALUE, None, None
-    code, img_url = pc_client.get_weixin_img(weixin_page_url, order_no, pay_sign)
-    if code != SUCCESS:
-        return code, None, None
-    return code, order_no, img_url
-
-
-def create_order_knowkedge(ck, amount, skuid, qq, proxy):
-    pc_client = pc_jd(ck, proxy)
-    code, order_no, cashier_url = get_useful_unpay(ck, amount, proxy)
-    if code != SUCCESS:
-        return code, None, None
-    if cashier_url == None:
-        code, repeatkey = pc_client.knowledge_get_repetkey(skuid)
-        print(repeatkey)
-        pc_client.test()
-        if code != SUCCESS:
-            return code, None, None
-    # return None
-        code, cashier_url = pc_client.knowledge_submit(skuid, repeatkey, amount, qq)
-        if code != SUCCESS:
-            return code, None, None
-        for i in cashier_url.split('?')[1].split('&'):
-            if 'orderId' in i:
-                order_no = i.split('=')[1]
-    code, cashier_url = pc_client.cashier_index(cashier_url)
-    if code != SUCCESS:
-        return code, None, None
-
-    code, pay_sign, page_id, channel_sign = pc_client.get_pay_channel_qq(cashier_url)
-    print(pay_sign, page_id, channel_sign)
-    if code != SUCCESS:
-        return code, None, None
-
-    for i in range(5):
-        code, weixin_page_url = pc_client.weixin_confirm(order_no, pay_sign, amount, page_id, channel_sign)
-        if code != SUCCESS:
-            return code, None, None
-        tools.LOG_D(weixin_page_url)
-
-        code, status = pc_client.weixin_page_qb(weixin_page_url)
-        if code != SUCCESS:
-            return code, None, None
-        if status == True:
-            break
-        code, pay_sign, page_id, channel_sign = pc_client.get_pay_channel_qq(cashier_url)
-        sleep(1)
-        i += 1
-
-    if status == False:
-        return CK_UNVALUE, None, None
-
-
-    code, img_url = pc_client.get_weixin_img(weixin_page_url, order_no, pay_sign)
-    if code != SUCCESS:
-        return code, None, None
-    print('success', img_url)
-    return code, order_no, img_url
-
-
-def order_knowkedge(ck, order_me, amount, qq):
-    code = NETWOTK_ERROR
-    ck_status = '1'
-    account = tools.get_jd_account(ck)
-    tools.LOG_D('account: ' + account)
-    proxy = ip_sql().search_ip(account)
-    tools.LOG_D('searchip: ' + str(proxy))
-    if proxy == None:
-        proxy = tools.getip_uncheck()
-        if proxy == None:
-            return None
-        ip_sql().insert_ip(account, proxy)
-
-    for i in range(3):
-        code, order_no, img_url = create_order_knowkedge(ck, amount, DNF_SKUIDS[amount], qq, proxy)
-        if code == NETWOTK_ERROR:
-            proxy = tools.getip_uncheck()
-            if proxy == None:
-                return None
-            ip_sql().update_ip(account, proxy)
-        elif code == CK_UNVALUE:
-            ck_status = '0'
-            break
-        elif code == SUCCESS:
-            order_sql().insert_order(order_no, amount)
-            order_sql().update_order_time(order_no)
-            break
-        elif code == RET_CODE_ERROR:
-            return None
-        i += 1
-    tools.LOG_D(img_url)
-    upload_order_result(order_me, order_no, img_url, amount, ck_status)
-
-
-
-def create_order_qb_unpay(ck, order_me, amount, qq, proxy):
-    pc_client = pc_jd(ck, proxy)
-    code, repeatkey = pc_client.qb_get_repeatkey(QB_SKUIDS[amount])
-    print(repeatkey)
-    if code != SUCCESS:
-        return code, None, None
-    code, cashier_url = pc_client.qb_submit_order(amount, repeatkey, qq)
-    for i in cashier_url.split('?')[1].split('&'):
-        if 'orderId' in i:
-            order_no = i.split('=')[1]
-    code, cashier_url = pc_client.cashier_index(cashier_url)
-    if code != SUCCESS:
-        return code, None, None
-    code, pay_sign, page_id, channel_sign = pc_client.get_pay_channel_qq(cashier_url)
-    print(pay_sign, page_id, channel_sign)
-    if code != SUCCESS:
-        return code, None, None
-    code, weixin_page_url = pc_client.weixin_confirm(order_no, pay_sign, amount, page_id, channel_sign)
-    if code != SUCCESS:
-        return code, None, None
-    tools.LOG_D(weixin_page_url)
-    # weixin_page_url = 'https://pcashier.jd.com/weixin/weixinPage?cashierId=1&orderId=248572526985&sign=a2dbea7cfcbc9d5ba448d6b0ade9bb6b&appId=pcashier'
-    code, status = pc_client.weixin_page_qb(weixin_page_url)
-    if code != SUCCESS:
-        return code, None, None
-    if status == False:
-        return CK_UNVALUE, None, None
-    code, img_url = pc_client.get_weixin_img(weixin_page_url, order_no, pay_sign)
-    if code != SUCCESS:
-        return code, None, None
-    return code, order_no, img_url
-
-
-
-    # app_client.gen_token()
-    # img_url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=a78134e5944ce6619b7a54d2649898586b4776d24acc654320214577da92c7cbcd92cf045f5eab8bd50492fd2bf6035d45eb0db7d81e99916b6e43eeab562ba13b9487beaf0dcae568f49411ab2e64b3'
-    # code, token  = app_client.gen_token(img_url)
-    # pay_url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=' + token 
-    # print(pay_url)
-
-def get_real_qb(ck, order_info):
-    order_no = order_info.split('=')[0]
-    amount = order_info.split('=')[1]
-    result = {
-        'code': '1',
-        'data': '',
-        'msg': ''
-    }
-    account = tools.get_jd_account(ck)
-    proxy = None
-    if proxy == None:
-        proxy = tools.getip_uncheck()
-        if proxy == None:
-            return None
-        ip_sql().insert_ip(account, proxy)
-    for i in range(3):
-        code, pay_url = get_ios_wx(ck, order_no, amount, proxy)
-        if code == NETWOTK_ERROR:
-            proxy = tools.getip_uncheck()
-            ip_sql().update_ip(account, proxy)
-        elif code == CK_UNVALUE:
-            result['msg'] = 'ck unvalue'
-            break
-        elif code == SUCCESS:
-        # pay_url = 'weixin://app/wxe75a2e68877315fb/pay/?nonceStr=7c250678f61f49092fa0d4040e5e54e9&package=Sign%253DWXPay&partnerId=1238342201&prepayId=wx1321152505977680ae181c2f694ddd0000&timeStamp=1655126125&sign=872D48225CD35C74783548967B23710D&signType=MD5'
-            result['code'] = '0'
-            result['data'] = pay_url
-            result['msg'] = 'success'
-            return json.dumps(result)
-        i += 1
-    return json.dumps(result)
 
 
 
@@ -1442,15 +1129,6 @@ def upload_order_result(order_me, order_no, img_url, amount, ck_status):
         return
     print(res.text)
 
-    
-def handle_fail(code):
-    pass
-
-
-def test(ck):
-    pc_client = pc_jd(ck)
-    pc_client.get_order_url('247682795586')
-
 
 def query_order_appstore(ck, order_me, order_no, amount):
     area = get_area(ck)
@@ -1512,57 +1190,6 @@ def query_order_appstore(ck, order_me, order_no, amount):
             upload_callback_result(result)
             return
         i += 1
-
-
-def query_order_qb(ck, order_me, order_no, amount):
-    result = {
-        'check_status': '1',
-        'pay_status': '0',
-        'ck_status': '1',
-        'time': str(int(time())),
-        'order_me': order_me,
-        'order_pay': order_no,
-        'amount': amount,
-        'card_name': '',
-        'card_password': ''
-    }
-    account = tools.get_jd_account(ck)
-    tools.LOG_D(account)
-    proxy = ip_sql().search_ip(account)
-    tools.LOG_D(proxy)
-    if proxy == None:
-        proxy = tools.getip_uncheck()
-        ip_sql().delete_ip(account)
-        ip_sql().insert_ip(account, proxy)
-    for i in range(3):
-        pc_client = pc_jd(ck, proxy)
-        code, order_status, status_name = pc_client.get_order_status_qb(order_no)
-        if code == SUCCESS:
-            if order_status == True and status_name == '充值成功':
-                result['pay_status'] = '1'
-                result['card_name'] = 'QB' + str(time()).replace('.', '')
-                result['card_password'] = 'QB' + str(time()).replace('.', '')
-                result = json.dumps(result)
-                upload_callback_result(result)
-                order_sql().delete_order(order_no)
-            else:
-                result = json.dumps(result)
-                upload_callback_result(result)
-            return
-        elif code == NETWOTK_ERROR:
-            proxy = tools.getip_uncheck()
-            ip_sql().update_ip(account, proxy)
-        elif code == CK_UNVALUE:
-            result['ck_status'] = '0'
-            result = json.dumps(result)
-            upload_callback_result(result)
-            return
-        i += 1
-
-    result = json.dumps(result)
-    upload_callback_result(result)
-
-
 
 
 
@@ -1729,8 +1356,10 @@ if __name__=='__main__':
     # url = 'https://m.jd.com'
     # print(get_real_url(ck, url, ''))
     # print(get_real_qb(ck, '248592464389=105'))
-    ck = 'TrackID=111KcnzbgCLOX0dBwPVaPjJ7p0xP_NXeXirMUzvceY2_TntDiEgAXN-1lBX_J5bs5bHkQJKa1rhpCbRrU4iynq5JS__DuYcru8ee3-g_PFXg; thor=FC9B022D341ECFD774F842E36094AEF123AD852701730188F7590831FDDAE9DD11E213C40AF53B10C520DCC6A6ACAC344744B19968F9DA58D5ACEFF88C1E1C29DCCE4A8FF196FB1C365801049299C79B148C6EB4DEED547FCE9A5164CC6B33DF0D08DA5DBBC117DCF0435B1C16807662532169F459D55D484A2093B19A03865C937B1376E9EFFB14249EF4DD59F99020FBEDFA51DF90EEC854D27D2CA2932F94; pinId=0_w1fANft98aiSkPILLWKrGag-k0Ux-h; pin=jd_NNkr7iYWTG4Brs7; unick=jd_NNkr7iYWTG4Brs7; _tp=8T6K424Lny7kMLh2lzjyyFFfYXzHwuNDp0n2GazI7mk%3D; _pst=jd_NNkr7iYWTG4Brs7; upn=4cFy4Mhb44xC4sVN4X3Y4chB; pin=jd_NNkr7iYWTG4Brs7; wskey=AAJivJ1RAFDdWiM-xVMJL1oJ8RHxuArapR6Ey7_kVcpfd0lTJwWcH5CmHbo6ooWTtUshPFz2fivg2fOKOPtoEuvzUygSLoICTaPneUTMJcHy6zelNpxQrA;'
-    order_appstore(ck, '', '200')
+    # ck = 'TrackID=111KcnzbgCLOX0dBwPVaPjJ7p0xP_NXeXirMUzvceY2_TntDiEgAXN-1lBX_J5bs5bHkQJKa1rhpCbRrU4iynq5JS__DuYcru8ee3-g_PFXg; thor=FC9B022D341ECFD774F842E36094AEF123AD852701730188F7590831FDDAE9DD11E213C40AF53B10C520DCC6A6ACAC344744B19968F9DA58D5ACEFF88C1E1C29DCCE4A8FF196FB1C365801049299C79B148C6EB4DEED547FCE9A5164CC6B33DF0D08DA5DBBC117DCF0435B1C16807662532169F459D55D484A2093B19A03865C937B1376E9EFFB14249EF4DD59F99020FBEDFA51DF90EEC854D27D2CA2932F94; pinId=0_w1fANft98aiSkPILLWKrGag-k0Ux-h; pin=jd_NNkr7iYWTG4Brs7; unick=jd_NNkr7iYWTG4Brs7; _tp=8T6K424Lny7kMLh2lzjyyFFfYXzHwuNDp0n2GazI7mk%3D; _pst=jd_NNkr7iYWTG4Brs7; upn=4cFy4Mhb44xC4sVN4X3Y4chB; pin=jd_NNkr7iYWTG4Brs7; wskey=AAJivJ1RAFDdWiM-xVMJL1oJ8RHxuArapR6Ey7_kVcpfd0lTJwWcH5CmHbo6ooWTtUshPFz2fivg2fOKOPtoEuvzUygSLoICTaPneUTMJcHy6zelNpxQrA;'
+    # order_appstore(ck, '', '200')
+    ck = '__jdu=16509706855941893098380; shshshfpa=24b6bb36-e2eb-935b-8da5-4244c2284385-1654941526; shshshfpb=zgH442FN956xyfHqjr4f9ag; user-key=b713e0dc-ea97-4f4b-8edb-4e1a16076df9; areaId=5; __jdv=122270672|direct|-|none|-|1656239716924; PCSYCityID=CN_130000_130100_0; pinId=tA352EW71edd9cU5JurDWrV9-x-f3wj7; pin=jd_4d9b500034155; _tp=VHnhiNi86OlY5d%2BSKBX0iW%2BQy5xFBy0C7MU1%2BoxmN9c%3D; _pst=jd_4d9b500034155; ipLoc-djd=5-142-157-42800.8254666397; ipLocation=%u6cb3%u5317; ceshi3.com=201; TrackID=1R_A8rHgeI7vzoyuuV8OpyQxypRf0Gmmvm2q-CnDieNN3-LrcoyM2jz3YqTGn_LniqeeftGOAAqJ812uCPkXdyys1eU7H2n9ruyVkrM2CcS9kZPYDNj8K71TclM9_QvevolOmyzOxPZCdjMn-vaRLfQ; unick=%E6%98%AF%E7%9A%84%E6%98%AF%E7%9A%84%E6%98%AF%E7%9A%84456; qd_uid=L50PLJ0S-087W47I0YU1AGM018Z6Q; qd_fs=1656574352523; qd_ls=1656574352523; shshshfp=b4abc46426debf37b8d70e31836b233e; ip_cityCode=142; cn=3; qd_sq=2; qd_ts=1656592096033; 3AB9D23F7A4B3C9B=L4VA3H3XRQXTHOSQML6VS3B7QYYN7GVIBS2KPYED4PB7WAMMO52MPHRJZLNNWXPSPTBNDJOKGTPD7SIYJTCJZFPFE4; qd_ad=-%7C-%7Cdirect%7C-%7C0; __jda=187205033.16509706855941893098380.1650970686.1656587795.1656590969.71; __jdc=187205033; _distM=249281234915; thor=63C48F15AFBF3EEB9A7FD8F3F7A9BF05D0817F049E308CC94A6938FF9A69A74540A1267F67F4089906566E57F89A8447016F745C7CF4A4DE60036EBE85F2B05C29922B8DA9C44E7D2218CA90317BF82F2D7EA0285D4A92BAA2DB832BE14DD1BEF6A84FB9D8339C005EE04BD096724CC506A53D5D899FA8036BDB6ABDFC60B1DCEA5963E786794CEED84A90AA18A1ECE7AE6ABCB44861AE88AD4CB5347DA08D0B; __jdb=187205033.23.16509706855941893098380|71.1656590969'
+    test_create_order_appstore(ck, '', '204', None)
  
     # print(query_order_qb(ck, '', DNF_SKUIDS['50'], '50'))
     # test(ck)

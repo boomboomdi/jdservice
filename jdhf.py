@@ -3,7 +3,6 @@ import json
 import requests
 from time import sleep, time
 from urllib.parse import quote
-from jd_yk import getip_uncheck
 import tools
 from jingdong import LOG, jd
 from ip_sqlite import ip_sql
@@ -11,7 +10,6 @@ from jingdong import get_ios_wx
 from order_sqlite import order_sql
 from tools import LOG_D
 from jingdong import jd
-from yk_server import ORDER_NO
 from tools import xor
 
 SUCCESS = 1
@@ -654,6 +652,33 @@ class pc_jd():
             return NETWOTK_ERROR, None
 
 
+    def weixin_new(self, order_id, pay_sign, amount, page_id, channel_sign):
+        url = 'https://pcashier.jd.com/weixin/weiXinNew?cashierId=1&appId=pc_ls_mall'
+        head = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Safari/537.36 Edg/101.0.1210.53',
+            'Referer': 'https://pay.jd.com',
+            'Origin': 'https://pay.jd.com',
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Cookie': self.ck
+        }
+        data = '{"orderId":"' + order_id + '","pageId":"' + page_id + '","paySign":"' + pay_sign + '","riskReqVo":{"deviceId":"","fingerprint":""},' + \
+            '"payingChannel":{"bankCode":"weixin","channelSign":"' + channel_sign + '","payAmount":"' + amount + '","agencyCode":"617"}}'
+        data = 'bankPayRequestStr=' + quote(data)
+        try:
+            res = requests.post(url, headers=head, data=data, allow_redirects=False, proxies=self.proxy)
+        except Exception as e:
+            tools.LOG_D(e)
+            return NETWOTK_ERROR, None
+        if res.status_code == 302:
+            if '/success/fail' in res.headers['Location']:
+                tools.LOG_D(res.headers['Location'])
+                return CK_UNVALUE, None
+            return SUCCESS, res.headers['Location'].replace('appId=pcashier', 'appId=pc_ls_mall')
+
+
+
+
+
 def upload_order_result(order_me, order_no, img_url, amount, ck_status, phone):
     url = 'http://127.0.0.1:9393/api/preparenotify/notifyjdurl0069'
     head = {
@@ -714,8 +739,9 @@ def create_order(ck, amount, phone, proxy):
     if code != SUCCESS:
         return code, None, None
 
-    for i in range(5):
-        code, weixin_page_url = pc_client.weixin_confirm(order_no, pay_sign, amount, page_id, channel_sign)
+    for i in range(2):
+        # code, weixin_page_url = pc_client.weixin_confirm(order_no, pay_sign, amount, page_id, channel_sign)
+        code, weixin_page_url = pc_client.weixin_new(order_no, pay_sign, amount, page_id, channel_sign)
         if code != SUCCESS:
             return code, None, None
         tools.LOG_D(weixin_page_url)
@@ -899,6 +925,12 @@ def query_order(ck, order_me, order_no, amount):
 
 
 def query_order_im(ck, order_me, order_no, amount):
+    for i in ck.split(';'):
+        if 'upn=' in i:
+            area = i.split('=')[1].replace(' ', '')
+    area = xor(area)
+    area = str(base64.b64decode(bytes(area, encoding='utf-8')), encoding='utf-8')
+    tools.LOG_D(area)
     result = {
         'check_status': '1',
         'pay_status': '0',
@@ -913,7 +945,7 @@ def query_order_im(ck, order_me, order_no, amount):
     proxy = ip_sql().search_ip(account)
     tools.LOG_D(proxy)
     if proxy == None:
-        proxy = tools.getip_uncheck()
+        area, proxy = tools.getip_uncheck(area)
         if proxy == None:
             return None
         ip_sql().delete_ip(account)
@@ -927,7 +959,7 @@ def query_order_im(ck, order_me, order_no, amount):
                 result = json.dumps(result)
                 return result
         elif code == NETWOTK_ERROR:
-            proxy = tools.getip_uncheck()
+            area, proxy = tools.getip_uncheck(area)
             if proxy == None:
                 return json.dumps(result)
             ip_sql().update_ip(account, proxy)
@@ -957,11 +989,13 @@ if __name__=='__main__':
     ck = 'TrackID=1fwEq5HSXihwQ4z4ER-aWSEgSpFWSshz8k3D4beU8CUhvqNE9-KmpL2mX9vA_h0gVGkFNP7Fk1G0Av3VEjUyPuk7RbdFdiHIg0KjrK9hhyu0; thor=6747CECC33807B9DB377AB93EF1BFE5715F809EE2FC887B2D0F4E8F3DD23BEEAF3CC468519237B61FE6B745DAC6840A616FC418D3F8D15BF6ADB910650CBE841E2ACEA2D2941908F42325B6102712FE06A457B4341C9240246FFF1B1BF73413E285CB8D4EEC08E2D7345D28984218196494B643DCAB07D6BB22D418CB7EBB54F2895F2AE3C9A724C23C95DBA3856499E1D52FE9246816E57B557A333867F83EC; pinId=F2Te-vh7VUE0M6xtTMKo5A; pin=jd_MJeXCVSpSPmF; unick=jd_MJeXCVSpSPmF; _tp=C2B0B8wx7NdjjREbRXWqXQ%3D%3D; _pst=jd_MJeXCVSpSPmF; upn=4cl.4Mhb44xC4cl.4cdd4chB; pin=jd_MJeXCVSpSPmF; wskey=AAJitBh6AEASeRc2oY7eppvWmhxctDlQSd_RlYCOwcPs7opn7B4ui6FtAh6rQZW575-q_P0BahwYNd8hZ_jSYsO_PDw8WHLa;'
     # 'https://chongzhi.jd.com/order/order_confirm.action?&&entry=4&t=1655559214558 '
     ck = 'TrackID=1Ktw9ylhL-GYYcycohQwr0hDpQwhot66CSNYn7Wb7QZAXHFgWxy8MCvnPQGYNkoLBk9n4rxLXZBBvfWzoEOCpVEeJYBjtgGOmFkwVwhmhYIc; thor=357C782282E25E788042CA34F39B7F79EC5E1641533AD09E5AAE486741153722E420E3DAE1C23ED71C5E1AD612539D08C1F7F4494B6EBF8943CFF7B5F0298A4A1E58720052042E2E0538290DF511106A17C86DEDB791B41CCE2E4807D002BDFE3BB34E4DB66E5F94C2E25742EF8CC5294515FA8D85E5BA956C9F74FA918F2A6E7207C80C800D5EB9EEDF1A76143242E21D7A03D072747787EEF45F8926EA63F6; pinId=KklU2_ObtBggWoTyP1TrNdgbjeU3V8yF; pin=jd_lRtPvfOKKtcdt1j; unick=jd_lRtPvfOKKtcdt1j; _tp=RrPbRXfzdeB5pRjfVTqOHcCLYN7yTQlRcmwnOGaw4Eg%3D; _pst=jd_lRtPvfOKKtcdt1j; upn=4slV4X3Y44xC7[V.4sJ[4chB; pin=jd_lRtPvfOKKtcdt1j; wskey=AAJiOwnxAFBk46oa4B4lvZ0m9VKt4u59ACO5TLuT9BfuOenwRg5Y8xZh-K5KH9rMy3If4d-xkcSqqRMyKvDCD9B6MS99IlRFcCOHOqQaQszbH7gI1anO8Q;'
-
+    ck = 'TrackID=1VSACxJpf-zs0Adpo9fUkIAbKAl_2_dBMHItS67Exi7pZj2tug5W-pDtwhWxNtSictwNamQXfSNTJKesA_vxnjCHio8WjkP-1sagT8RaDcEs; thor=B26EE72195F5C5CEB035D4B042A4772A543EFD7DB247B73C8AFDEFBD6A2A31F758A0951C2387D0AC2B4A9AEDC88487C12CF4005785497301A47FDCED5BE540658C4FF3818029C79AA950F2573655AAE4E3D811877560BDD5953BC3054F876825D1994D1315E54C7A880D3B9D8A7E939584DD3416862C3156EBE0338F93B87A71B4DFAC1B855E6A3B76BC83F9F46F9EE1D8B70168BB9F3F529D8E1E1D504BD4D5; pinId=l43DvKUHDM3PAr2WXAPl0AbLH2vz4BO0; pin=jd_NqnnvH1FWlciq7I; unick=jd_NqnnvH1FWlciq7I; _tp=auSfjpWBF5ssGqRpdPMKigp%2F2usEGmSwtmACykuRheY%3D; _pst=jd_NqnnvH1FWlciq7I; upn=4cFy4Mhb44xC4qdm45Vo4chB; pin=jd_NqnnvH1FWlciq7I; wskey=AAJiOwEBAFBD8oXhuwDdAVMfm66Dc8XE-oQxEmQ0MfsafF7JBvoOsP1zYDtwMZef3HW4zVwHowf8juugLhs44aZV2hPXdS5-ILr_Vcn1HgIbmDmWb3ZSuA;'
+    ck = 'TrackID=12gRDoBuE3jaO9I_TsAhh9nU2TKLOycmL2lj_X8oKMW4l2s1L07_IbuG0snMRkQLKgwL-OMb9CK1-tKj9ZRa-3P4biPSQnpRWWTaM5gt0wVg; thor=72085FB7AB75A030DEFDDC97D57A4FA311A69F41454663B677FE4ED534CE51971C3B97A59AC5274960441EDD0CC3C2EADDEAEBFF782391492CF67120B217C5B436A2205C5C5C578C6128C1FD0038AD65AF41A5D0DC192D3CED593DA65DADC0F296A3257BF6F8313567E553BBA96D25E2EF3889E7FFDE6CD9812CB60035F3F76EC9C9C9F9E662BDE83F8080331841697B029D012B44D53BC11E8360CB605FEB69; pinId=Pu407A4gV6O7viNkMlNI292hRoc2Q1_2; pin=jd_KgHdl6uXsGmLKFQ; unick=jd_KgHdl6uXsGmLKFQ; _tp=qwSP69GXhjZB1t8IKlVBXVA6IlJBu2UeLYkoJKFY%2B5c%3D; _pst=jd_KgHdl6uXsGmLKFQ; upn=4sV[4sFg44xC7XdS4X3N4chB; pin=jd_KgHdl6uXsGmLKFQ; wskey=AAJiQnQZAFCMs0i8XT8mECnOKoHL_-pKWyJcYY-L3Gm_lIxPsbmw0EQE29IB2HpZ-DuHCBLGuKGdmwLtcysEfMsqXF2AA434R8IoAENQUSXGKTgd8PT4Fw;'
+    
     mobile='13784302433'
     amount = '200'
-    # print(order(ck, '', amount, mobile))
-    query_order(ck, '', '245383997207', '100')
+    print(order(ck, '', amount, mobile))
+    # query_order_im(ck, '', '249266167651', '100')
     # u = 'https://pcashier.jd.com/image/virtualH5Pay?sign=4137e710e43594ce63978e1b18a7736493f63a1b82878ee5f9c140df36b6d5f4679b159cf57c1a112d9c16fb99c52e61d87bea5c65bd464ed37150286789927572285eb678746a57ab75c07ce71f6f46'
-    print(real_url(ck, u))
+    # print(real_url(ck, u))
     # jd_client = jd(ck)
