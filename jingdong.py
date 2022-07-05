@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import base64
 from distutils.errors import LibError
+from email import header
 import hashlib
-from pydoc import resolve
 import time
 from urllib.parse import urlencode
 from urllib.parse import quote
@@ -14,6 +14,7 @@ from hashlib import md5
 from tools import LOG_D, parse_card_info, get_jd_account, getip_uncheck
 from ip_sqlite import ip_sql
 import re
+from tools import get_area, LOG_D, getip_uncheck
 
 client_version = '10.4.0'
 client = 'android'
@@ -955,8 +956,200 @@ class jd:
             return CK_UNVALUE, None, None
         return CK_UNVALUE, None, None
 
+    def virtual_h5(self, mck, url):
+        headers = {
+            'charset': "UTF-8",
+            'user-agent': "okhttp/3.12.1;jdmall;iphone;version/10.3.5;build/92610;",
+            'content-type': "application/x-www-form-urlencoded; charset=UTF-8",
+            'cookie': mck
+        }
+        try:
+            resp = requests.get(url=url, headers=headers, proxies=self.proxy, timeout=4)
+        except Exception as e:
+            print(e)
+            return NETWOTK_ERROR, None, None
+        if resp.status_code == 200:
+            if 'sendOrder' in resp.text:
+                for line in resp.text.replace(' ', '').split('\n'):
+                    if 'accInfo' in line:
+                        acc_info = line.replace('"name="accInfo">', '').replace('<inputtype="hidden"value="', '')
+                    if 'sign' in line:
+                        sign = line.replace('<inputtype="hidden"value="', '').replace('"name="sign">', '')
+                return SUCCESS, acc_info, sign
+            return CK_UNVALUE, None, None
+        return CK_UNVALUE, None, None
+
+    def acc_order(self, mck, accinfo, sign):
+        url = 'https://hpay.jd.com/weixin/accOrder'
+        headers = {
+            'charset': "UTF-8",
+            'user-agent': "okhttp/3.12.1;jdmall;iphone;version/10.3.5;build/92610;",
+            'content-type': "application/x-www-form-urlencoded; charset=UTF-8",
+            'cookie': mck
+        }
+        data = 'accInfo=' + quote(accinfo) + '&sign=' + sign
+        try:
+            resp = requests.post(url=url, data=data, headers=headers, proxies=self.proxy, allow_redirects=False, timeout=4)
+        except Exception as e:
+            print(e)
+            return NETWOTK_ERROR, None
+        if resp.status_code == 302:
+            if 'appid' in resp.headers['Location']:
+                return SUCCESS, True
+            else:
+                return SUCCESS, False
+        return CK_UNVALUE, False
+
+    def page_info(self, mck, order_id):
+        url = 'https://hpay.jd.com/weixin/infoPage?paySource=mpay&key=detailpay.acc.' + order_id + '&state=pcInfoPage'
+        headers = {
+            'charset': "UTF-8",
+            'user-agent': "okhttp/3.12.1;jdmall;iphone;version/10.3.5;build/92610;",
+            'content-type': "application/x-www-form-urlencoded; charset=UTF-8",
+            'origin': 'https://hpay.jd.com',
+            'cookie': mck
+        }
+        try:
+            resp = requests.get(url=url, headers=headers, proxies=self.proxy, timeout=4)
+        except Exception as e:
+            print(e)
+            return NETWOTK_ERROR, False
+        if resp.status_code == 200:
+            print(resp.text)
+            return SUCCESS, True
+        return CK_UNVALUE, False
 
 
+    def jdapp_mpay(self, mck, order_id):
+        url = 'https://wq.jd.com/jdpaygw/jdappmpay?call=jdappmpay_cb&dealId=' + order_id + \
+            '&ufc=&r=&backUrl=https%3A%2F%2Fwqs.jd.com%2Forder%2Fn_detail_jdm.shtml%3Fdeal_id%3D' + order_id + \
+            '%26sceneval%3D2%26referer%3Dhttp%253A%252F%252Fwq.jd.com%252Fwxapp%252F%252Forder%252Forderlist_jdm.shtml%253Fstamp%253D1&umpKey=jdappmpay&sceneval=2&traceid=&dataType=jsonp&callback=jdappmpay_cb&_=' + str(int(time.time())) + '416'
+        headers = {
+            'user-agent': "Mozilla/5.0 (Linux; Android 6; A31 Build/KTU84P; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36",
+            'accept': '*/*',
+            'x-requested-with': 'com.ajiejd',
+            'referer': 'https://wqs.jd.com/order/orderlist_merge.shtml?sceneval=2',
+            'cookie': mck
+        }
+        try:
+            res = requests.get(url, headers=headers, proxies=self.proxy)
+        except Exception as e:
+            LOG_D(e)
+            return NETWOTK_ERROR, None
+        if res.status_code == 200:
+            if 'payId' in res.text:
+                j = json.loads(res.text.replace('jdappmpay_cb(', '')[:-1])
+                jmpurl = j['data']['jumpurl']
+                for i in jmpurl.split('?')[1].split('&'):
+                    if 'payId' in i:
+                        return SUCCESS, i.split('=')[1]
+            return CK_UNVALUE, None
+        return CK_UNVALUE, None
+
+
+    def pay_channel(self, mck, pay_id):
+        url = 'https://api.m.jd.com/client.action?functionId=platPayChannel&appid=mcashier'
+        head = {
+            'user-agent': 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/100.0.4896.58 Mobile DuckDuckGo/5 Safari/537.36',
+            'content-type': 'application/x-www-form-urlencoded',
+            'origin': 'https://mpay.m.jd.com',
+            'referer': 'https://mpay.m.jd.com/',
+            'Cookie': mck
+        }
+        data = '{"source":"mcashier","origin":"h5","page":"pay","mcashierTraceId":' + str(int(time.time())) + '100,"appId":"jd_m_pay","payId":"' + pay_id + '"}'
+        body = 'body=' + quote(data)
+        try:
+            res = requests.post(url, headers=head, data=body, proxies=self.proxy)
+        except Exception as e:
+            LOG_D(e)
+            return NETWOTK_ERROR
+        if res.status_code == 200:
+            if 'payId' in res.text:
+                return SUCCESS
+            return CK_UNVALUE
+        return CK_UNVALUE
+
+    def wap_wxpay(self, mck, pay_id):
+        url = 'https://api.m.jd.com/client.action?functionId=platWapWXPay&appid=mcashier'
+        head = {
+            'user-agent': 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/100.0.4896.58 Mobile DuckDuckGo/5 Safari/537.36',
+            'content-type': 'application/x-www-form-urlencoded',
+            'origin': 'https://mpay.m.jd.com',
+            'referer': 'https://mpay.m.jd.com/',
+            'Cookie': mck
+        }
+        data = '{"source":"mcashier","origin":"h5","page":"pay","mcashierTraceId":' + str(int(time.time())) + '100,"appId":"jd_m_pay","payId":"' + pay_id + '","eid":""}'       
+        body = 'body=' + quote(data)
+        try:
+            res = requests.post(url, headers=head, data=body, proxies=self.proxy)
+            print(res.text)
+        except Exception as e:
+            LOG_D(e)
+            return NETWOTK_ERROR, False 
+        if res.status_code == 200:
+            if 'mweb_url' in res.text:
+                return SUCCESS, True
+            return SUCCESS, False
+        return CK_UNVALUE, None
+
+    
+    def acc_pay(self, mck, order_id):
+        url = 'https://hpay.jd.com/weixin/accPay'
+        headers = {
+            'charset': "UTF-8",
+            'user-agent': "okhttp/3.12.1;jdmall;iphone;version/10.3.5;build/92610;",
+            'content-type': "application/x-www-form-urlencoded; charset=UTF-8",
+            'origin': 'https://hpay.jd.com',
+            'referer': 'https://hpay.jd.com/weixin/infoPage?paySource=mpay&key=detailpay.acc.' + order_id + '&state=pcInfoPage',
+            'cookie': mck
+        }
+        data = 'key=detailpay.acc.' + order_id + '&eid=&fp=&sid=&token=&jsc='
+        # data = 'key=detailpay.acc.' + order_id + ''
+        try:
+            resp = requests.post(url=url, data=data, headers=headers, proxies=self.proxy, timeout=4)
+        except Exception as e:
+            print(e)
+            return NETWOTK_ERROR, False
+        if resp.status_code == 200:
+            print(resp.text)
+            if '交易受限' in resp.text:
+                return SUCCESS, False
+            return SUCCESS, True
+        return CK_UNVALUE, False
+
+    def search_order_detail(self, order_id):
+        sv = '120'
+        function_id = 'searchOrderDetail'
+        ts = str(int(time.time() * 1000))
+        body= '{"orderId":"' + order_id + '","sendPay":"","version":"2.4"}'
+        uuid_str = hashlib.md5(str(int(time.time() * 1000)).encode()).hexdigest()[0:16]
+        sign = f'functionId={function_id}&body={body}&uuid={uuid_str}&client={client}&clientVersion={client_version}&st={ts}&sv={sv}'
+        sign = get_sign(sign)
+        # print(sign)
+        url = 'https://api.m.jd.com/client.action?functionId=' + function_id
+        params = f'&clientVersion={client_version}&build=92610&client={client}&uuid={uuid_str}&st={ts}&sign={sign}&sv={sv}'
+        headers = {
+            'charset': "UTF-8",
+            'user-agent': "okhttp/3.12.1;jdmall;iphone;version/10.3.5;build/92610;",
+            'content-type': "application/x-www-form-urlencoded; charset=UTF-8",
+            'cookie': self.ck
+        }
+        body = 'body=' + quote(body)
+        # print(body)
+        try:
+            resp = requests.post(url=url + params, data=body, headers=headers, proxies=self.proxy, timeout=4)
+        except Exception as e:
+            print(e)
+            return NETWOTK_ERROR, None
+        if resp.status_code == 200:
+            if 'orderId' in resp.text:
+                if resp.json()['result']['orderStatusStr'] == '已完成':
+                    return SUCCESS, True
+                else:
+                    print(resp.text)
+                    return SUCCESS, False
+            return CK_UNVALUE, None
+        return CK_UNVALUE, None
 
 def clear_cart(jd_client):
     print('======= clear_cart ======')
@@ -1111,6 +1304,8 @@ def create_df_order_test(account, ck, amount, good_id):
     if code != SUCCESS:
         return code, None, None
     return SUCCESS, pay_url, order_id
+
+
 
 
 APPSTORE_SKUIDS = {
@@ -1358,6 +1553,102 @@ def get_ios_wx(ck, order_id, amount, proxy):
     if code != SUCCESS:
         return code, None
     return SUCCESS, pay_url
+
+
+def check_wxpay(ck, order_id, virtual_url, proxy):
+    client = jd(ck, proxy)
+    url = 'https://pay.m.jd.com'
+    code, token = client.gen_token(url)
+    if code != SUCCESS:
+        return code, False
+    token_url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=' + token
+    code, mck = client.get_mck(token_url)
+    if code != SUCCESS and mck != None:
+        return code, False
+    code, accinfo, sign = client.virtual_h5(mck, virtual_url)
+    if code != SUCCESS:
+       return code, False   
+    code, status = client.acc_order(mck, accinfo, sign)
+    if code != SUCCESS:
+       return code, False   
+    client.page_info(mck, order_id)
+    code, status= client.acc_pay(mck, order_id)
+    if code != SUCCESS:
+       return code, False   
+    return SUCCESS, status
+
+def web_check_wxpay(ck, order, proxy):
+    client = jd(ck, proxy)
+    url = 'https://pay.m.jd.com'
+    code, token = client.gen_token(url)
+    if code != SUCCESS:
+        return code, False
+    token_url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=' + token
+    code, mck = client.get_mck(token_url)
+    code, jump_url = client.web_jdappmpay(mck, order_id)
+    if code != SUCCESS:
+        return code, None, None
+    # LOG(jump_url)
+    pay_id = jump_url.split('payId=')[1].split('&')[0]
+    # LOG(pay_id)
+    code = client.web_newpay(mck, pay_id)
+    if code != SUCCESS:
+        return code, None, None
+    code, pay_url = client.web_wxpay(mck, pay_id)
+
+
+    # url = 'https://pay.m.jd.com'
+    # code, token = client.gen_token(url)
+    # if code != SUCCESS:
+        # return code, False
+    # token_url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=' + token
+    # code, mck = client.get_mck(token_url)
+    # if code != SUCCESS and mck != None:
+        # return code, False
+    # code, pay_id = client.jdapp_mpay(mck, order)
+    # if code != SUCCESS:
+    #    return code, False   
+    # code = client.pay_channel(mck, pay_id)
+    # if code != SUCCESS:
+    #    return code, False   
+    # code, status = client.wap_wxpay(mck, pay_id)
+    # if code != SUCCESS:
+    #    return code, False   
+    # return SUCCESS, status
+
+
+
+
+def check(ck, order_id):
+    code = NETWOTK_ERROR
+    area = get_area(ck)
+    if area == None:
+        return CK_UNVALUE, False
+    LOG_D(area)
+    code = NETWOTK_ERROR
+    ck_status = '1'
+    account = get_jd_account(ck)
+    LOG_D('========================================== check wxpay ======================================== : ' + str(order_id))
+    proxy = ip_sql().search_ip(account)
+    if proxy == None:
+        area, proxy = getip_uncheck(area)
+        if proxy == None:
+            return None
+        ip_sql().insert_ip(account, proxy)
+    for i in range(6):
+        code, status = web_check_wxpay(ck, order_id, proxy)
+        if code == NETWOTK_ERROR:
+            area, proxy = getip_uncheck(area)
+            ip_sql().update_ip(account, proxy)
+        elif code == CK_UNVALUE:
+            return False
+        elif code == SUCCESS:
+            if status == True:
+                return True
+            else:
+                return False
+        else:
+            return False
  
 
 if __name__ == '__main__':
@@ -1413,15 +1704,20 @@ if __name__ == '__main__':
     # url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=77a008cf61301d9cbb9651771b952797f4245a8c9c698fabf6fc7b04857f5739bd950ccd2100377230016f15f941f7b10d18f8356738e997b2407dd18021474472285eb678746a57ab75c07ce71f6f46'
     # url = 'https://payc.m.jd.com/api-d-cashier/image/qrCodePay.action?sign=34e9bb1027b0035fd24dd2ab831ff7e7449a0fb326b909bcdcc1034f7c9ea231'
 
-    ck = 'pin=%E5%95%86%E8%B4%B8%E7%89%A9%E6%B5%81%E7%A7%91%E6%8A%80%E6%9C%89%E9%99%90; wskey=AAJisaQQAFDQxD5bAPHLi-TN3JjT3s3H858P8Vwj6pzRkHFuJKJz5_MJBTwEWHeE8kVRP7vnUF8veY43POImJYlmefbVZW9ZpnuC3xGXVumn-GOqDlGATg; pt_pin=%E5%95%86%E8%B4%B8%E7%89%A9%E6%B5%81%E7%A7%91%E6%8A%80%E6%9C%89%E9%99%90; unionwsws={"devicefinger":"eidA39bc8123a8sfBgV631kiSNWfDZiVkFyWbQYFfGDfCyrUhh+z2vXsvsNieqZo6sVYOzVxqp4PjUIE7jgYVnuK0jkUSfL/nBtSvFhz2idU9XAtQ81U","jmafinger":"f5F7ZwKhbfi6tCLTyyD9z0U5cfiQuKaEQHrMjgWaw4fyBxR45H6LFuWO6D-Uk1cVs"};'
-    ck = 'pin=jd_NzjJNSQfaUdD;wskey=AAJhnw5-AEDNcqCp8obD7wUBWKanbgUaJXjqiw9TfItKN5yFtfjipa0py5m9sc8JtsVgXNDJdQfm6TR8eES5GuNBGqkWp4nD;'
-    ck = 'pin=%E5%8E%BF%E9%B8%BF%E9%A1%BA%E5%95%86%E8%B4%B8%E6%9C%89; wskey=AAJit_fdAFDfRqno4vj92xjPpGYUSDTCEXM8OXWHyMpPRwd_JXDW3FjbloBdR24odZw_4Uaa5CgEsPKmeC90GiVPv-Q0GQkGCwSRdYooh16c_VWJ2CYvwQ; '
-    url = 'https://m.jd.com'
-    # ip = getip_uncheck()
-    client = jd(ck, None)
-    status, token = client.gen_token(url)
-    pay_url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=' + token 
-    print(pay_url)
+    # url = 'https://m.jd.com'
+    # client = jd(ck, None)
+    # status, token = client.gen_token(url)
+    # pay_url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=' + token 
+    # print(pay_url)
+
+
+    ck = 'TrackID=1T50KVX8iakUzomEH2a7MdlKtcf3NZEw8Jf6G5jgMS2TvrbqtFzp7k9meOGByO9KzsDyDyDIWTZwmGDhnwGFsrIw1gjgCBCKxvFX-OeQhKng; thor=FE46E8063702DF2D970E7741BC78DB8A57A93B100ABE36ABD0C38ED64C97CE0D5CEDDD071F52037CDF2AD699A846002896850C58FE0F8D7FB7C46B257F3D5136076D3EFA0F73AB9AA74233F9807591D97EB985C15B936C8FDBA65A058A93497FC8C93DB55296C122270183BCFF91C4EF52DF993F1665424A8B6EC3F458B08D13FACAC35250AB933B7D483A0EF05A0A30CB317AAF486E9F74ADB27610E72D1618; pinId=VCCp15ebpFmQrlrddbOMQg; pin=jd_fpdmZxwUfOdS; unick=jd_fpdmZxwUfOdS; _tp=Ou3OD3JmJ8DL3dhbWQ8nWQ%3D%3D; _pst=jd_fpdmZxwUfOdS; upn=7XdO4cpF4chB; pin=jd_fpdmZxwUfOdS; wskey=AAJihKdmAEB11b4SViOQ5L8JUiTp5wduhhPG_c2c7yDcj1dpAY9JvNpTrNk2avjKVX6PDXmZbZCyQ3mt9DDtQPC7inrfi9dI;'
+
+    ck = 'TrackID=1hJ6TmnXVE1j6ZNcwdh4L3aoFFIOV-QxWlgMoyV4f-fNYhPXlM7cZJDyCDWeHE-UWLVAtdr3L8tjZ0HL2lWC70FuqRCjboPdWSoJXb0OAN98; thor=BA2C824D6EF08147C7CAD0C949F9827A5C5386A3D4BE59F2782A90BD497A6EC094578E631E35B6E74CAD4C566E1F13ADB7ABF9129BD5E2D6FC69076986709CB32652F70F4357D8BC5A51D7A355DD267B05D7DFBBBF9DF7EDA95CAA4E84FDDD01265C253E70A14416879DFE57308298A431CB868580D105830D11B67031DC4BD516A297A8013C375450CDFC1739613FE22F24D9A5B12496570761DBE790C242FE; pinId=jMKz_bPgV3xx-6cxwaPo5Q; pin=jd_qAIOdHnssaga; unick=jd_qAIOdHnssaga; _tp=jqWDD9imM%2BJ%2B%2FCmE8lfxXw%3D%3D; _pst=jd_qAIOdHnssaga; upn=4`7K4c7844xC4XVu4`7K4chB; pin=jd_qAIOdHnssaga; wskey=AAJigHW1AECHC-Zp1pBENjaThgPYqgpQfREEeKMZ-ZmW9J8JekyCnVBhM-rBKyo_AouV2kwptYoOmY8q2OiyKtpYC70_lib9;'
+    order_id = '249417387623'
+    virtual_url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=6685be0cfa270f8b247756618de05b90e5331baca33810d998080c04951456807ad998539ad08311a0b91f93cfd7712a9caa5cb5a440aeedfceb15479454c53415619c91a99d3d79d4e553a98656750d'
+    print(check(ck, order_id))
+
 
     # ck = 'guid=565a406d6271d4a4978f3c43e5efab123b307323f9a344b981164e268315b531; pt_key=app_openAAJipsscADDBi0pEYaB97guiLrL9sS4v1Un_hPTmgeJMVvb8e-JrqJqcRypjXt8BnnPukPzZfpE; pt_pin=jd_JAAsikWhNxem; pwdt_id=jd_JAAsikWhNxem; sid=24dd47f9d082bae65366f9162a08f25w; pin=jd_JAAsikWhNxem;wskey=AAJifdadAEDOi_tzRdBaoHUkiHDqm5lJpibdiz98f8DprVM33w816q7fYHgQRPVz4LGtGbMrrE2oD6shp6Blg01K13CA64Q0;'
     # create_order_appstore(ck, '100', getip_uncheck())

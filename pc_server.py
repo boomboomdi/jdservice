@@ -28,18 +28,6 @@ def index():
     b = flask.request.args.get('b')
     return a + b
 
-@app.route('/createOrderAppstore', methods=['POST'])
-def createOrderAppstore():
-    param = flask.request.get_json()
-    ck = str(param.get('cookie'))
-    ck = ck.encode("utf-8").decode("latin1")
-    order_me = str(param.get('order_me'))
-    amount = str(param.get('amount'))
-    # print(param)
-    threading.Thread(target=order_appstore, args=(ck, order_me, amount)).start()
-    return 'success'
-    # return '{"code": 0, "msg": "SUCCESS", "data": {"phone": "' + phone + '", "amount": 469.19}, "sign": "488864C0AB51AEA0AF551074446FBCEC"}'
-
 # @app.route('/createOrderAppstore', methods=['POST'])
 # def createOrderAppstore():
     # param = flask.request.get_json()
@@ -47,25 +35,23 @@ def createOrderAppstore():
     # ck = ck.encode("utf-8").decode("latin1")
     # order_me = str(param.get('order_me'))
     # amount = str(param.get('amount'))
-    # print(param)
-    # qq = str(qqs[randint(0, 180)])
-    # threading.Thread(target=order_qb, args=(ck, order_me, amount, qq)).start()
-    # threading.Thread(target=order_knowkedge, args=(ck, order_me, amount, qq)).start()
+    # threading.Thread(target=order_appstore, args=(ck, order_me, amount)).start()
     # return 'success'
+    # return '{"code": 0, "msg": "SUCCESS", "data": {"phone": "' + phone + '", "amount": 469.19}, "sign": "488864C0AB51AEA0AF551074446FBCEC"}'
 
-@app.route('/queryAppstore', methods=['POST'])
-def queryAppstore():
+@app.route('/createOrderAppstore', methods=['POST'])
+def createOrderAppstore():
     param = flask.request.get_json()
     ck = str(param.get('cookie'))
     ck = ck.encode("utf-8").decode("latin1")
     order_me = str(param.get('order_me'))
-    order_pay = str(param.get('order_pay'))
     amount = str(param.get('amount'))
-    # print(param)
-    print('========')
-    threading.Thread(target=query_order_appstore, args=(ck, order_me, order_pay, amount)).start()
-    return "success"
-
+    print(param)
+    qq = str(qqs[randint(0, 180)])
+    qq = ''
+    threading.Thread(target=order_qb, args=(ck, order_me, amount, qq)).start()
+    return 'success'
+    
 # @app.route('/queryAppstore', methods=['POST'])
 # def queryAppstore():
     # param = flask.request.get_json()
@@ -76,13 +62,11 @@ def queryAppstore():
     # amount = str(param.get('amount'))
     # print(param)
     # print('========')
-    # threading.Thread(target=query_order_qb, args=(ck, order_me, order_pay, amount)).start()
+    # threading.Thread(target=query_order_appstore, args=(ck, order_me, order_pay, amount)).start()
     # return "success"
 
-
-
-@app.route('/queryAppstoreImmediate', methods=['POST'])
-def queryAppstoreImmediate():
+@app.route('/queryAppstore', methods=['POST'])
+def queryAppstore():
     param = flask.request.get_json()
     ck = str(param.get('cookie'))
     ck = ck.encode("utf-8").decode("latin1")
@@ -91,9 +75,24 @@ def queryAppstoreImmediate():
     amount = str(param.get('amount'))
     print(param)
     print('========')
-    threading.Thread(target=query_order_appstore, args=(ck, order_me, order_pay, amount)).start()
+    threading.Thread(target=query_order_qb, args=(ck, order_me, order_pay, amount)).start()
     return "success"
 
+
+
+# @app.route('/queryAppstoreImmediate', methods=['POST'])
+# def queryAppstoreImmediate():
+    # param = flask.request.get_json()
+    # ck = str(param.get('cookie'))
+    # ck = ck.encode("utf-8").decode("latin1")
+    # order_me = str(param.get('order_me'))
+    # order_pay = str(param.get('order_pay'))
+    # amount = str(param.get('amount'))
+    # print(param)
+    # print('========')
+    # threading.Thread(target=query_order_appstore, args=(ck, order_me, order_pay, amount)).start()
+    # return "success"
+# 
 @app.route('/getRealurl', methods=['POST'])
 def getRealurl():
     param = flask.request.get_json()

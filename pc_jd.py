@@ -9,7 +9,7 @@ from urllib.parse import quote
 import tools
 from jingdong import LOG, jd
 from ip_sqlite import ip_sql
-from jingdong import get_ios_wx
+from jingdong import get_ios_wx, check
 from order_sqlite import order_sql
 from urllib.parse import unquote
 from tools import LOG_D, byte2str
@@ -896,12 +896,9 @@ APPSTORE_SKUIDS = {
 }
 
 QB_SKUIDS = {
-    '11': '200145364712',
-    '105': '200145365539',
-    '210': '200145348880',
-    '586': '10048511037815',
-    '68': '200153870251',
-    '305': '200153773388'
+    '100': '200153962737',
+    '200': '200153959283',
+    '300': '200153967215'
 }
 
 DNF_SKUIDS = {
@@ -946,8 +943,8 @@ def create_order_appstore(ck, order_me, amount, proxy):
         return code, None, None
 
     for i in range(2):
-        # code, weixin_page_url = pc_client.weixin_confirm(order_no, pay_sign, amount, page_id, channel_sign)
-        code, weixin_page_url = pc_client.weixin_new(order_no, pay_sign, amount, page_id, channel_sign)
+        code, weixin_page_url = pc_client.weixin_confirm(order_no, pay_sign, amount, page_id, channel_sign)
+        # code, weixin_page_url = pc_client.weixin_new(order_no, pay_sign, amount, page_id, channel_sign)
         if code != SUCCESS:
             return code, None, None
         tools.LOG_D(weixin_page_url)
@@ -1100,21 +1097,26 @@ def get_useful_unpay_knowledge(ck, amount, proxy):
 
 def order_qb(ck, order_me, amount, qq):
     code = NETWOTK_ERROR
+    area = get_area(ck)
+    if area == None:
+        upload_order_result(order_me, '', '', amount, '0')
+        return
+    tools.LOG_D(area)
+    code = NETWOTK_ERROR
     ck_status = '1'
     account = tools.get_jd_account(ck)
-    tools.LOG_D('account: ' + account)
+    tools.LOG_D('========================================== create order qb ======================================== account: ' + str(account))
     proxy = ip_sql().search_ip(account)
-    tools.LOG_D('searchip: ' + str(proxy))
     if proxy == None:
-        proxy = tools.getip_uncheck()
+        area, proxy = tools.getip_uncheck(area)
         if proxy == None:
             return None
         ip_sql().insert_ip(account, proxy)
 
-    for i in range(3):
+    for i in range(5):
         code, order_no, img_url = create_order_qb(ck, order_me, amount, qq, proxy)
         if code == NETWOTK_ERROR:
-            proxy = tools.getip_uncheck()
+            area, proxy = tools.getip_uncheck(area)
             ip_sql().update_ip(account, proxy)
         elif code == CK_UNVALUE:
             ck_status = '0'
@@ -1127,16 +1129,9 @@ def order_qb(ck, order_me, amount, qq):
             return None
         i += 1
     tools.LOG_D(img_url)
-    order_no = '1234567891'
-    img_url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=91cdd3c81ca4eb0e567ae1aa974c0edc26ca3884223ba250dbcfa8810261853e2328b54465304f257d4cf742590d02052b86033b07b653b048611091e50a63b4c1b0c4ab88b7e0928f8872365c7dde35'
+    # order_no = '1234567891'
+    # img_url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=91cdd3c81ca4eb0e567ae1aa974c0edc26ca3884223ba250dbcfa8810261853e2328b54465304f257d4cf742590d02052b86033b07b653b048611091e50a63b4c1b0c4ab88b7e0928f8872365c7dde35'
     upload_order_result(order_me, order_no, img_url, amount, ck_status)
-
-
-def create_order_dnf(ck, order_me, amoung):
-
-    pass
-
-
 
 
 def test_order_appstore(ck, order_me, amount):
@@ -1174,13 +1169,14 @@ def create_order_qb(ck, order_me, amount, qq, proxy):
         if code != SUCCESS:
             return code, None, None
         code, cashier_url = pc_client.qb_submit_order(amount, repeatkey, qq)
+        print(cashier_url)
         for i in cashier_url.split('?')[1].split('&'):
             if 'orderId' in i:
                 order_no = i.split('=')[1]
     # return SUCCESS, order_no, order_no
     # print(order_no)
-    # print(cashier_url)
     code, cashier_url = pc_client.cashier_index(cashier_url)
+    print(cashier_url)
     if code != SUCCESS:
         return code, None, None
     code, pay_sign, page_id, channel_sign = pc_client.get_pay_channel_qq(cashier_url)
@@ -1188,11 +1184,10 @@ def create_order_qb(ck, order_me, amount, qq, proxy):
     if code != SUCCESS:
         return code, None, None
     code, weixin_page_url = pc_client.weixin_confirm(order_no, pay_sign, amount, page_id, channel_sign)
+    # code, weixin_page_url = pc_client.weixin_new(order_no, pay_sign, amount, page_id, channel_sign)
     if code != SUCCESS:
         return code, None, None
     tools.LOG_D(weixin_page_url)
-    # weixin_page_url = 'https://pcashier.jd.com/weixin/weixinPage?cashierId=1&orderId=248572526985&sign=a2dbea7cfcbc9d5ba448d6b0ade9bb6b&appId=pcashier'
-    # weixin_page_url = 'https://pcashier.jd.com/weixin/weixinPage?cashierId=1&orderId=248609542688&sign=bdcfdb8be07588b1e1cc8e6a6d688c49&appId=pcashier'
     code, status = pc_client.weixin_page_qb(weixin_page_url)
     if code != SUCCESS:
         return code, None, None
@@ -1514,7 +1509,10 @@ def query_order_appstore(ck, order_me, order_no, amount):
         i += 1
 
 
-def query_order_qb(ck, order_me, order_no, amount):
+
+def query_order_appstore_im(ck, order_me, order_no, amount):
+    area = get_area(ck)
+    tools.LOG_D(area)
     result = {
         'check_status': '1',
         'pay_status': '0',
@@ -1531,17 +1529,84 @@ def query_order_qb(ck, order_me, order_no, amount):
     proxy = ip_sql().search_ip(account)
     tools.LOG_D(proxy)
     if proxy == None:
-        proxy = tools.getip_uncheck()
+        area, proxy = tools.getip_uncheck(area)
         ip_sql().delete_ip(account)
         ip_sql().insert_ip(account, proxy)
     for i in range(3):
         pc_client = pc_jd(ck, proxy)
-        code, order_status, status_name = pc_client.get_order_status_qb(order_no)
+        code, order_status, status_name = pc_client.get_order_status(order_no)
         if code == SUCCESS:
-            if order_status == True and status_name == '充值成功':
+            if order_status == True and status_name == '已完成':
+                code, card_id, card_key, pay_time = pc_client.get_kami(order_no)
+                result['card_name'] = card_id
+                result['card_password'] = card_key
                 result['pay_status'] = '1'
-                result['card_name'] = 'QB' + str(time()).replace('.', '')
-                result['card_password'] = 'QB' + str(time()).replace('.', '')
+                # tools.LOG_D(card_id + ' = ' + card_key + ' = ' + pay_time)
+                result = json.dumps(result)
+                # if upload_callback_result(result):
+                if order_status == True and status_name == '已完成':
+                    # pc_client.clear_order(order_no)
+                    tools.LOG_D('wait delete ' + order_no)
+                    sleep(30)
+                    for i in range(8):
+                        if just_del(ck, order_no) == False:
+                            return result
+                        else:
+                            return
+            else:
+                result = json.dumps(result)
+                upload_callback_result(result)
+            return
+        elif code == NETWOTK_ERROR:
+            area, proxy = tools.getip_uncheck(area)
+            if proxy == None:
+                result = json.dumps(result)
+                upload_callback_result(result)
+                return 
+            ip_sql().update_ip(account, proxy)
+        elif code == CK_UNVALUE:
+            result['ck_status'] = '0'
+            result = json.dumps(result)
+            upload_callback_result(result)
+            return
+        i += 1
+
+
+
+def query_order_qb(ck, order_me, order_no, amount):
+    code = NETWOTK_ERROR
+    area = get_area(ck)
+    if area == None:
+        upload_order_result(order_me, '', '', amount, '0')
+        return
+    tools.LOG_D(area)
+    result = {
+        'check_status': '1',
+        'pay_status': '0',
+        'ck_status': '1',
+        'time': str(int(time())),
+        'order_me': order_me,
+        'order_pay': order_no,
+        'amount': amount,
+        'card_name': '',
+        'card_password': ''
+    }
+    account = tools.get_jd_account(ck)
+    tools.LOG_D(account)
+    proxy = ip_sql().search_ip(account)
+    tools.LOG_D(proxy)
+    if proxy == None:
+        area, proxy = tools.getip_uncheck(area)
+        ip_sql().delete_ip(account)
+        ip_sql().insert_ip(account, proxy)
+    for i in range(5):
+        jd_client = jd(ck, proxy)
+        code, order_status = jd_client.search_order_detail(order_no)
+        if code == SUCCESS:
+            if order_status == True:
+                result['pay_status'] = '1'
+                result['card_name'] = 'QB_' + str(time()).replace('.', '')
+                result['card_password'] = 'QB_' + str(time()).replace('.', '')
                 result = json.dumps(result)
                 upload_callback_result(result)
                 order_sql().delete_order(order_no)
@@ -1550,7 +1615,7 @@ def query_order_qb(ck, order_me, order_no, amount):
                 upload_callback_result(result)
             return
         elif code == NETWOTK_ERROR:
-            proxy = tools.getip_uncheck()
+            area, proxy = tools.getip_uncheck(area)
             ip_sql().update_ip(account, proxy)
         elif code == CK_UNVALUE:
             result['ck_status'] = '0'
@@ -1652,7 +1717,7 @@ def just_del(ck, order_id):
         # code, orders = pc_client.just_delete()
         # for order in orders:
             # pc_client.clear_order(order)
-        sleep(10)
+        sleep(15)
         code, status = pc_client.clear_order(order_id)
         if code == SUCCESS:
             if status == True:
@@ -1729,10 +1794,38 @@ if __name__=='__main__':
     # url = 'https://m.jd.com'
     # print(get_real_url(ck, url, ''))
     # print(get_real_qb(ck, '248592464389=105'))
-    ck = 'TrackID=111KcnzbgCLOX0dBwPVaPjJ7p0xP_NXeXirMUzvceY2_TntDiEgAXN-1lBX_J5bs5bHkQJKa1rhpCbRrU4iynq5JS__DuYcru8ee3-g_PFXg; thor=FC9B022D341ECFD774F842E36094AEF123AD852701730188F7590831FDDAE9DD11E213C40AF53B10C520DCC6A6ACAC344744B19968F9DA58D5ACEFF88C1E1C29DCCE4A8FF196FB1C365801049299C79B148C6EB4DEED547FCE9A5164CC6B33DF0D08DA5DBBC117DCF0435B1C16807662532169F459D55D484A2093B19A03865C937B1376E9EFFB14249EF4DD59F99020FBEDFA51DF90EEC854D27D2CA2932F94; pinId=0_w1fANft98aiSkPILLWKrGag-k0Ux-h; pin=jd_NNkr7iYWTG4Brs7; unick=jd_NNkr7iYWTG4Brs7; _tp=8T6K424Lny7kMLh2lzjyyFFfYXzHwuNDp0n2GazI7mk%3D; _pst=jd_NNkr7iYWTG4Brs7; upn=4cFy4Mhb44xC4sVN4X3Y4chB; pin=jd_NNkr7iYWTG4Brs7; wskey=AAJivJ1RAFDdWiM-xVMJL1oJ8RHxuArapR6Ey7_kVcpfd0lTJwWcH5CmHbo6ooWTtUshPFz2fivg2fOKOPtoEuvzUygSLoICTaPneUTMJcHy6zelNpxQrA;'
-    order_appstore(ck, '', '200')
- 
-    # print(query_order_qb(ck, '', DNF_SKUIDS['50'], '50'))
+
+
+    #AP2022070513074870898896  249369700077 
+    # ck = 'pin=jd_Fa9XQOpktFRLESz; wskey=AAJiicA8AFCrrXT0uvmQaWf4LdHpWvKoq8nszucBbZf6QFsUqFLc6iRD2nXH0IJo9H4ZQvhpymzAE4MCFX3RWYm_09EZrudO7jej5avhbkGtfraqdUMimQ;'
+    # ck = 'TrackID=1Lw5YMBRIiavicT70bqa8-bXF6luAuo10HryM2iTKLwDwQ1u293JY2fF7HeP_K2C99buFl3Hhg5anAcdcpyptFuitBInABiAA2mlH7ZSh7co; thor=05C536CD5C31394B06BD50C67200B44DC133A4AF080FE8D4CEBDE42EBC08513BB4B389C3C43703E09060A75CACE0BCC871BA2CF7D67C3320EAD3375865DB957CA6154D4985751074137FD711BEF833279FFECFA5DC45D9BE1C0B2D2E272EFBD0A0BC61C96F24011D7A734437C77604ECBE548D5634E678157186CA6BAD0653741F903DC185BE84472101CEF9F7D6AEABFC8BC862E28C8E7360A344ADF9137C62; pinId=jT8qCij4PBQ7hxldgnonIP5jU0RSLnkU; pin=jd_Fa9XQOpktFRLESz; unick=jd_Fa9XQOpktFRLESz; _tp=NI4dRTlZQN6VJk6dGTjvIdyJObrKHmkpAPPJQD5qyIw%3D; _pst=jd_Fa9XQOpktFRLESz; upn=4cFy4Mhb44xC4sVN4X3Y4chB; pin=jd_Fa9XQOpktFRLESz; wskey=AAJiicA8AFCrrXT0uvmQaWf4LdHpWvKoq8nszucBbZf6QFsUqFLc6iRD2nXH0IJo9H4ZQvhpymzAE4MCFX3RWYm_09EZrudO7jej5avhbkGtfraqdUMimQ;'
+    # order_id = '249369700077'
+
+    # AP2022070513154880285910
+    # ck = 'TrackID=1F1llOGwgghGeigfWTasJxDSVmYfU9tvri4dNtViCDK9BB2fs22onepmVAhiSG2RluS26-rY_vmkgFUOeiM3ylPVdEgB21BgRsWM3nyxSLpQ; thor=35B82BBB4F52E1E361047E87695AAE1928B442A72B2CE2CC31BA3AB9261441FAB60EDBCA18C707C05D2A3069B63F22BA9BC19818BDDA16D0164946CBC7A7C4B6905493B852C0DDC44FAC57774A9A7FFE5E12A6DDB4FD6B735C89D919615863EE251E6B249E4FDC6EA2B303C37267E599B29B2C2370EAFDBD3246AF6F1121D07C1EFE2C89A0918B3B6D6077595B78154F3A7EA325D3303530AB5E758112BDDFE7; pinId=AM_t6EQkCX8PMA9I1cCvwg; pin=jd_IzxYOqjAcOuc; unick=jd_IzxYOqjAcOuc; _tp=uonfPGieTG4WuIpA0R5mNA%3D%3D; _pst=jd_IzxYOqjAcOuc; upn=7XdO4cpF4chB; pin=jd_IzxYOqjAcOuc; wskey=AAJihh4rAEDqQ8pPogiDNV6o5OoTJuM2mJKQh-l5492YlzeH0mFF_I0NrXsEN_PBCazdEOhm4wQ_DJRMFXf_456gNqlFjzGx;'
+    # order_id = '249370412269'
+
+    # AP2022070513072259156910
+    # ck = 'TrackID=13h_pWSwDKcrD9yttfQInV0ejxza6_88bzAvSqFxnrxajF6jxrXweJjVHIogX1TFjVN-WgqXcestfrgYS7hSLJJyN-PMBLO1eN6rphmckmlE; thor=915E2EF7AF97088A8D4456A8508416E4128A43309700968326B73646B8694EA1954D15122E70518FBBF86943BF93D5DB7F497F2C9706FCF3C836373515B22D8FF2E7072525D14AAC61DFB3B1A757979646D53C240F054E072021ACE9B8223208011278D46D978D8539A867C75BC2839B2CFE186D260D37A7CF5265D56A1770B2E0621A5AF16DCC8EE144AC3804E4004C625FADF3986984727BF4919DDE0B4101; pinId=tMJ0q90LZ5LHQAQSI6m8guRhm7Bpus9V; pin=jd_K1TPyd9DHrJrv5K; unick=jd_K1TPyd9DHrJrv5K; _tp=%2FfqDKK%2BlZl3zGcr9WvpT42JFBmEthNAnUoFCsuDKHSQ%3D; _pst=jd_K1TPyd9DHrJrv5K; upn=4cFy4Mhb44xC4sVN4X3Y4chB; pin=jd_K1TPyd9DHrJrv5K; wskey=AAJiaiPnAFAgVNmLQVSyaCXBaPouIkUXgo_zctsM5X7tTvww540A0W65AdB_z260hvA-RJcpawbhEt1Dz1zlL5MyS-fJ1210-k35U7X1QlpCiO0Dv_ZZFQ;'
+    # order_id = '249426379392'
+
+    # AP2022070513085678188910
+    # ck = 'TrackID=1D2XQPTVWZUOb1CaBu8ef3bQLAKFxk2jGZzSsPylhidSlKqQHqHlo0M8_cCmdaLMBVTSP-wZH4bq3LfXHv8W9y10C9NmbhAYHh_VtWKkQ4pU; thor=EB8415D9D58A308B4FBD813F36C97470D81158D9C980A30637584EB0048C1DE03EC1177BEBEDB0826C44BE05977895CD947B66E52D5F7EE5EFF4B9117D5E91DA01CDC133384D3D4F2969A095A81A9EA5F9477F7190313C47E741E284E4E12AF0CAD18FD69EF77D55629B92C3F11E2360C485A5FD4587DD49EF7D2CCB055ACDF6BDA50FCE2EF33C51D088AFDCDBBC5244AD8C88708BFAEB005CC44E1DA209264D; pinId=TgXnvTayNHjLfusoQfiymQlspRFb5_cn; pin=jd_ew6rJDoCsPy0Vol; unick=jd_ew6rJDoCsPy0Vol; _tp=7BT5L7lmNwxJzECcfUILnKnV8kurpNke6vaOzUm8%2Bcs%3D; _pst=jd_ew6rJDoCsPy0Vol; upn=4sJ{4X3Y44xC4MhK7[dn4cNi4chB; pin=jd_ew6rJDoCsPy0Vol; wskey=AAJie0EBAFBxtlQyw95_pliahvSUl3vsBKpF5zW8KFbibxMGKsortB1uyf12yrm82kNSAI-BwP4d0wH7QoxDggtQIN3h4Yo70l0rU5TsNmD8lfAzxCM8tg;'
+    # order_id = '249439832584'
+
+    # AP2022070513100869889910
+    # ck = 'TrackID=1nqNsaBaHp5EPawuMnOxwDYM5-PumHl3dJY1D_8Lvqx_SHzbfXh-5FchqD2o3jbx2uDE-Erg9DLWsrnVuwgofVqUILpCLiYvnXMgxYO4hD6A; thor=84DA246B343BF74CEF9C271586346A1765B2106DC6E5CDCBD772620953B036933A90EC169F2C1AC5268AAF6204AD5A678BB2B618EB345BF4A10F02532927944549EEFBD4925112A92CBB48D16DF7FBBB42EEA48DF1EB7DA08F0BA10C9A7AC952E5FFFE44FE9120D1929A373A8B0C9F61A9145B11410F438111C08A71BB9020C627C84502C05FC7470F328C3D163F808DCD22F0950D7BC4F45115D6BC119DCF0F; pinId=qEy61nd8J-RDKlLOPGIadXwT7rYiIR98; pin=jd_Slgv05BcSgHaRzX; unick=jd_Slgv05BcSgHaRzX; _tp=%2BJj%2ByhNfSGppuhyM1AQ47TkvQgk8eR%2Bmm%2BbrPfb%2FEH4%3D; _pst=jd_Slgv05BcSgHaRzX; upn=4[tc4cde44xC4nhP7XN84chB; pin=jd_Slgv05BcSgHaRzX; wskey=AAJiivZoAFDDdLreu3XVc0Hl4RLTWx3KTj8kp3vuzvBa6hJEQhu0w6nwbM1kEXENx2vPPTajz3i7MvfxIW7iDI95qMWDAjyXX_m9oiMCQgDAaOwzalekiA;'
+    # order_id = '249438532901'
+
+    # query_order_appstore(ck, '', order_id, '200')
+
+    # order_appstore(ck, '', '200')
+    ck = 'TrackID=1Qnloe2HqOravmoBR8VIKAp-ewry0_D1qDfqXDD6OX_xOi795wIUzqneQbrtbFrY9cMojaoVhoMczz5DyE_OmOrGPnhIY3c10Yy1c0JupoUE; thor=EE2132865F9896BCD58605A230CDC04AECCABA55FB5C6EC1FEAC0DB870D907EEC9C3F338EFA444CAF55B84E1E0F88A6F76881DDD749C2AD34BA996EBEF4CB16F9A11ED2431A1FAA4A39C361D911DD509A0244D1E36AEB2B56E567E56181BDBC353C5768B1219A56E0C3ABC54C1739E8BAD90F34059660C4F97254E3BE4516B402C734B5CEAFCD0018BD699A927E6277AEB8B1919B8AE1DBAFCB82CA83029E787; pinId=V9wqhULxI9laJMb0nPTSPQ; pin=jd_dOHgTqNyChLD; unick=jd_dOHgTqNyChLD; _tp=jWOIljlYJFtqfX1FVUhZmw%3D%3D; _pst=jd_dOHgTqNyChLD; upn=7XdO4cpF4chB; pin=jd_dOHgTqNyChLD; wskey=AAJhzno1AECjwIK9kEDHA3ndtCpgVfxr0kP08HMivBFTLl2JGZKLy2uAUKCPpoFL5iOOI04XyIv5_eJgs8RixPRcIbI0hRL6;'
+    ck = 'pin=jd_4d9b500034155; wskey=AAJivYZfAEA9Kl4698fhBk5uBPVgm0D_CNhk9u7XBM0oaDlez_LvcYFlrWBHWVGWGXoCO6-GNrXReR3oFU_EAjzzaAvn4Y4X;'
+    
+    # order_qb(ck, '', '100', '')
+    order_no = '245516507443'
+    print(query_order_qb(ck, '', order_no, '100'))
     # test(ck)
     # callback(ck, '247486125452', '123', '100')
     # clear_order(ck, '247761070918')
