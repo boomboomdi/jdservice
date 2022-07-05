@@ -63,8 +63,10 @@ def compare(send_list, total_list):
                 break
         if is_send == False:
             kami = json.loads(i)
+            if 'QB_'in kami['card_name']:
+                continue
             print(kami)
-            if int(kami['amount']) == 200:
+            if int(kami['amount']) == 100:
             # if True:
                 f.write(kami['amount'] + ' ' + kami['card_name'] + ' ' + kami['card_password'] + ' ' + kami['add_time'] + '\n')
                 total += int(kami['amount'])
