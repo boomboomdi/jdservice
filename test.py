@@ -339,13 +339,30 @@ if __name__ == '__main__':
     # url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=300741164905f25ec7bdeeab213f9dce7e1ac3b515664aeeb34ae21ea061ff833e34e9d05f4e20e6ecdf8366603ce3be8eaccb975963e8f46aa057c4774c7ecdc1b0c4ab88b7e0928f8872365c7dde35'
 
 
-    ck = 'TrackID=1cWACEfLYGCSc_C5jIm_dtAC1sQ_Gb7ms4pG60SjR5zdtQmKROjDtznCibhDrkJnq13d7j-lkegFT-d54BGgO6giYt6PpzTNj848xCNhZSGk; thor=C31843331C6AB77B26D7CA1C7FC7E3D8737C9927A93EEE5A783C072CD3CCF6866A019FB8B8C54F75B68DBE6284D5E72EDB73007B52BB2766BA7C38BD2A6560D8E6468D5169D8E6F6C1669D64B4984C276006BC08937A099D99E5974BB0C3BA593C8CC6D611209620D5B6A850705AEA88375FF27E447FD1522FC9929F772C9672A6DB4574D603F5490A86185A8C4F7166079B17F913E669ED3F1FD3CD339DDDAF; pinId=SEzumSRsX-SrI8HuBgzZiA; pin=jd_twOQItfUEaTc; unick=jd_twOQItfUEaTc; _tp=T0BF7Kw8yHNYm0SB%2F3UMhA%3D%3D; _pst=jd_twOQItfUEaTc; upn=4sFg7HtQ44xC7M*d4MpS4shw4chB; pin=jd_twOQItfUEaTc; wskey=AAJgyAPgAEC1pUNaXc_3D9PQi25HZUHNm8lVVmkPb3Vn7Ef00ql_u7QAtEA13_hMhu5fxlbb4p477c9hWLWEHgzxpjCh4LVo;'
+
+    # ck = 'TrackID=13KMrvDI1i4L1dFc5HVx07Ygp9MTf5phYQyzhfUSO8DFqg6qVTjg8hUimyrOC-8ussc3eeK4auCeoxHuNDaEGVH7YjZm9YajFO5-8kdbkoc8; thor=495D3908D399E69A91BA8059153C23CF818023CF74FE803821AF30C79DCFD2037169FDBB4CEA92DD39667B2DDCE443B399F2E143A07CF5E90449A58540AE329CD8964EC1A9C9D5BA423BA43EB5EF6483ADD6049FE3E4379CD14E34BB43E340706EDBC6230FE3CA0FC2A4D51B497542F0E8E6B7E2CBBD0C88D794A7553451C214B17965910AEE5DD2836CBA9E4F6F277CD676834B364ABB40250A7C914F67A154; pinId=scXmZDe0y9KI4PtZaZUfQQ; pin=jd_lsTGiDjeDRuj; unick=jd_lsTGiDjeDRuj; _tp=SRXrR0%2FdN3b5hCtXw4Do6w%3D%3D; _pst=jd_lsTGiDjeDRuj; upn=4sFg7HtQ44xC7M*d4MpS4shw4chB; pin=jd_lsTGiDjeDRuj; wskey=AAJhf8eDAEA1TMIpNtuo_ydZ0y_q2yjLTeE9U0z9GOYU3LK2GjJbBc6wZhq2_bolOceTt2BYspd9fjhHPVG-I7N6BydUTp_e;'
+
+    ck = 'pin=jd_4d9b500034155;wskey=AAJiussbAEC7VxcofMvhtWrHU-Bu8OBYzUVl2RKHGCfuq3ShtZiK9OLp7N3AobVN3owJNOr0oDkUuLl8-pPBf1PdcmTytHjY;'
     order_id = '249410653696'
     url = 'https://wqs.jd.com/order/n_detail_jdm.shtml?deal_id=' + order_id + '&sceneval=2&referer=http%3A%2F%2Fwq.jd.com%2Fwxapp%2F%2Forder%2Forderlist_jdm.shtml%3Fstamp%3D1'
-    url = 'https://hpay.jd.com/weixin/infoPage?paySource=mpay&key=detailpay.acc.245496414003&response_type=code&scope=snsapi_base&state=pcInfoPage'
-    print(url)
-    area, ip = getip_uncheck('安徽省六安市')
-    client = jd(ck, ip)
-    status, token = client.gen_token(url)
-    pay_url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=' + token 
-    print(pay_url)
+    url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=978ae5bb381f870c93f2c7945febee0124edfd6cc9ff2b8456362bc30a66c32e10153aa3ecc45bcedb27e78b7569fb3c75e5d4547ac59cf6e408616b9e80feb172285eb678746a57ab75c07ce71f6f46'
+    url = 'https://wqs.jd.com/vipplus/VerifyAuthUser?_=1657265306994&g_login_type=0&callback=jsonpCBKC&g_tk=1595589716&g_ty=ls&appCode=msd95910c4'
+    # url = 'https://wq.jd.com/jdpaygw/wxsapay?t=1657267152628&loginType=11&loginWQBiz=golden-trade&appid=wx91d27dbf599dff74&client=android&clientVersion=8.0.7&build=&osVersion=Android%2010&screen=412*807&networkType=wifi&partner=&forcebot=&d_brand=OnePlus&d_model=ONEPLUS%20A5010&lang=zh_CN&scope=&sdkVersion=2.19.2&openudid=&dealId=245579976351&umpKey=wxsapay&traceid=1495207918642044243&dataType=&uuid=42134098448211657262979528&body=%7B%22externalLoginType%22%3A1%2C%22appType%22%3A%221%22%2C%22bizType%22%3A%222%22%2C%22source%22%3A%22-1%22%2C%22token%22%3A%22%22%2C%22deviceUUId%22%3A%22%22%2C%22platform%22%3A2%2C%22uuid%22%3A%2242134098448211657262979528%22%2C%22systemBaseInfo%22%3A%22%7B%5C%22SDKVersion%5C%22%3A%5C%222.19.2%5C%22%2C%5C%22system%5C%22%3A%5C%22Android%2010%5C%22%7D%22%7D'
+    url = 'https://daojia.jd.com/html/index/giftCardBuy'
+    url = 'https://wq.jd.com'
+    url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=AAEAMAsvyW1Mw69vKy0IAnT0hQXfTcNchmV_AK8gCNJPIU9t5LUUkAWGnoNEcv5XFT_xuA0'
+    # url = '#小程序://京东购物/QiAs8uTzfsB1Juc'
+    # print(url)
+    # area, ip = getip_uncheck('广东省佛山市')
+    # client = jd(ck, ip)
+    # status, token = client.gen_token(url)
+    # pay_url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=' + token 
+    # print(pay_url)
+
+
+    param = {'ts':'1234'}
+    head = {
+        'content-type': 'application/json'
+    }
+    res = requests.post('http://127.0.0.1:23938/getPkgs', headers=head, data=json.dumps(param))
+    print(res.text)

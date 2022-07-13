@@ -1632,6 +1632,59 @@ def query_order_qb(ck, order_me, order_no, amount):
     upload_callback_result(result)
 
 
+def query_order_qb_im(ck, order_me, order_no, amount):
+    code = NETWOTK_ERROR
+    area = get_area(ck)
+    if area == None:
+        return None
+    tools.LOG_D(area)
+    result = {
+        'check_status': '1',
+        'pay_status': '0',
+        'ck_status': '1',
+        'time': str(int(time())),
+        'order_me': order_me,
+        'order_pay': order_no,
+        'amount': amount,
+        'card_name': '',
+        'card_password': ''
+    }
+    account = tools.get_jd_account(ck)
+    tools.LOG_D(account)
+    proxy = ip_sql().search_ip(account)
+    tools.LOG_D(proxy)
+    if proxy == None:
+        area, proxy = tools.getip_uncheck(area)
+        ip_sql().delete_ip(account)
+        ip_sql().insert_ip(account, proxy)
+    for i in range(5):
+        jd_client = jd(ck, proxy)
+        code, order_status = jd_client.search_order_detail(order_no)
+        if code == SUCCESS:
+            if order_status == True:
+                result['pay_status'] = '1'
+                result['card_name'] = 'QB_' + str(time()).replace('.', '')
+                result['card_password'] = 'QB_' + str(time()).replace('.', '')
+                result = json.dumps(result)
+                upload_callback_result(result)
+                order_sql().delete_order(order_no)
+            else:
+                result = json.dumps(result)
+                return result
+            return
+        elif code == NETWOTK_ERROR:
+            area, proxy = tools.getip_uncheck(area)
+            ip_sql().update_ip(account, proxy)
+        elif code == CK_UNVALUE:
+            result['ck_status'] = '0'
+            result = json.dumps(result)
+            return result
+            return
+        i += 1
+
+    result = json.dumps(result)
+    return result
+
 
 
 
@@ -1829,10 +1882,11 @@ if __name__=='__main__':
     ck = 'mp=%E5%B7%9E%E8%8F%B2%E7%8F%8D%E5%95%86%E8%B4%B8%E6%9C%89;  TrackID=1cUn-KaiSIqiR5G-FEdyr6prwv6OAc3YzQxJzZBzpx64R1_D8hb84jgvLiGBfjRZES5YixaSpyCyY2ouaUVsS0EegZGebYa_yLdV05vuYKsQv024KtMCKBMZem0GqQ7MzcL_tWYIeynWBZWVHsL7IQw;  thor=56FD538DF6E7EE35F209A4571CBC8EE5E20C839C02715541EEC860287227EB57AF81CA2E3D1FAFC7FE2E632B9AD315B0D5683137ACE983CA2E006E28F0466870C9C8A003F5CF23D5576E2DF70F48EA5281DC8B77F1C22EDF238C0C9851C729A2AC27280653A7111E03B856E451EFD92BD9001883A4C2AB3EA1787DC443B48CF6;  pinId=cHYTiV3JOW0BvphvvgJDK6b1nhX4Vcc-;  pin=%E5%B7%9E%E8%8F%B2%E7%8F%8D%E5%95%86%E8%B4%B8%E6%9C%89;  unick=%E5%B7%9E%E8%8F%B2%E7%8F%8D%E5%95%86%E8%B4%B8%E6%9C%89;  _tp=%2BOycZmJdTajQ%2B6%2FjOouRx38JtWZ1zhBNrbbVTmGvICQOZ3pWy2rUnKShnd3Wp61SvDA9rbS1kLiXKoMI77WpRQ%3D%3D;  _pst=%E5%B7%9E%E8%8F%B2%E7%8F%8D%E5%95%86%E8%B4%B8%E6%9C%89; upn=4`7K4c7844xC4XVu4`7K4chB;pin=%E5%B7%9E%E8%8F%B2%E7%8F%8D%E5%95%86%E8%B4%B8%E6%9C%89; wskey=AAJixOikAFBa1yxMw9msPyQCqE4mhxRsvbOf9-E4VBO-QjhxkZBtQQOI1bof7kcQ3S9bt58ujIcd--gpNla9uYP4alNSCBDMCJKr4D2Sz0TuKCJFV_raUw; pt_pin=%E5%B7%9E%E8%8F%B2%E7%8F%8D%E5%95%86%E8%B4%B8%E6%9C%89; unionwsws={"devicefinger":"eidAdc738121bcseafi5v0MCTLC4Aeqg6e6irmn4u0EULw//a/xxRDUqiVKuCbzmY/7RlHI2Zn2UJIcqhgMtRDggH2ELU4Ju2auKtTJxoUL/GWd4RTF6","jmafinger":"b9a8HJD0GD3wxVd3DtN2MjJdvV4NinF53fGi3QEmMEKeek1vtVn1_pnUk54kWpGmL"}' 
     ck = 'TrackID=11VJ1NBvR-Uip1JNLhkfHAv4b-hYIn4O9yuXszSiN4UvF66KgRft9a2A3b6bjByy-MNxdHH5po3oySVQVGR8bQIkEHgmRq8iWZlPCtzlnhJg; thor=6079AEAE95A9CB8977E1243E4A572D0025970B284420E0AC8A2693D2710D81C3DDD13E895DAA44A2C4525F722516920360BE358D087FA4CD66728DE38EED157B295195E7F27D52C99831CEEA6F4E2B3DE8943A64077858B92049A4617C261254850C737BD2B3F23039C29FD5CA36069C23699730DBD67DB56DFD83BDC57DA09012FD1B130740437177AEC3EE9181B45D8F17B9E5B25E10041FE64D6B9D89DC89; pinId=O6tX3ctNL3ApZhqntwlYAop58Co-iwET; pin=jd_eyptalyj8uTmazP; unick=jd_eyptalyj8uTmazP; _tp=6xXwpG37bYy%2BqUchOiGFlSaut9UEe7aYyN16HwbHhtc%3D; _pst=jd_eyptalyj8uTmazP; upn=7[lW7JV.44xC4shu4X3Y4chB; pin=jd_eyptalyj8uTmazP; wskey=AAJiVo6bAFBYp2ra4IN1LfYLJV4Uv_8eVIkdz1neTJ7ZrcT4rmP7CS2py1NS5tBfifCaULLNlXXpipkVhgf28zDRiTlxtCqFQjPeo7arD4MKVAimG2yWkw;'
     ck = 'TrackID=1CkCK1ctEs5lmQOe0d-kJYEPbSSClCO2RLG_rjNqSEfIimS7djCT3jMpjL8x4S841s_EOhxqNz66eBwu4kIIBEW5KjJpi1TaCDcjxMmlswGk; thor=7BF7AC94214C575AF123570E09CBCE6AFFECFEDD135083CE367078E6E1E119BD441497D36135DC9FF707B21DA084DC7FEA84005B2A3EC15769BCBAA104E4A63BCA736D4C57C518E2205E8257C5738B47596DF48B3E8388B59DFDBDB54EC433FB11F05907A4A57984AFA8FC50120B6D1EE3702055E1A07028C018171524AE19E94E4239DFD50114FB4E7D3AA55D2DC4BC6BDB9217371C16D992C53F0ECF2BAE57; pinId=hllh1UPI72exDjaPSa7s_g; pin=jd_hkiHNULIvBFO; unick=jd_hkiHNULIvBFO; _tp=C%2B1RFr0VlZqAgIAy%2B1adbQ%3D%3D; _pst=jd_hkiHNULIvBFO; upn=4cl.4Mhb44xC4M3c4cFy4chB; pin=jd_hkiHNULIvBFO; wskey=AAJhnE_1AEAORxJxtNRWCjuzgVkAgfX6PdN8gG_liqLDty1xnI0zJq6lLLKjzKHXgnaGw-SnZL8N0jyBHdK0Lv_I2ii4_JLn;'
+    ck = 'TrackID=1kzaRWhDjGx1gnYa438I6pfz5xEOU6kbuNQe-b05gm0RsqjTH9V-kfHThbSRKq0t-YL5YlxIQsS20yiTsYJ6kweE5LdNOwHWd5IoqBvOWmno; thor=8A800F9D4F254BAAB773892818428103B7A70601E381F1654F9ECF4E3E717B57EC55E76AA65E65DD5086EB7AC85B92EA04F8F4C0146DF0669A3F0E573CEFC961B82C74C27FB7C0F65B0A02CD6CF74CFDE15789EA1F3FB15F7F6F3CD8AAABB567E09E9F0A8F8ED1727FD74B84436F16BEB0AD4299E6A5E68968FF0576116FBBADD584632304FACD0AA5F1D390BADE9E45FECB554570ADA995BD9629F6476FBC10; pinId=IAvxLdjdonUFiOGyvB023w; pin=jd_JkGbYutZyWiB; unick=jd_JkGbYutZyWiB; _tp=AjNPONPXQfTWMxURGvVDaA%3D%3D; _pst=jd_JkGbYutZyWiB; upn=4slV4X3Y44xC7[V.4sJ[4chB; pin=jd_JkGbYutZyWiB; wskey=AAJhoxbjAEDEae6j6fljZEkzF7tAcFdYCa7FFO57icXixu9hfEOScHEPK9hK-8uv-kyJrc9mLbS_EoExRx-UnoHqEwca0koQ;'
     # order_appstore(ck, '', '200')
     # order_qb(ck, '', '100', '')
-    # order_no = '245516507443'
-    # print(query_order_qb(ck, '', order_no, '100'))
+    order_no = '249418749004'
+    print(query_order_qb(ck, '', order_no, '100'))
     # test(ck)
     # callback(ck, '247486125452', '123', '100')
     # clear_order(ck, '247761070918')

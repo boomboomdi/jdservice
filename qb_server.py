@@ -7,7 +7,7 @@ import flask
 import requests
 import threading
 from tools import LOG_D
-from pc_jd import order_appstore, order_knowkedge, order_qb, query_order_appstore, get_real_url, query_order_qb
+from pc_jd import order_appstore, order_knowkedge, order_qb, query_order_appstore, get_real_url, query_order_qb, query_order_qb_im
 
 
 SUCCESS = 0
@@ -65,7 +65,7 @@ def queryAppstoreImmediate():
     amount = str(param.get('amount'))
     print(param)
     print('========')
-    return query_order_qb(ck, order_me, order_pay, amount)
+    return query_order_qb_im(ck, order_me, order_pay, amount)
 
 # 
 @app.route('/getRealurl', methods=['POST'])

@@ -90,8 +90,7 @@ def queryAppstoreImmediate():
     amount = str(param.get('amount'))
     print(param)
     print('========')
-    threading.Thread(target=query_order_appstore, args=(ck, order_me, order_pay, amount)).start()
-    return "success"
+    return query_order_appstore(ck, order_me, order_pay, amount)
 # 
 @app.route('/getRealurl', methods=['POST'])
 def getRealurl():

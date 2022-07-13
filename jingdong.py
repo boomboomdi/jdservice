@@ -4,6 +4,7 @@ from distutils.errors import LibError
 from email import header
 import hashlib
 import time
+from tkinter.messagebox import NO
 from urllib.parse import urlencode
 from urllib.parse import quote
 from urllib.parse import unquote
@@ -1071,6 +1072,7 @@ class jd:
 
     def wap_wxpay(self, mck, pay_id):
         url = 'https://api.m.jd.com/client.action?functionId=platWapWXPay&appid=mcashier'
+        # url = 'https://lite-pay.m.jd.com/index.action?functionId=platWapWXPay&t=' + str(int(time.time())) + '565&appid=lite-android'
         head = {
             'user-agent': 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/100.0.4896.58 Mobile DuckDuckGo/5 Safari/537.36',
             'content-type': 'application/x-www-form-urlencoded',
@@ -1078,7 +1080,8 @@ class jd:
             'referer': 'https://mpay.m.jd.com/',
             'Cookie': mck
         }
-        data = '{"source":"mcashier","origin":"h5","page":"pay","mcashierTraceId":' + str(int(time.time())) + '100,"appId":"jd_m_pay","payId":"' + pay_id + '","eid":""}'       
+        # data = '{"source":"mcashier","origin":"h5","page":"pay","mcashierTraceId":' + str(int(time.time())) + '100,"appId":"jd_m_pay","payId":"' + pay_id + '","eid":""}'       
+        data = '{"appId":"m_Mvn1702S1i","payId":"' + pay_id + '"}'
         body = 'body=' + quote(data)
         try:
             res = requests.post(url, headers=head, data=body, proxies=self.proxy)
@@ -1579,67 +1582,66 @@ def check_wxpay(ck, order_id, virtual_url, proxy):
 
 def web_check_wxpay(ck, order, proxy):
     client = jd(ck, proxy)
-    url = 'https://pay.m.jd.com'
-    code, token = client.gen_token(url)
-    if code != SUCCESS:
-        return code, False
-    token_url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=' + token
-    code, mck = client.get_mck(token_url)
-    code, jump_url = client.web_jdappmpay(mck, order_id)
-    if code != SUCCESS:
-        return code, None, None
-    # LOG(jump_url)
-    pay_id = jump_url.split('payId=')[1].split('&')[0]
-    # LOG(pay_id)
-    code = client.web_newpay(mck, pay_id)
-    if code != SUCCESS:
-        return code, None, None
-    code, pay_url = client.web_wxpay(mck, pay_id)
-
-
     # url = 'https://pay.m.jd.com'
     # code, token = client.gen_token(url)
     # if code != SUCCESS:
         # return code, False
     # token_url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=' + token
     # code, mck = client.get_mck(token_url)
-    # if code != SUCCESS and mck != None:
-        # return code, False
-    # code, pay_id = client.jdapp_mpay(mck, order)
+    # code, jump_url = client.web_jdappmpay(mck, order_id)
     # if code != SUCCESS:
-    #    return code, False   
-    # code = client.pay_channel(mck, pay_id)
+        # return code, None, None
+    # pay_id = jump_url.split('payId=')[1].split('&')[0]
+    # code = client.web_newpay(mck, pay_id)
     # if code != SUCCESS:
-    #    return code, False   
-    # code, status = client.wap_wxpay(mck, pay_id)
-    # if code != SUCCESS:
-    #    return code, False   
-    # return SUCCESS, status
+        # return code, None, None
+    # code, pay_url = client.web_wxpay(mck, pay_id)
+
+
+    url = 'https://pay.m.jd.com'
+    code, token = client.gen_token(url)
+    if code != SUCCESS:
+        return code, False
+    token_url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=' + token
+    code, mck = client.get_mck(token_url)
+    if code != SUCCESS and mck != None:
+        return code, False
+    code, pay_id = client.jdapp_mpay(mck, order)
+    if code != SUCCESS:
+       return code, False   
+    code = client.pay_channel(mck, pay_id)
+    if code != SUCCESS:
+       return code, False   
+    code, status = client.wap_wxpay(mck, pay_id)
+    if code != SUCCESS:
+       return code, False   
+    return SUCCESS, status
 
 
 
 
 def check(ck, order_id):
     code = NETWOTK_ERROR
-    area = get_area(ck)
-    if area == None:
-        return CK_UNVALUE, False
-    LOG_D(area)
-    code = NETWOTK_ERROR
-    ck_status = '1'
-    account = get_jd_account(ck)
-    LOG_D('========================================== check wxpay ======================================== : ' + str(order_id))
-    proxy = ip_sql().search_ip(account)
-    if proxy == None:
-        area, proxy = getip_uncheck(area)
-        if proxy == None:
-            return None
-        ip_sql().insert_ip(account, proxy)
+    # area = get_area(ck)
+    # if area == None:
+        # return CK_UNVALUE, False
+    # LOG_D(area)
+    # code = NETWOTK_ERROR
+    # ck_status = '1'
+    # account = get_jd_account(ck)
+    # LOG_D('========================================== check wxpay ======================================== : ' + str(order_id))
+    # proxy = ip_sql().search_ip(account)
+    # if proxy == None:
+        # area, proxy = getip_uncheck(area)
+        # if proxy == None:
+            # return None
+        # ip_sql().insert_ip(account, proxy)
+    proxy = None
     for i in range(6):
         code, status = web_check_wxpay(ck, order_id, proxy)
         if code == NETWOTK_ERROR:
-            area, proxy = getip_uncheck(area)
-            ip_sql().update_ip(account, proxy)
+            area, proxy = getip_uncheck()
+            # ip_sql().update_ip(account, proxy)
         elif code == CK_UNVALUE:
             return False
         elif code == SUCCESS:
@@ -1669,8 +1671,10 @@ if __name__ == '__main__':
     # get_real_url(ck, )
     
 
-    # ip = None
-    # jd_client = jd(ck, ip)
+    ip = None
+    jd_client = jd(ck, ip)
+
+
     # jd_client.get_appstore_detail('248300092259')
     # print(jd_client.delete_order('248300092259'))
     # url = 'https://m.jd.com'
@@ -1711,12 +1715,11 @@ if __name__ == '__main__':
     # print(pay_url)
 
 
-    ck = 'TrackID=1T50KVX8iakUzomEH2a7MdlKtcf3NZEw8Jf6G5jgMS2TvrbqtFzp7k9meOGByO9KzsDyDyDIWTZwmGDhnwGFsrIw1gjgCBCKxvFX-OeQhKng; thor=FE46E8063702DF2D970E7741BC78DB8A57A93B100ABE36ABD0C38ED64C97CE0D5CEDDD071F52037CDF2AD699A846002896850C58FE0F8D7FB7C46B257F3D5136076D3EFA0F73AB9AA74233F9807591D97EB985C15B936C8FDBA65A058A93497FC8C93DB55296C122270183BCFF91C4EF52DF993F1665424A8B6EC3F458B08D13FACAC35250AB933B7D483A0EF05A0A30CB317AAF486E9F74ADB27610E72D1618; pinId=VCCp15ebpFmQrlrddbOMQg; pin=jd_fpdmZxwUfOdS; unick=jd_fpdmZxwUfOdS; _tp=Ou3OD3JmJ8DL3dhbWQ8nWQ%3D%3D; _pst=jd_fpdmZxwUfOdS; upn=7XdO4cpF4chB; pin=jd_fpdmZxwUfOdS; wskey=AAJihKdmAEB11b4SViOQ5L8JUiTp5wduhhPG_c2c7yDcj1dpAY9JvNpTrNk2avjKVX6PDXmZbZCyQ3mt9DDtQPC7inrfi9dI;'
-
-    ck = 'TrackID=1hJ6TmnXVE1j6ZNcwdh4L3aoFFIOV-QxWlgMoyV4f-fNYhPXlM7cZJDyCDWeHE-UWLVAtdr3L8tjZ0HL2lWC70FuqRCjboPdWSoJXb0OAN98; thor=BA2C824D6EF08147C7CAD0C949F9827A5C5386A3D4BE59F2782A90BD497A6EC094578E631E35B6E74CAD4C566E1F13ADB7ABF9129BD5E2D6FC69076986709CB32652F70F4357D8BC5A51D7A355DD267B05D7DFBBBF9DF7EDA95CAA4E84FDDD01265C253E70A14416879DFE57308298A431CB868580D105830D11B67031DC4BD516A297A8013C375450CDFC1739613FE22F24D9A5B12496570761DBE790C242FE; pinId=jMKz_bPgV3xx-6cxwaPo5Q; pin=jd_qAIOdHnssaga; unick=jd_qAIOdHnssaga; _tp=jqWDD9imM%2BJ%2B%2FCmE8lfxXw%3D%3D; _pst=jd_qAIOdHnssaga; upn=4`7K4c7844xC4XVu4`7K4chB; pin=jd_qAIOdHnssaga; wskey=AAJigHW1AECHC-Zp1pBENjaThgPYqgpQfREEeKMZ-ZmW9J8JekyCnVBhM-rBKyo_AouV2kwptYoOmY8q2OiyKtpYC70_lib9;'
-    order_id = '249417387623'
-    virtual_url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=6685be0cfa270f8b247756618de05b90e5331baca33810d998080c04951456807ad998539ad08311a0b91f93cfd7712a9caa5cb5a440aeedfceb15479454c53415619c91a99d3d79d4e553a98656750d'
-    print(check(ck, order_id))
+    # ck = 'pin=jd_4d9b500034155;wskey=AAJivYZfAEA9Kl4698fhBk5uBPVgm0D_CNhk9u7XBM0oaDlez_LvcYFlrWBHWVGWGXoCO6-GNrXReR3oFU_EAjzzaAvn4Y4X;'
+    # ck = 'TrackID=1hJ6TmnXVE1j6ZNcwdh4L3aoFFIOV-QxWlgMoyV4f-fNYhPXlM7cZJDyCDWeHE-UWLVAtdr3L8tjZ0HL2lWC70FuqRCjboPdWSoJXb0OAN98; thor=BA2C824D6EF08147C7CAD0C949F9827A5C5386A3D4BE59F2782A90BD497A6EC094578E631E35B6E74CAD4C566E1F13ADB7ABF9129BD5E2D6FC69076986709CB32652F70F4357D8BC5A51D7A355DD267B05D7DFBBBF9DF7EDA95CAA4E84FDDD01265C253E70A14416879DFE57308298A431CB868580D105830D11B67031DC4BD516A297A8013C375450CDFC1739613FE22F24D9A5B12496570761DBE790C242FE; pinId=jMKz_bPgV3xx-6cxwaPo5Q; pin=jd_qAIOdHnssaga; unick=jd_qAIOdHnssaga; _tp=jqWDD9imM%2BJ%2B%2FCmE8lfxXw%3D%3D; _pst=jd_qAIOdHnssaga; upn=4`7K4c7844xC4XVu4`7K4chB; pin=jd_qAIOdHnssaga; wskey=AAJigHW1AECHC-Zp1pBENjaThgPYqgpQfREEeKMZ-ZmW9J8JekyCnVBhM-rBKyo_AouV2kwptYoOmY8q2OiyKtpYC70_lib9;'
+    # order_id = '249574788745'
+    # virtual_url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=6685be0cfa270f8b247756618de05b90e5331baca33810d998080c04951456807ad998539ad08311a0b91f93cfd7712a9caa5cb5a440aeedfceb15479454c53415619c91a99d3d79d4e553a98656750d'
+    # print(check(ck, order_id))
 
 
     # ck = 'guid=565a406d6271d4a4978f3c43e5efab123b307323f9a344b981164e268315b531; pt_key=app_openAAJipsscADDBi0pEYaB97guiLrL9sS4v1Un_hPTmgeJMVvb8e-JrqJqcRypjXt8BnnPukPzZfpE; pt_pin=jd_JAAsikWhNxem; pwdt_id=jd_JAAsikWhNxem; sid=24dd47f9d082bae65366f9162a08f25w; pin=jd_JAAsikWhNxem;wskey=AAJifdadAEDOi_tzRdBaoHUkiHDqm5lJpibdiz98f8DprVM33w816q7fYHgQRPVz4LGtGbMrrE2oD6shp6Blg01K13CA64Q0;'

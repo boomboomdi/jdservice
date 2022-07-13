@@ -45,6 +45,7 @@ def get_kami(size):
                 kami['card_name'] = i['card_name']
                 kami['card_password'] = i['card_password']
                 kami['add_time'] = i['add_time']
+                kami['id'] = i['id']
                 kami_list.append(json.dumps(kami))
             total += int(i['amount'])
         except:
@@ -55,6 +56,7 @@ def get_kami(size):
 def compare(send_list, total_list):
     f = open('kami100.txt', 'w')
     total = 0
+    num = 0
     for i in total_list:
         is_send = False
         for n in send_list:
@@ -66,13 +68,15 @@ def compare(send_list, total_list):
             if 'QB_'in kami['card_name']:
                 continue
             print(kami)
-            if int(kami['amount']) == 100:
+            if int(kami['amount']) == 200:
             # if True:
                 f.write(kami['amount'] + ' ' + kami['card_name'] + ' ' + kami['card_password'] + ' ' + kami['add_time'] + '\n')
                 total += int(kami['amount'])
+                num += 1
                 # print(kami)
                 # print(total)
     print(total)
+    print(num)
     sleep(1)
 
 if __name__ == '__main__':
