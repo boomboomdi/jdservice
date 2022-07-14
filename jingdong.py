@@ -1662,6 +1662,7 @@ if __name__ == '__main__':
     # ck = 'guid=4cc65ef73044e4b6d9ebc28504f045c14c7cb58fa4adf7f6ff5487aee0f4afe0; pt_key=app_openAAJiJLg9ADBrCoEvieCKoWXOcQMHI38gSkJyE4d5UOT8_bxD31V6-VO3V1MBfNcCiBaebT7iAhg; pt_pin=jd_vpFZBbkbmUDj; pwdt_id=jd_vpFZBbkbmUDj; sid=b28c104e4a1a8b40d0ba62fb8efc2c7w; pin=jd_vpFZBbkbmUDj; wskey=AAJhxu6tAEApGfg7qm4G3qC793tIFd6VALD089ojkOCJrvfz2T-BqMBzjxEvG1lgWNI6o_C0f-u94g5RMwdaWSVPhP8eCN1e'
 
     ck = 'pin=jd_44caafd969f84; wskey=AAJiJa5TAED47O93IqYS3ZE8MLHQoY2ji-jVgpACm8A2EDKvUM3ydLUaOatBSCgRdCeWrJqwj-TGphznd6MnofyfjDNrxk3T;'
+    ck = 'pin=jdQkdwv4268bV; wskey=AAJiZO5fAEAxbVg5Z04nRTgiNgmIH_jo3ffjDYpJzwJCggPKkGFW1e-gKycRtOem8HkxIPKRDD_r1WSczGej3WGQzorUlv1x;'
     for i in ck.split(';'):
         if 'pt_pin' in i:
             user = i.split('=')[1].strip()
@@ -1708,11 +1709,11 @@ if __name__ == '__main__':
     # url = 'https://pcashier.jd.com/image/virtualH5Pay?sign=77a008cf61301d9cbb9651771b952797f4245a8c9c698fabf6fc7b04857f5739bd950ccd2100377230016f15f941f7b10d18f8356738e997b2407dd18021474472285eb678746a57ab75c07ce71f6f46'
     # url = 'https://payc.m.jd.com/api-d-cashier/image/qrCodePay.action?sign=34e9bb1027b0035fd24dd2ab831ff7e7449a0fb326b909bcdcc1034f7c9ea231'
 
-    # url = 'https://m.jd.com'
-    # client = jd(ck, None)
-    # status, token = client.gen_token(url)
-    # pay_url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=' + token 
-    # print(pay_url)
+    url = 'https://m.jd.com'
+    client = jd(ck, None)
+    status, token = client.gen_token(url)
+    pay_url = 'https://un.m.jd.com/cgi-bin/app/appjmp?tokenKey=' + token 
+    print(pay_url)
 
 
     # ck = 'pin=jd_4d9b500034155;wskey=AAJivYZfAEA9Kl4698fhBk5uBPVgm0D_CNhk9u7XBM0oaDlez_LvcYFlrWBHWVGWGXoCO6-GNrXReR3oFU_EAjzzaAvn4Y4X;'

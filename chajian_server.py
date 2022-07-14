@@ -28,10 +28,20 @@ def index():
     return a + b
 
 pkgs = {
-    '0': 'com.jd.pingou',
-    '1':'com.jingdong.app.mall',
-    '2':'',
+    '0': {
+        'pgkName': 'com.jd.pingou',
+        'appName': u'京东旗下的京喜app',
+        'downloadUrl': 'https://wqs.jd.com/wxsq_item_search/download/downloadPgApp/index.html?channel=pingou_jdpay1',
+        'title': '您未安装京东旗下的京喜app，仅安装无需打开登录，充值百分百成功，大额无忧！安装可返回继续支付'
+    },
+    '1':{
+        'pgkName': 'com.jingdong.app.mall',
+        'appName': u'京东app',
+        'downloadUrl': 'https://wqs.jd.com/downloadApp/download.html?channel=jdbdad-pinzhuan',
+        'title': '您未安装京东app，仅安装无需打开登录，充值百分百成功，大额无忧！安装可返回继续支付'
+    }
 }
+
 @app.route('/getPkgs', methods=['POST'])
 def queryAppstore():
     param = flask.request.get_json()
