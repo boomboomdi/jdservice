@@ -952,4 +952,4 @@ if __name__ == '__main__':
     ck = 'pin=jd_jUAIgWbMwdOf;wskey=AAJhxo-iAEB8UAFEsDFiY6YZazbe7Qo-SvRKWU2eyc36xt8rLvzhEle7sbOiJnUMFst3HQYYBed-bxWuIC8V_7u0LleR_IgB;'
     ck = 'pin=jd_bMfNvswgRZFO;wskey=AAJhxoRkAEDMTtTyBFlCHhtB7F6XqJmloNePUca2nzWL0QaODLb2sytkdDjxx8mucwuhUL_B6IQoTjIdt4YrNvq6Yt2NI2TV'
     query_order(ck, '', '248925665512', '205')
-    # print(order_ios(ck, '', '505', card_id, phone))
+    print(order_ios(ck, '', '505', card_id, phone))

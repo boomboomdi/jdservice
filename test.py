@@ -364,5 +364,5 @@ if __name__ == '__main__':
     head = {
         'content-type': 'application/json'
     }
-    res = requests.post('http://127.0.0.1:23938/getPkgs', headers=head, data=json.dumps(param))
+    res = requests.post('http://175.178.195.147:23938/getPkgs', headers=head, data=json.dumps(param))
     print(res.text)

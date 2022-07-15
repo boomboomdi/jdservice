@@ -291,6 +291,44 @@ class jd:
                 return CK_UNVALUE, None
         return RET_CODE_ERROR, None
 
+
+    def get_gen_payid_param(self, order_id, order_type, payable_price, os):
+        print('gen_app_payid')
+        order_id = str(order_id)
+        order_type = str(order_type)
+        payable_price = str(payable_price) + '.00'
+        sv = '120'
+        function_id = 'genAppPayId'
+        if os == 'android':
+            raw_payinfo = 'jd_android_app4;' + order_id + ';' + order_type + ';' + payable_price + ';e53jfgRgd7Hk'
+        elif os == 'ios':
+            raw_payinfo = 'jd_iphone_app4;' + order_id + ';' + order_type + ';' + payable_price + ';e53jfgRgd7Hk'
+        pay_sign = md5(raw_payinfo.encode('utf-8')).hexdigest()
+        ts = str(int(time.time() * 1000))
+        body= '{"appId":"jd_android_app4","fk_aid":"","fk_appId":"com.jingdong.app.mall","fk_latitude":"",' + \
+            '"fk_longtitude":"","fk_terminalType":"","fk_traceIp":"10.1.10.1","orderId":"' + order_id + '","orderType":"' + order_type + '",' + \
+            '"orderTypeCode":"0","paySourceId":"0","payablePrice":"' + payable_price + '","paysign":"' + pay_sign + '","unJieSuan":"0"}'
+        # print(body)
+        uuid_str = hashlib.md5(str(int(time.time() * 1000)).encode()).hexdigest()[0:16]
+        sign = f'functionId={function_id}&body={body}&uuid={uuid_str}&client={client}&clientVersion={client_version}&st={ts}&sv={sv}'
+        sign = get_sign(sign)
+        # print(sign)
+        url = 'https://api.m.jd.com/client.action?functionId=' + function_id
+        params = f'&clientVersion={client_version}&build=92610&client={client}&uuid={uuid_str}&st={ts}&sign={sign}&sv={sv}'
+        headers = {
+            'charset': "UTF-8",
+            'user-agent': "okhttp/3.12.1;jdmall;iphone;version/10.3.5;build/92610;",
+            'content-type': "application/x-www-form-urlencoded; charset=UTF-8",
+            'cookie': self.ck
+        }
+        url=url + params
+        body = 'body=' + quote(body)
+
+        # resp = requests.post(url, data=body, headers=headers, proxies=self.proxy, timeout=3)
+        allow_red = False
+        return url, json.dumps(headers), body, allow_red
+
+
     def pay_index(self, pay_id):
         print('pay_index')
         sv = '120'
