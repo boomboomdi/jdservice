@@ -92,6 +92,66 @@ class jx:
         except:
             return NETWOTK_ERROR
 
+    def wx_apppay(self, order_id):
+        function_id = 'pingou_wqpay_jdpaygw_wxapppay'
+        ts = str(int(time.time() * 1000))
+        appid = 'wxsq_jdpingou'
+        client_version = '5.6.0'
+        client = 'pg_android'
+        build = '18771'
+        body = '{"appid":"wx2c49e82e87e57ff0","dealId":"' + order_id + '"}'
+        sign = f'{appid}&{body}&{build}&{client}&{client_version}&{function_id}&{ts}'
+        print(sign)
+        sign = get_sign(sign)
+        print(sign)
+        url = 'https://api.m.jd.com/api?functionId=' + function_id
+        params = f'&t={ts}&appid={appid}&clientVersion={client_version}&build={build}&client={client}&t={ts}&sign={sign}'
+        url=url + params
+        headers = {
+            'charset': "UTF-8",
+            'user-agent': "jdpingou",
+            'content-type': "application/x-www-form-urlencoded; charset=UTF-8",
+            'cookie': self.ck
+        }
+        print(url)
+        body = 'body=' + quote(body)
+        print(body)
+        try:
+            resp = requests.post(url, data=body, headers=headers, proxies=self.proxy)
+        except:
+            return NETWOTK_ERROR
+
+    def get_wx_apppay_param(self, order_id):
+        function_id = 'pingou_wqpay_jdpaygw_wxapppay'
+        ts = str(int(time.time() * 1000))
+        appid = 'wxsq_jdpingou'
+        client_version = '5.6.0'
+        client = 'pg_android'
+        build = '18771'
+        body = '{"appid":"wx2c49e82e87e57ff0","dealId":"' + order_id + '"}'
+        sign = f'{appid}&{body}&{build}&{client}&{client_version}&{function_id}&{ts}'
+        print(sign)
+        sign = get_sign(sign)
+        print(sign)
+        url = 'https://api.m.jd.com/api?functionId=' + function_id
+        params = f'&t={ts}&appid={appid}&clientVersion={client_version}&build={build}&client={client}&t={ts}&sign={sign}'
+        url=url + params
+        headers = {
+            'charset': "UTF-8",
+            'user-agent': "jdpingou",
+            'content-type': "application/x-www-form-urlencoded; charset=UTF-8",
+            'cookie': self.ck
+        }
+        print(url)
+        body = 'body=' + quote(body)
+        print(body)
+        allow_red = False
+        return url, json.dumps(headers), body, allow_red
+
+
+
+
+
 
 
 if __name__ == '__main__':
@@ -102,8 +162,10 @@ if __name__ == '__main__':
     ck = 'pin=jd_sOzOMBUZzmfZ;wskey=AAJiz-fgAEA364EtN0ktXYFAiY2JWAm6e0l3h0HgeW5Zbq7OjvBEVC9bp-o67uo97PlcXHhTj4bnAEACLZiNIUIfC10Cb6-g;'
     ck = 'pin=jd_ZENuPnmPlLgr;wskey=AAJivWKfAEADCRilD5KK2F6yJ5pYTbi7p54SsnLTX0t--CZ9mpqskx68O-yiEKJfv6Esd0YtI7Ofxcfv_o6TtwBfwam5XXLg;'
     ck = 'pin=jd_ZENuPnmPlLgr;wskey=AAJiz-dmAEAFqoTiyorWAWLZPb5D7mLL7gvGitPNHav4BhDXqci64k8V0Jzh6tJYIv7BFSnIU0RjPYEAl816I4_PDIxfJS-u;'
+    ck = 'pin=jd_4d9b500034155;wskey=AAJi0EUbAECYURTWXYiVQ-muooKNtHbHSQEisbR5qejvjDIszIuG5FpjBMlMovDyb_b0KtRosbGN1NFDJgEqhvlCbC_BURdQ;defaultHeadId=;'
     client = jx(ck)
-    client.order_list()
+    order_id = '249772118913'
+    client.wx_apppay(order_id)
 
     # a = '66f73810b5782a7b&wxsq_jdpingou&{"callersource":"newbiz","last_page":0,"order_type":"3","page_size":10,"sceneval":"2","start_page":1}&18771&pg_android&5.6.0&OnePlus&ONEPLUSA5010&eidA137f41225cl567c918d12a03e5be5952acde2eb34bb772fe8d9crEMaZE2xswsHa9ak6ta6of7VJB 51BaoziWy6zzNytcyfzpFR6ID/oPUIG 3&pingou_unideal_list&zh_CN&wifi&66f73810b5782a7b&10&ucpp01&wq.jd.com/jdpingouapp/orderlist&2118*1080&29&1657734941259&66f73810b5782a7b&unknown'
     # sign = get_sign(a)

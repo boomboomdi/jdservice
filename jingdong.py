@@ -329,6 +329,37 @@ class jd:
         return url, json.dumps(headers), body, allow_red
 
 
+    def get_pay_index_param(self, pay_id, os):
+        print('pay_index')
+        sv = '120'
+        function_id = 'payIndex'
+        ts = str(int(time.time() * 1000))
+        if os == 'android':
+            body= '{"appId":"jd_android_app4","hasCyberMoneyPay":"0","hasHuaweiPay":"0","hasOCPay":"0","hasUPPay":"0","payId":"' + pay_id + '","supportNFC":"1"}'
+        else:
+            body= '{"appId":"jd_iphone_app4","hasCyberMoneyPay":"0","hasHuaweiPay":"0","hasOCPay":"0","hasUPPay":"0","payId":"' + pay_id + '","supportNFC":"1"}'
+        # body= '{"appId":"jd_android_app4","hasCyberMoneyPay":"0","hasHuaweiPay":"0","hasOCPay":"0","hasUPPay":"0","payId":"' + pay_id + '","supportNFC":"1"}'
+        uuid_str = hashlib.md5(str(int(time.time() * 1000)).encode()).hexdigest()[0:16]
+        sign = f'functionId={function_id}&body={body}&uuid={uuid_str}&client={client}&clientVersion={client_version}&st={ts}&sv={sv}'
+        sign = get_sign(sign)
+        print(sign)
+        url = 'https://api.m.jd.com/client.action?functionId=' + function_id
+        params = f'&clientVersion={client_version}&build=92610&client={client}&uuid={uuid_str}&st={ts}&sign={sign}&sv={sv}'
+        headers = {
+            'charset': "UTF-8",
+            'user-agent': "okhttp/3.12.1;jdmall;iphone;version/10.3.5;build/92610;",
+            'content-type': "application/x-www-form-urlencoded; charset=UTF-8",
+            'cookie': self.ck
+        }
+        url=url + params
+        body = 'body=' + quote(body)
+        print(body)
+        allow_red = False
+        return url, json.dumps(headers), body, allow_red
+
+
+
+
     def pay_index(self, pay_id):
         print('pay_index')
         sv = '120'
@@ -714,6 +745,31 @@ class jd:
                 return SUCCESS, str(ret_json['tokenKey'])
         return RET_CODE_ERROR, None       
 
+
+    def get_gen_token_param(self, url):
+        sv = '120'
+        function_id = 'genToken'
+        ts = str(int(time.time() * 1000))
+        body= '{"to":"' + quote(url, safe='') + '"}'
+        # body = '{"to":"https%3a%2f%2fplogin.m.jd.com%2fjd-mlogin%2fstatic%2fhtml%2fappjmp_blank.html"}'
+        uuid_str = hashlib.md5(str(int(time.time() * 1000)).encode()).hexdigest()[0:16]
+        sign = f'functionId={function_id}&body={body}&uuid={uuid_str}&client={client}&clientVersion={client_version}&st={ts}&sv={sv}'
+        sign = get_sign(sign)
+        print(sign)
+        url = 'https://api.m.jd.com/client.action?functionId=' + function_id
+        params = f'&clientVersion={client_version}&build=92610&client={client}&uuid={uuid_str}&st={ts}&sign={sign}&sv={sv}'
+        headers = {
+            'charset': "UTF-8",
+            'user-agent': "okhttp/3.12.1;jdmall;iphone;version/10.3.5;build/92610;",
+            'content-type': "application/x-www-form-urlencoded; charset=UTF-8",
+            'cookie': self.ck
+        }
+        body = 'body=' + quote(body)
+        url=url + params
+        allow_red = False
+        return url, json.dumps(headers), body, allow_red
+
+
     def get_mck(self, token_url):
         t = str(int(time.time()))
         try:
@@ -852,6 +908,37 @@ class jd:
                 LOG_D(resp.text)
                 return CK_UNVALUE, None
         return RET_CODE_ERROR, None
+
+
+    def get_weixin_pay_param(self, pay_id, os):
+        sv = '120'
+        function_id = 'weixinPay'
+        ts = str(int(time.time() * 1000))
+        if os == 'android':
+            body= '{"appId":"jd_android_app4","payId":"' + pay_id + '","sdkToken":""}'
+        else:
+            body= '{"appId":"jd_iphone_app4","payId":"' + pay_id + '","sdkToken":""}'
+        # body= '{"appId":"jd_ios_app","payId":"' + pay_id + '","sdkToken":""}'
+        # body = '{"to":"https%3a%2f%2fplogin.m.jd.com%2fjd-mlogin%2fstatic%2fhtml%2fappjmp_blank.html"}'
+        uuid_str = hashlib.md5(str(int(time.time() * 1000)).encode()).hexdigest()[0:16]
+        sign = f'functionId={function_id}&body={body}&uuid={uuid_str}&client={client}&clientVersion={client_version}&st={ts}&sv={sv}'
+        sign = get_sign(sign)
+        print(sign)
+        url = 'https://api.m.jd.com/client.action?functionId=' + function_id
+        params = f'&clientVersion={client_version}&build=92610&client={client}&uuid={uuid_str}&st={ts}&sign={sign}&sv={sv}'
+        headers = {
+            'charset': "UTF-8",
+            'user-agent': "okhttp/3.12.1;jdmall;iphone;version/10.3.5;build/92610;",
+            'content-type': "application/x-www-form-urlencoded; charset=UTF-8",
+            'cookie': self.ck
+        }
+        body = 'body=' + quote(body)
+        url=url + params
+        allow_red = False
+        return url, json.dumps(headers), body, allow_red
+
+
+
 
     def weixin_pay(self, pay_id):
         sv = '120'
