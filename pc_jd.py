@@ -1466,6 +1466,7 @@ def get_real_url_back(ck, img_url, os, ip):
     return json.dumps(result)
 
 def get_real_url(ck, pay_info, os, ip):
+    area = get_area(ck)
     result = {
         'code': '1',
         'data': '',
