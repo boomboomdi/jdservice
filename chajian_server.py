@@ -10,7 +10,7 @@ import requests
 import threading
 from jingdong import jd
 from jingxi import jx
-from tools import LOG_D
+from tools import LOG_D, disable_ck
 
 
 SUCCESS = 0
@@ -168,6 +168,14 @@ def jdthired():
 def jdfinish():
     param_json = flask.request.get_json()
     ck = param_json['ck']
+    if '交易受限' in param_json['clientRes']:
+        result['next'] = 'error'
+        for i in ck.split(';'):
+            i = i.replace(' ', '')
+            if 'pin=' in i:
+                pin = i
+                disable_ck(pin)
+        return json.dumps(result)
     client_res = json.loads(param_json['clientRes'])
     result = {}
     if client_res['code'] == '0':
@@ -218,6 +226,7 @@ def getOrderInfo():
         'os': os
     }
     res = requests.post(url='http://127.0.0.1:9191/api/orderinfo/getorderinfo', headers=head, data=json.dumps(data))
+    print(res.text)
     order_json = res.json()
     if order_json['code'] == 0:
         result['code'] = 0

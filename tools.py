@@ -242,7 +242,19 @@ def getip_fensheng(pro, city):
                     LOG_D(ip)
                     return ip
     return None
-  
+
+
+def disable_ck(pin):
+    url = 'http://127.0.0.1:9191/api/orderinfo/changecookiestatus'
+    # url = 'http://175.178.195.147:9191/api/orderinfo/changecookiestatus'
+    head = {
+        'content-type': 'application/json'
+    }
+    data = {}
+    data['ck_account'] = pin
+    res = requests.post(url=url, headers=head, data=json.dumps(data))
+    LOG_D(res.text)
+
 
 if __name__ == '__main__':
     # parse_qrcode('https://qr.m.jd.com/show?appid=133&size=147&t=')

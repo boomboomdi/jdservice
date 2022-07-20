@@ -1467,7 +1467,7 @@ def get_real_url_back(ck, img_url, os, ip):
         i += 1
     return json.dumps(result)
 
-def get_real_url(ck, pay_info, os, ip):
+def get_real_url(ck, pay_info, amount, os, ip):
     area = get_area(ck)
     result = {
         'code': '1',
@@ -1494,7 +1494,7 @@ def get_real_url(ck, pay_info, os, ip):
             return json.dumps(result)
         elif os == 'ios':
             order_id = pay_info.split('#')[0]
-            amount =  pay_info.split('#')[1]
+            # amount =  pay_info.split('#')[1]
             code, pay_url = get_ios_wx(ck, order_id, amount, proxy)
         if code == NETWOTK_ERROR:
             if pro == None:
