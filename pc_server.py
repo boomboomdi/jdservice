@@ -99,19 +99,20 @@ def getRealurl():
     print('========')
     print(param)
     ck = str(param.get('cookie'))
+    amount = str(param.get('amount'))
     ck = ck.encode("utf-8").decode("latin1")
     pay_info = str(param.get('qr_url'))
     os = str(param.get('os'))
     ip = str(param.get('ip'))
     if os == 'android':
-        return get_real_url(ck, pay_info, os, ip)
+        return get_real_url(ck, pay_info, amount, os, ip)
     elif os == 'ios':
         # pro, city = get_ip_info(ip)
         # if pro == None:
         #     ip = 
         # else:
         #     ip = ''
-        return get_real_url(ck, pay_info, os, ip)
+        return get_real_url(ck, pay_info, amount, os, ip)
 
 @app.route('/callBackDv', methods=['POST'])
 def callBackDv():
