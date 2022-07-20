@@ -1486,7 +1486,9 @@ def get_real_url(ck, pay_info, os, ip):
             r = {}
             r['ck'] = ck
             r['order_id'] = pay_info
-            pay_url = json.dumps(r)
+            result['code'] = '0'
+            result['data'] = json.dumps(r)
+            result['msg'] = 'success'
         elif os == 'ios':
             order_id = pay_info.split('#')[0]
             amount =  pay_info.split('#')[1]
