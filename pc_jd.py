@@ -1482,7 +1482,11 @@ def get_real_url(ck, pay_info, os, ip):
     account = tools.get_jd_account(ck)
     for i in range(6):
         if os == 'android':
-            pass
+            code = SUCCESS
+            r = {}
+            r['ck'] = ck
+            r['order_id'] = pay_info
+            pay_url = json.dumps(r)
         elif os == 'ios':
             order_id = pay_info.split('#')[0]
             amount =  pay_info.split('#')[1]

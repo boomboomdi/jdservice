@@ -218,6 +218,7 @@ def getOrderInfo():
         'os': os
     }
     res = requests.post(url='http://127.0.0.1:9191/api/orderinfo/getorderinfo', headers=head, data=json.dumps(data))
+    print('get order info')
     print(res.text)
     # ck = param_json['']
     # request orderinfo
