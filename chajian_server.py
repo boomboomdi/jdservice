@@ -205,6 +205,7 @@ def jxFinish():
 
 @app.route('/getOrderInfo', methods=['POST'])
 def getOrderInfo():
+    result = {}
     param_json = flask.request.get_json()
     pkg = param_json['pkgName']
     order_id = param_json['orderId']
@@ -219,20 +220,23 @@ def getOrderInfo():
     res = requests.post(url='http://127.0.0.1:9191/api/orderinfo/getorderinfo', headers=head, data=json.dumps(data))
     order_json = res.json()
     if order_json['code'] == 0:
+        result['code'] = 0
         amount = order_json['data']['amount']
         payinfo_json = json.loads(order_json['data']['payUrl'])
         ck = payinfo_json['ck']
         order_id = payinfo_json['order_id']
-    ck = '{"com.jingdong.app.mall": "' + ck + '"}'
-    result = {}
-    # result['orderId'] = res.text
-    result['amount'] = amount
-    ck_json = json.loads(ck)
-    if pkg == 'web_app':
-        pkg = 'com.jingdong.app.mall'
-    result['ck'] = ck_json[pkg]
-    print(json.dumps(result))
-    return json.dumps(result)
+        ck = '{"com.jingdong.app.mall": "' + ck + '"}'
+        result['amount'] = amount
+        ck_json = json.loads(ck)
+        if pkg == 'web_app':
+            pkg = 'com.jingdong.app.mall'
+        result['ck'] = ck_json[pkg]
+        print(json.dumps(result))
+        return json.dumps(result)
+    else:
+        result['code'] = 1
+        return json.dumps(result)
+
 
 @app.route('/webFinish', methods=['POST'])
 def webFinish():
