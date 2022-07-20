@@ -1509,6 +1509,7 @@ def get_real_url(ck, pay_info, os, ip):
             result['msg'] = 'success'
             return json.dumps(result)
         i += 1
+    print(json.dumps(result))
     return json.dumps(result)
 
 
