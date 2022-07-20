@@ -1048,6 +1048,7 @@ def order_appstore(ck, order_me, amount):
     tools.LOG_D('========================================== create order ======================================== account: ' + str(account))
     proxy = ip_sql().search_ip(account)
     # tools.LOG_D('searchip: ' + str(proxy))
+    pay_info = ''
     if proxy == None:
         area, proxy = tools.getip_uncheck(area)
         if proxy == None:
@@ -1065,6 +1066,7 @@ def order_appstore(ck, order_me, amount):
             ck_status = '0'
             break
         elif code == SUCCESS:
+            pay_info = order_no + '#' + amount
             order_sql().insert_order(order_no, amount)
             order_sql().update_order_time(order_no)
             break
@@ -1074,7 +1076,6 @@ def order_appstore(ck, order_me, amount):
             break
         i += 1
     tools.LOG_D('========== create result: ' + str(order_no) + ' ===========')
-    pay_info = order_no + '#' + amount
     upload_order_result(order_me, order_no, pay_info, amount, ck_status)
 
 
@@ -1483,13 +1484,13 @@ def get_real_url(ck, pay_info, os, ip):
     account = tools.get_jd_account(ck)
     for i in range(6):
         if os == 'android':
-            code = SUCCESS
             r = {}
             r['ck'] = ck
             r['order_id'] = pay_info
             result['code'] = '0'
             result['data'] = json.dumps(r)
             result['msg'] = 'success'
+            return json.dumps(result)
         elif os == 'ios':
             order_id = pay_info.split('#')[0]
             amount =  pay_info.split('#')[1]
