@@ -5,7 +5,6 @@ from distutils.errors import LibError
 from email import header
 import hashlib
 import time
-from tkinter.messagebox import NO
 from urllib.parse import urlencode
 from urllib.parse import quote
 from urllib.parse import unquote
@@ -163,6 +162,8 @@ if __name__ == '__main__':
     ck = 'pin=jd_ZENuPnmPlLgr;wskey=AAJivWKfAEADCRilD5KK2F6yJ5pYTbi7p54SsnLTX0t--CZ9mpqskx68O-yiEKJfv6Esd0YtI7Ofxcfv_o6TtwBfwam5XXLg;'
     ck = 'pin=jd_ZENuPnmPlLgr;wskey=AAJiz-dmAEAFqoTiyorWAWLZPb5D7mLL7gvGitPNHav4BhDXqci64k8V0Jzh6tJYIv7BFSnIU0RjPYEAl816I4_PDIxfJS-u;'
     ck = 'pin=jd_4d9b500034155;wskey=AAJi0EUbAECYURTWXYiVQ-muooKNtHbHSQEisbR5qejvjDIszIuG5FpjBMlMovDyb_b0KtRosbGN1NFDJgEqhvlCbC_BURdQ;defaultHeadId=;'
+    ck = 'pin=jd_ZENuPnmPlLgr;wskey=AAJiz-dmAEAFqoTiyorWAWLZPb5D7mLL7gvGitPNHav4BhDXqci64k8V0Jzh6tJYIv7BFSnIU0RjPYEAl816I4_PDIxfJS-u;'
+    ck = 'pin=jd_sOzOMBUZzmfZ;wskey=AAJiz-fgAEA364EtN0ktXYFAiY2JWAm6e0l3h0HgeW5Zbq7OjvBEVC9bp-o67uo97PlcXHhTj4bnAEACLZiNIUIfC10Cb6-g;'
     client = jx(ck)
     order_id = '249772118913'
     client.wx_apppay(order_id)

@@ -6,8 +6,9 @@ from flask import Flask, session
 import flask
 import requests
 import threading
-from tools import LOG_D
+from tools import LOG_D, get_ip_info
 from pc_jd import order_appstore, order_knowkedge, order_qb, query_order_appstore, get_real_url, query_order_qb
+from jingdong import get_ios_wx
 
 
 SUCCESS = 0
@@ -99,12 +100,18 @@ def getRealurl():
     print(param)
     ck = str(param.get('cookie'))
     ck = ck.encode("utf-8").decode("latin1")
-    url = str(param.get('qr_url'))
+    pay_info = str(param.get('qr_url'))
     os = str(param.get('os'))
+    ip = str(param.get('ip'))
     if os == 'android':
-        return get_real_url(ck, url, os)
+        return get_real_url(ck, pay_info, os, ip)
     elif os == 'ios':
-        return get_real_url(ck, url, os)
+        pro, city = get_ip_info(ip)
+        # if pro == None:
+        #     ip = 
+        # else:
+        #     ip = ''
+        return get_real_url(ck, pay_info, os, ip)
 
 @app.route('/callBackDv', methods=['POST'])
 def callBackDv():

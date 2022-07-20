@@ -12,8 +12,8 @@ from ip_sqlite import ip_sql
 from jingdong import get_ios_wx, check
 from order_sqlite import order_sql
 from urllib.parse import unquote
-from tools import LOG_D, byte2str
-from tools import xor, get_area
+from tools import LOG_D, byte2str, getip_fensheng
+from tools import xor, get_area, get_ip_info
 
 SUCCESS = 1
 WEB_CK_UNVALUE = 2
@@ -909,7 +909,7 @@ DNF_SKUIDS = {
 }
 
 
-def create_order_appstore(ck, order_me, amount, proxy):
+def create_order_appstore_back(ck, order_me, amount, proxy):
     tools.LOG_D('create_order_appstore')
     # ========test=========
     pc_client = pc_jd(ck, proxy)
@@ -975,7 +975,27 @@ def create_order_appstore(ck, order_me, amount, proxy):
     return code, order_no, img_url
 
 
-def order_appstore(ck, order_me, amount):
+def create_order_appstore(ck, order_me, amount, proxy):
+    tools.LOG_D('create_order_appstore')
+    # ========test=========
+    pc_client = pc_jd(ck, proxy)
+    code, order_no, cashier_url = get_useful_unpay_appstore(ck, amount, proxy)
+    if code != SUCCESS:
+        return code, None
+    if order_no == None:
+        code, win_id = pc_client.order_place(APPSTORE_SKUIDS[amount])
+        tools.LOG_D(win_id)
+        if code != SUCCESS:
+            return code, None
+        sleep(3)
+        code, order_no = pc_client.submit_order(APPSTORE_SKUIDS[amount], amount, win_id)
+        tools.LOG_D(order_no)
+        if code != SUCCESS:
+            return code, None
+    return code, order_no
+
+
+def order_appstore_back(ck, order_me, amount):
     area = get_area(ck)
     if area == None:
         upload_order_result(order_me, '', '', amount, '0')
@@ -1014,6 +1034,50 @@ def order_appstore(ck, order_me, amount):
         i += 1
     tools.LOG_D(img_url)
     upload_order_result(order_me, order_no, img_url, amount, ck_status)
+
+
+def order_appstore(ck, order_me, amount):
+    area = get_area(ck)
+    if area == None:
+        upload_order_result(order_me, '', '', amount, '0')
+        return
+    tools.LOG_D(area)
+    code = NETWOTK_ERROR
+    ck_status = '1'
+    account = tools.get_jd_account(ck)
+    tools.LOG_D('========================================== create order ======================================== account: ' + str(account))
+    proxy = ip_sql().search_ip(account)
+    # tools.LOG_D('searchip: ' + str(proxy))
+    if proxy == None:
+        area, proxy = tools.getip_uncheck(area)
+        if proxy == None:
+            return None
+        ip_sql().insert_ip(account, proxy)
+
+    for i in range(5):
+        code, order_no = create_order_appstore(ck, order_me, amount, proxy)
+        if code == NETWOTK_ERROR:
+            area, proxy = tools.getip_uncheck(area)
+            if proxy == None:
+                return NETWOTK_ERROR
+            ip_sql().update_ip(account, proxy)
+        elif code == CK_UNVALUE:
+            ck_status = '0'
+            break
+        elif code == SUCCESS:
+            order_sql().insert_order(order_no, amount)
+            order_sql().update_order_time(order_no)
+            break
+        elif code == RET_CODE_ERROR:
+            return None
+        else:
+            break
+        i += 1
+    tools.LOG_D('========== create result: ' + str(order_no) + ' ===========')
+    pay_info = order_no + '#' + amount
+    upload_order_result(order_me, order_no, pay_info, amount, ck_status)
+
+
 
 
 def get_useful_unpay(ck, amount, proxy):
@@ -1361,12 +1425,15 @@ def get_real_qb(ck, order_info):
 
 
 
-def get_real_url(ck, img_url, os):
+def get_real_url_back(ck, img_url, os, ip):
     result = {
         'code': '1',
         'data': '',
         'msg': ''
     }
+    pro, city = get_ip_info(ip)
+    if pro == None:
+        pass
     area = get_area(ck)
     tools.LOG_D(area)
     account = tools.get_jd_account(ck)
@@ -1397,6 +1464,48 @@ def get_real_url(ck, img_url, os):
             return json.dumps(result)
         i += 1
     return json.dumps(result)
+
+def get_real_url(ck, pay_info, os, ip):
+    result = {
+        'code': '1',
+        'data': '',
+        'msg': ''
+    }
+    proxy = None
+    pro, city = get_ip_info(ip)
+    if pro == None:
+        area, proxy = tools.getip_uncheck(area)
+    else:
+        proxy = getip_fensheng(pro, city)
+        if proxy == None:
+            area, proxy = tools.getip_uncheck(area)
+    account = tools.get_jd_account(ck)
+    for i in range(6):
+        if os == 'android':
+            pass
+        elif os == 'ios':
+            order_id = pay_info.split('#')[0]
+            amount =  pay_info.split('#')[1]
+            code, pay_url = get_ios_wx(ck, order_id, amount, proxy)
+        if code == NETWOTK_ERROR:
+            if pro == None:
+                area, proxy = tools.getip_uncheck(area)
+            else:
+                proxy = getip_fensheng(pro, city)
+                if proxy == None:
+                    area, proxy = tools.getip_uncheck(area)
+        elif code == CK_UNVALUE:
+            result['msg'] = 'ck unvalue'
+            break
+        elif code == SUCCESS:
+            result['code'] = '0'
+            result['data'] = pay_url
+            result['msg'] = 'success'
+            return json.dumps(result)
+        i += 1
+    return json.dumps(result)
+
+
 
 def upload_callback_result(result):
     # return True
@@ -1872,17 +1981,12 @@ if __name__=='__main__':
 
     # query_order_appstore(ck, '', order_id, '200')
 
-    ck = 'TrackID=1Qnloe2HqOravmoBR8VIKAp-ewry0_D1qDfqXDD6OX_xOi795wIUzqneQbrtbFrY9cMojaoVhoMczz5DyE_OmOrGPnhIY3c10Yy1c0JupoUE; thor=EE2132865F9896BCD58605A230CDC04AECCABA55FB5C6EC1FEAC0DB870D907EEC9C3F338EFA444CAF55B84E1E0F88A6F76881DDD749C2AD34BA996EBEF4CB16F9A11ED2431A1FAA4A39C361D911DD509A0244D1E36AEB2B56E567E56181BDBC353C5768B1219A56E0C3ABC54C1739E8BAD90F34059660C4F97254E3BE4516B402C734B5CEAFCD0018BD699A927E6277AEB8B1919B8AE1DBAFCB82CA83029E787; pinId=V9wqhULxI9laJMb0nPTSPQ; pin=jd_dOHgTqNyChLD; unick=jd_dOHgTqNyChLD; _tp=jWOIljlYJFtqfX1FVUhZmw%3D%3D; _pst=jd_dOHgTqNyChLD; upn=7XdO4cpF4chB; pin=jd_dOHgTqNyChLD; wskey=AAJhzno1AECjwIK9kEDHA3ndtCpgVfxr0kP08HMivBFTLl2JGZKLy2uAUKCPpoFL5iOOI04XyIv5_eJgs8RixPRcIbI0hRL6;'
-    ck = 'pin=jd_4d9b500034155; wskey=AAJivYZfAEA9Kl4698fhBk5uBPVgm0D_CNhk9u7XBM0oaDlez_LvcYFlrWBHWVGWGXoCO6-GNrXReR3oFU_EAjzzaAvn4Y4X;'
-    ck = 'TrackID=10hhQ_GF7AAUAMcjalmXOkaq887JTkEMFzbHTWD1Gs1YjhCQqDEEsUtfCrboiMktOmJ6GhikzKfp56HW0TQERamb-NGgTsVBrDU5MFL7IPZw; thor=B47EC3768465FF7FDEAFBFDFA49500D4F5479292507377740D6A3D1FA1A476917D6B8BF25F740B776DBA3CC6F73965B592DFB45A591D7289BBB2F0A2B4576ADA2883EC7C7B3C52C825B3588FEF24CA310883A124CEC3BB199AD087465BADFE9403B9BEA8347B14CB6F9FA64279CAE2B27A05ED64B4ED7BFAAB6719FBBA2436F26D9C9478421826BF0D5DD42141E7D2FBA300BB09E69078976EFD95C89BF050F3; pinId=G5iKuV5POvk2Sc2qU5Qwtw; pin=jd_voAoHMnouLzl; unick=jd_voAoHMnouLzl; _tp=Ua5PDC4bvAgEbTywTFcZSw%3D%3D; _pst=jd_voAoHMnouLzl; upn=47`Q4ct744xC7H7F44Rv4chB; pin=jd_voAoHMnouLzl; wskey=AAJh1nkWAEDGDAcOEiIW2mHR_7WkAKGOxDMl_7YesYh6mH_MswOitgKe51yzEj58DyGWkEz-UpV3DevR_XAZ5QsO-imNkBUN;'
-    ck = 'mp=%E5%B7%9E%E8%8F%B2%E7%8F%8D%E5%95%86%E8%B4%B8%E6%9C%89;  TrackID=1cUn-KaiSIqiR5G-FEdyr6prwv6OAc3YzQxJzZBzpx64R1_D8hb84jgvLiGBfjRZES5YixaSpyCyY2ouaUVsS0EegZGebYa_yLdV05vuYKsQv024KtMCKBMZem0GqQ7MzcL_tWYIeynWBZWVHsL7IQw;  thor=56FD538DF6E7EE35F209A4571CBC8EE5E20C839C02715541EEC860287227EB57AF81CA2E3D1FAFC7FE2E632B9AD315B0D5683137ACE983CA2E006E28F0466870C9C8A003F5CF23D5576E2DF70F48EA5281DC8B77F1C22EDF238C0C9851C729A2AC27280653A7111E03B856E451EFD92BD9001883A4C2AB3EA1787DC443B48CF6;  pinId=cHYTiV3JOW0BvphvvgJDK6b1nhX4Vcc-;  pin=%E5%B7%9E%E8%8F%B2%E7%8F%8D%E5%95%86%E8%B4%B8%E6%9C%89;  unick=%E5%B7%9E%E8%8F%B2%E7%8F%8D%E5%95%86%E8%B4%B8%E6%9C%89;  _tp=%2BOycZmJdTajQ%2B6%2FjOouRx38JtWZ1zhBNrbbVTmGvICQOZ3pWy2rUnKShnd3Wp61SvDA9rbS1kLiXKoMI77WpRQ%3D%3D;  _pst=%E5%B7%9E%E8%8F%B2%E7%8F%8D%E5%95%86%E8%B4%B8%E6%9C%89; upn=4`7K4c7844xC4XVu4`7K4chB;pin=%E5%B7%9E%E8%8F%B2%E7%8F%8D%E5%95%86%E8%B4%B8%E6%9C%89; wskey=AAJixOikAFBa1yxMw9msPyQCqE4mhxRsvbOf9-E4VBO-QjhxkZBtQQOI1bof7kcQ3S9bt58ujIcd--gpNla9uYP4alNSCBDMCJKr4D2Sz0TuKCJFV_raUw; pt_pin=%E5%B7%9E%E8%8F%B2%E7%8F%8D%E5%95%86%E8%B4%B8%E6%9C%89; unionwsws={"devicefinger":"eidAdc738121bcseafi5v0MCTLC4Aeqg6e6irmn4u0EULw//a/xxRDUqiVKuCbzmY/7RlHI2Zn2UJIcqhgMtRDggH2ELU4Ju2auKtTJxoUL/GWd4RTF6","jmafinger":"b9a8HJD0GD3wxVd3DtN2MjJdvV4NinF53fGi3QEmMEKeek1vtVn1_pnUk54kWpGmL"}' 
-    ck = 'TrackID=11VJ1NBvR-Uip1JNLhkfHAv4b-hYIn4O9yuXszSiN4UvF66KgRft9a2A3b6bjByy-MNxdHH5po3oySVQVGR8bQIkEHgmRq8iWZlPCtzlnhJg; thor=6079AEAE95A9CB8977E1243E4A572D0025970B284420E0AC8A2693D2710D81C3DDD13E895DAA44A2C4525F722516920360BE358D087FA4CD66728DE38EED157B295195E7F27D52C99831CEEA6F4E2B3DE8943A64077858B92049A4617C261254850C737BD2B3F23039C29FD5CA36069C23699730DBD67DB56DFD83BDC57DA09012FD1B130740437177AEC3EE9181B45D8F17B9E5B25E10041FE64D6B9D89DC89; pinId=O6tX3ctNL3ApZhqntwlYAop58Co-iwET; pin=jd_eyptalyj8uTmazP; unick=jd_eyptalyj8uTmazP; _tp=6xXwpG37bYy%2BqUchOiGFlSaut9UEe7aYyN16HwbHhtc%3D; _pst=jd_eyptalyj8uTmazP; upn=7[lW7JV.44xC4shu4X3Y4chB; pin=jd_eyptalyj8uTmazP; wskey=AAJiVo6bAFBYp2ra4IN1LfYLJV4Uv_8eVIkdz1neTJ7ZrcT4rmP7CS2py1NS5tBfifCaULLNlXXpipkVhgf28zDRiTlxtCqFQjPeo7arD4MKVAimG2yWkw;'
-    ck = 'TrackID=1CkCK1ctEs5lmQOe0d-kJYEPbSSClCO2RLG_rjNqSEfIimS7djCT3jMpjL8x4S841s_EOhxqNz66eBwu4kIIBEW5KjJpi1TaCDcjxMmlswGk; thor=7BF7AC94214C575AF123570E09CBCE6AFFECFEDD135083CE367078E6E1E119BD441497D36135DC9FF707B21DA084DC7FEA84005B2A3EC15769BCBAA104E4A63BCA736D4C57C518E2205E8257C5738B47596DF48B3E8388B59DFDBDB54EC433FB11F05907A4A57984AFA8FC50120B6D1EE3702055E1A07028C018171524AE19E94E4239DFD50114FB4E7D3AA55D2DC4BC6BDB9217371C16D992C53F0ECF2BAE57; pinId=hllh1UPI72exDjaPSa7s_g; pin=jd_hkiHNULIvBFO; unick=jd_hkiHNULIvBFO; _tp=C%2B1RFr0VlZqAgIAy%2B1adbQ%3D%3D; _pst=jd_hkiHNULIvBFO; upn=4cl.4Mhb44xC4M3c4cFy4chB; pin=jd_hkiHNULIvBFO; wskey=AAJhnE_1AEAORxJxtNRWCjuzgVkAgfX6PdN8gG_liqLDty1xnI0zJq6lLLKjzKHXgnaGw-SnZL8N0jyBHdK0Lv_I2ii4_JLn;'
-    ck = 'TrackID=1kzaRWhDjGx1gnYa438I6pfz5xEOU6kbuNQe-b05gm0RsqjTH9V-kfHThbSRKq0t-YL5YlxIQsS20yiTsYJ6kweE5LdNOwHWd5IoqBvOWmno; thor=8A800F9D4F254BAAB773892818428103B7A70601E381F1654F9ECF4E3E717B57EC55E76AA65E65DD5086EB7AC85B92EA04F8F4C0146DF0669A3F0E573CEFC961B82C74C27FB7C0F65B0A02CD6CF74CFDE15789EA1F3FB15F7F6F3CD8AAABB567E09E9F0A8F8ED1727FD74B84436F16BEB0AD4299E6A5E68968FF0576116FBBADD584632304FACD0AA5F1D390BADE9E45FECB554570ADA995BD9629F6476FBC10; pinId=IAvxLdjdonUFiOGyvB023w; pin=jd_JkGbYutZyWiB; unick=jd_JkGbYutZyWiB; _tp=AjNPONPXQfTWMxURGvVDaA%3D%3D; _pst=jd_JkGbYutZyWiB; upn=4slV4X3Y44xC7[V.4sJ[4chB; pin=jd_JkGbYutZyWiB; wskey=AAJhoxbjAEDEae6j6fljZEkzF7tAcFdYCa7FFO57icXixu9hfEOScHEPK9hK-8uv-kyJrc9mLbS_EoExRx-UnoHqEwca0koQ;'
+    ck = 'TrackID=1Ch_o_eufm6-bZTFDZ4khNEA9ApRXKlXcST2TgyELeokJydjhqGRL9ehGASaV9nMBQRZ7rbA-0TbntTq7bac8cd9KUjE2qQIooadsECstsb8; thor=9E1A6B5B6B6CA1199FBBF462F08309C108AF0F96C74BB176C449248654AB6BC8633B9ABD4BFD8FD4520E037F7A6D7D5125808AA353FFC957564EB0D0018330D98B668A0D89AF3C6A2899952FAD7F0BF4B2AE83C6B4AB1F8E3B6A8C0CF90D0BA2A2D583DFECED97D56EA8E388F58E5A1CC9814253FBC47C7E2318020C41F930183BD84D9CDD95019E403BAF819E9C9C8A9392EFBA0A2FD78B98C9CF79BB8F7437; pinId=J01ORfU3pBtko7LQ3AFxXw; pin=jd_vJhWaUvUzDis; unick=jd_vJhWaUvUzDis; _tp=1qkT7wBJsXSken1vSZ1qBg%3D%3D; _pst=jd_vJhWaUvUzDis; upn=4[tc4cde44xC4nhP7XN84chB; pin=jd_vJhWaUvUzDis; wskey=AAJi1q7jAEAeZQYwnry859vA0FT-GcEce7csDvlu4-DBZW_hJd8OjQ8LcURTJK_BPVrc7Q4B7sUxV_Yb3To2XiMtYzSEK2jJ;'
+    print(get_real_url(ck, '249876538278#200', 'ios', ''))
     # order_appstore(ck, '', '200')
     # order_qb(ck, '', '100', '')
-    order_no = '249418749004'
-    print(query_order_qb(ck, '', order_no, '100'))
+    # order_no = '249418749004'
+    # print(query_order_qb(ck, '', order_no, '100'))
     # test(ck)
     # callback(ck, '247486125452', '123', '100')
     # clear_order(ck, '247761070918')

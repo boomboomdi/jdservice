@@ -1,5 +1,7 @@
 import json
+from re import I
 import threading
+from weakref import proxy
 from gevent import sleep
 from rsa import decrypt
 from tools import yanzhengma
@@ -14,6 +16,7 @@ import binascii
 from pyDes import des, CBC, PAD_PKCS5, ECB
 from urllib.parse import quote
 from jingdong import jd
+# from proxy_sqlite import proxy_sql
 
 # 流量订单使用
 
@@ -265,14 +268,33 @@ def test_order():
     print(res.text)
 
 
-import openpyxl
+from openpyxl import *
 def parse_excel():
-    path = '/home/police/project/pay_data/excel/20220717.xlsx'
-    excel = openpyxl.load_workbook(path)
-    table = excel.sheets()[0]
-    for i in table:
-        print(i)
-
+    # path = '/home/police/project/pay_data/excel/20220717.xlsx'
+    path = '/home/police/project/pay_data/excel/province-and-city.xlsx'
+    wb = load_workbook(path)
+    sheets = wb.get_sheet_names()
+    sheet_first = sheets[0]
+    ws = wb.get_sheet_by_name(sheet_first)
+    rows = ws.rows
+    columns = ws.columns
+    proxy_area = {}
+    city = {}
+    citys = []
+    for row in rows:
+        line = [col.value for col in row]
+        if '省份' in line:
+            continue
+        pro_name = line[3]
+        pro_code = line[2]
+        city_name = line[1]
+        city_code = line[0]
+        if pro_name not in proxy_area:
+            code = {}
+            code['code'] = pro_code
+            proxy_area[pro_name] = code
+        # print(line)
+        proxy_sql().insert_area('liuguan', pro_name, str(pro_code), city_name, str(city_code))
 
 
 

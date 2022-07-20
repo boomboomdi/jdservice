@@ -7,6 +7,7 @@ import time
 import inspect
 from pyDes import des, CBC, PAD_PKCS5, ECB
 from urllib.parse import unquote
+from proxy_sqlite import proxy_sql
 
 
 def random_phone():
@@ -118,6 +119,7 @@ def getip_uncheck(area=None):
             ip = response.text
             ip = ip.replace('\n', '')
             ip = ip.replace('\r', '')
+            LOG_D(ip)
             return area, ip
     return None, None
 
@@ -167,21 +169,80 @@ def get_area(ck):
     return area
         
 
-
-def get_ipinfo(ip):
-    url = 'https://ip.taobao.com/outGetIpInfo'
-    head = {
-        'content-type': 'application/x-www-form-urlencoded',
-        'referer': 'https://ip.taobao.com/ipSearch',
-        'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.60 Safari/537.36'
-    }
-    data = 'ip=' + ip + '&accessKey=alibaba-inc'
-    res = requests.post(url=url, headers=head, data=data)
-    if res.status_code == 200:
-        if 'query success' in res.text:
-            return res.json()['data']['region'], res.json()['data']['city']
-        return None, None
+def get_ip_info(ip):
+    url = 'https://api.ip138.com/ip/?ip=' + ip + '&token=71d3346f13ec3cc6d6ff468e77055ce0'
+    j = requests.get(url).json()
+    if j['ret'] == 'ok':
+        return j['data'][1], j['data'][2]
     return None, None
+
+def get_zhima(pro_code='', city_code=''):
+    pro_code = str(pro_code)
+    city_code = str(city_code)
+    url = 'http://webapi.http.zhimacangku.com/getip?num=1&type=1&pro=' + pro_code + '&city=' + city_code + \
+                '&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=&username=chukou01&spec=1'
+    response = requests.get(url)
+    if response.status_code == 200:
+        print(response.text)
+        if '请添加白名单' in response.text:
+            return None
+        if 'false' in response.text:
+            return None
+        ip = response.text
+        ip = ip.replace('\n', '')
+        ip = ip.replace('\r', '')
+        return ip     
+    return None
+
+def get_liuguan(pro_code='', city_code=''):
+    pro_code = str(pro_code)
+    city_code = str(city_code)
+    url = 'http://ecs.hailiangip.com:8422/api/getIp?type=1&num=1&pid=' + pro_code + '&unbindTime=300&cid=' + city_code + \
+        '&orderId=O22030913492661582939&time=1658169513&sign=3b9b01d15d03559b74ba00b0fd28df39&noDuplicate=0&dataType=1&lineSeparator=0&singleIp='
+    response = requests.get(url)
+    if response.status_code == 200:
+        print(response.text)
+        if '白名单' in response.text:
+            return None
+        if '暂无可用IP' in response.text:
+            return None
+        ip = response.text
+        ip = ip.replace('\n', '')
+        ip = ip.replace('\r', '')
+        return ip     
+    return None
+
+def getip_fensheng(pro, city):
+    l = proxy_sql().search_area()
+    for i in l:
+        if city in i[3]:
+            pro_code = i[2]
+            city_code = i[4]           
+            if i[0] == 'zhima':
+                ip = get_zhima(pro_code, city_code)
+                if ip != None:
+                    LOG_D(ip)
+                    return ip
+            if i[0] == 'liuguan':
+                ip = get_liuguan(pro_code, city_code)
+                if ip != None:
+                    LOG_D(ip)
+                    return ip
+    for i in l:
+        if pro in i[1]:
+            pro_code = i[2]
+            if i[0] == 'zhima':
+                ip = get_zhima(pro_code)
+                if ip != None:
+                    LOG_D(ip)
+                    return ip
+            if i[0] == 'liuguan':
+                ip = get_liuguan(pro_code)
+                if ip != None:
+                    LOG_D(ip)
+                    return ip
+    return None
+  
 
 if __name__ == '__main__':
     # parse_qrcode('https://qr.m.jd.com/show?appid=133&size=147&t=')
@@ -192,4 +253,8 @@ if __name__ == '__main__':
     # pass
     # print(get_ipinfo('223.83.132.229'))
     # print(getip_uncheck())
-    get_time()
+    # get_time()
+    # print(get_ip_area('36.143.103.75'))
+    ip = getip_fensheng('河北', '廊坊')
+    print(ip)
+    
