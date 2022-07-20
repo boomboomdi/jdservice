@@ -220,8 +220,9 @@ def getOrderInfo():
     order_json = res.json()
     if order_json['code'] == 0:
         amount = order_json['data']['amount']
-        ck = order_json['data']['payUrl']['ck']
-        order_id = order_json['data']['payUrl']['order_id']
+        payinfo_json = json.loads(order_json['data']['payUrl'])
+        ck = payinfo_json['ck']
+        order_id = payinfo_json['order_id']
     ck = '{"com.jingdong.app.mall": "' + ck + '"}'
     result = {}
     # result['orderId'] = res.text
