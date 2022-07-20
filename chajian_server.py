@@ -227,6 +227,7 @@ def getOrderInfo():
         order_id = payinfo_json['order_id']
         ck = '{"com.jingdong.app.mall": "' + ck + '"}'
         result['amount'] = amount
+        result['orderId'] = order_id
         ck_json = json.loads(ck)
         if pkg == 'web_app':
             pkg = 'com.jingdong.app.mall'
