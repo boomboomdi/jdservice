@@ -1544,7 +1544,7 @@ def upload_order_result(order_me, order_no, img_url, amount, ck_status):
         'amount': amount,
         'qr_url': img_url
     }
-    if img_url == None:
+    if img_url == None or img_url == '':
         data['prepare_status'] = '0'
     data = json.dumps(data)
     tools.LOG_D(data)
