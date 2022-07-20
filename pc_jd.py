@@ -1066,7 +1066,8 @@ def order_appstore(ck, order_me, amount):
             ck_status = '0'
             break
         elif code == SUCCESS:
-            pay_info = order_no + '#' + amount
+            # pay_info = order_no + '#' + amount
+            pay_info = order_no
             order_sql().insert_order(order_no, amount)
             order_sql().update_order_time(order_no)
             break
