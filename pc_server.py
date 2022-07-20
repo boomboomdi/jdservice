@@ -106,7 +106,7 @@ def getRealurl():
     if os == 'android':
         return get_real_url(ck, pay_info, os, ip)
     elif os == 'ios':
-        pro, city = get_ip_info(ip)
+        # pro, city = get_ip_info(ip)
         # if pro == None:
         #     ip = 
         # else:

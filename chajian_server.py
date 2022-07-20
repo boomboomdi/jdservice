@@ -6,7 +6,6 @@ from time import sleep
 from urllib.parse import quote
 from flask import Flask, session
 import flask
-from pkg_resources import resource_listdir
 import requests
 import threading
 from jingdong import jd
@@ -218,14 +217,15 @@ def getOrderInfo():
         'os': os
     }
     res = requests.post(url='http://127.0.0.1:9191/api/orderinfo/getorderinfo', headers=head, data=json.dumps(data))
-    print('get order info')
-    print(res.text)
-    # ck = param_json['']
-    # request orderinfo
-    ck = '{"com.jingdong.app.mall": "TrackID=1Ch_o_eufm6-bZTFDZ4khNEA9ApRXKlXcST2TgyELeokJydjhqGRL9ehGASaV9nMBQRZ7rbA-0TbntTq7bac8cd9KUjE2qQIooadsECstsb8; thor=9E1A6B5B6B6CA1199FBBF462F08309C108AF0F96C74BB176C449248654AB6BC8633B9ABD4BFD8FD4520E037F7A6D7D5125808AA353FFC957564EB0D0018330D98B668A0D89AF3C6A2899952FAD7F0BF4B2AE83C6B4AB1F8E3B6A8C0CF90D0BA2A2D583DFECED97D56EA8E388F58E5A1CC9814253FBC47C7E2318020C41F930183BD84D9CDD95019E403BAF819E9C9C8A9392EFBA0A2FD78B98C9CF79BB8F7437; pinId=J01ORfU3pBtko7LQ3AFxXw; pin=jd_vJhWaUvUzDis; unick=jd_vJhWaUvUzDis; _tp=1qkT7wBJsXSken1vSZ1qBg%3D%3D; _pst=jd_vJhWaUvUzDis; upn=4[tc4cde44xC4nhP7XN84chB; pin=jd_vJhWaUvUzDis; wskey=AAJi1q7jAEAeZQYwnry859vA0FT-GcEce7csDvlu4-DBZW_hJd8OjQ8LcURTJK_BPVrc7Q4B7sUxV_Yb3To2XiMtYzSEK2jJ;"}'
+    order_json = res.json()
+    if order_json['code'] == 0:
+        amount = order_json['data']['amount']
+        ck = order_json['data']['payUrl']['ck']
+        order_id = order_json['data']['payUrl']['order_id']
+    ck = '{"com.jingdong.app.mall": "' + ck + '"}'
     result = {}
-    result['orderId'] = res.text
-    result['amount'] = '200'
+    # result['orderId'] = res.text
+    result['amount'] = amount
     ck_json = json.loads(ck)
     if pkg == 'web_app':
         pkg = 'com.jingdong.app.mall'

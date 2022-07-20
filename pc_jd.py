@@ -1121,7 +1121,7 @@ def get_useful_unpay_appstore(ck, amount, proxy):
             now_time = str(int(time()))
             if last_time != None:
                 # if int(now_time) - int(last_time) > 600:
-                if int(now_time) - int(last_time) > 780:
+                if int(now_time) - int(last_time) > 610:
                     code, passkey = pc_client.get_unpay_appstore_passkey(order_id)
                     if code != SUCCESS:
                         return code, None, None
