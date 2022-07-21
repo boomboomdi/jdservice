@@ -217,6 +217,8 @@ def get_liuguan(pro_code='', city_code=''):
 def getip_fensheng(pro, city):
     l = proxy_sql().search_area()
     for i in l:
+        if city == '':
+            break
         if city in i[3]:
             pro_code = i[2]
             city_code = i[4]           
