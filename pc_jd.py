@@ -1468,6 +1468,11 @@ def get_real_url_back(ck, img_url, os, ip):
     return json.dumps(result)
 
 def get_real_url(ck, pay_info, amount, os, ip):
+    result = {
+        'code': '1',
+        'data': '',
+        'msg': ''
+    }
     if os == 'android':
         r = {}
         r['ck'] = ck
@@ -1477,11 +1482,6 @@ def get_real_url(ck, pay_info, amount, os, ip):
         result['msg'] = 'success'
         return json.dumps(result)
     area = get_area(ck)
-    result = {
-        'code': '1',
-        'data': '',
-        'msg': ''
-    }
     proxy = None
     fensheng_proxy = None
     pro, city = get_ip_info(ip)
