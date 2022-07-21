@@ -992,6 +992,20 @@ def create_order_appstore(ck, order_me, amount, proxy):
         tools.LOG_D(order_no)
         if code != SUCCESS:
             return code, None
+        app_client = jd(ck, proxy)
+        code, pay_id = app_client.gen_app_payid(order_id, '22', amount)
+        if code != SUCCESS:
+            return code, None
+        code, order_id = app_client.pay_index(pay_id)
+        if code != SUCCESS:
+            return code, None
+        code, pay_url = app_client.weixin_pay(pay_id)
+        if code != SUCCESS:
+            return code, None
+    return SUCCESS, pay_url
+
+
+        
     return code, order_no
 
 
