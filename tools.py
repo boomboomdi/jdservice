@@ -170,6 +170,7 @@ def get_area(ck):
         
 
 def get_ip_info(ip):
+    LOG_D('获取ip省份信息:' + str(ip))
     url = 'https://api.ip138.com/ip/?ip=' + ip + '&token=71d3346f13ec3cc6d6ff468e77055ce0'
     j = requests.get(url).json()
     LOG_D(str(j))
