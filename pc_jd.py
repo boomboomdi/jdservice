@@ -305,7 +305,7 @@ class pc_jd():
                     if 'orderId' in i:
                         order_no = i.split('=')[1]
                         return SUCCESS, order_no
-            elif ret_json['code'] == 31 or '销售火爆' in ret_json['msg']:
+            elif ret_json['code'] == 31 or '销售火爆' in ret_json['msg'] or '请您改日再试' in ret_json['msg']:
                 tools.LOG_D(ret_json)
                 return CK_UNVALUE, None
             else:
