@@ -1670,7 +1670,7 @@ def get_real_url(ck, order_id):
 
 def get_ios_wx(ck, order_id, amount, proxy):
     app_client = jd(ck, proxy)
-    code, pay_id = app_client.gen_app_payid(order_id, '22', amount)
+    code, pay_id = app_client.gen_app_payid(order_id, '34', amount)
     if code != SUCCESS:
         return code, None
     code, order_id = app_client.pay_index(pay_id)
