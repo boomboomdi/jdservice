@@ -1468,6 +1468,14 @@ def get_real_url_back(ck, img_url, os, ip):
     return json.dumps(result)
 
 def get_real_url(ck, pay_info, amount, os, ip):
+    if os == 'android':
+        r = {}
+        r['ck'] = ck
+        r['order_id'] = pay_info
+        result['code'] = '0'
+        result['data'] = json.dumps(r)
+        result['msg'] = 'success'
+        return json.dumps(result)
     area = get_area(ck)
     result = {
         'code': '1',
@@ -1489,18 +1497,10 @@ def get_real_url(ck, pay_info, amount, os, ip):
         print(json.dumps(result))
         return json.dumps(result)
     for i in range(6):
-        if os == 'android':
-            r = {}
-            r['ck'] = ck
-            r['order_id'] = pay_info
-            result['code'] = '0'
-            result['data'] = json.dumps(r)
-            result['msg'] = 'success'
-            return json.dumps(result)
-        elif os == 'ios':
-            order_id = pay_info.split('#')[0]
-            # amount =  pay_info.split('#')[1]
-            code, pay_url = get_ios_wx(ck, order_id, amount, proxy)
+        # if os == 'ios':
+        order_id = pay_info.split('#')[0]
+        # amount =  pay_info.split('#')[1]
+        code, pay_url = get_ios_wx(ck, order_id, amount, proxy)
         if code == NETWOTK_ERROR:
             if pro == None or fensheng_proxy == None:
                 area, proxy = tools.getip_uncheck(area)
