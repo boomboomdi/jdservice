@@ -231,6 +231,8 @@ def getip_fensheng(pro, city):
                     LOG_D(i[1] + i[3] + ' 分省liuguan: ' + ip)
                     LOG_D(ip)
                     return ip
+                else:
+                    break
     for i in l:
         if pro in i[1]:
             pro_code = i[2]
@@ -244,6 +246,8 @@ def getip_fensheng(pro, city):
                 if ip != None:
                     LOG_D(i[1] + ' 分省liuguan: ' + ip)
                     return ip
+                else:
+                    break
     LOG_D('未能获取分省ip')
     return None
 

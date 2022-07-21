@@ -1475,14 +1475,19 @@ def get_real_url(ck, pay_info, amount, os, ip):
         'msg': ''
     }
     proxy = None
+    fensheng_proxy = None
     pro, city = get_ip_info(ip)
     if pro == None:
         area, proxy = tools.getip_uncheck(area)
     else:
-        proxy = getip_fensheng(pro, city)
-        if proxy == None:
+        fensheng_proxy = getip_fensheng(pro, city)
+        if fensheng_proxy == None:
             area, proxy = tools.getip_uncheck(area)
-    account = tools.get_jd_account(ck)
+        else:
+            proxy = fensheng_proxy
+    if proxy == None:
+        print(json.dumps(result))
+        return json.dumps(result)
     for i in range(6):
         if os == 'android':
             r = {}
@@ -1497,7 +1502,7 @@ def get_real_url(ck, pay_info, amount, os, ip):
             # amount =  pay_info.split('#')[1]
             code, pay_url = get_ios_wx(ck, order_id, amount, proxy)
         if code == NETWOTK_ERROR:
-            if pro == None:
+            if pro == None or fensheng_proxy == None:
                 area, proxy = tools.getip_uncheck(area)
             else:
                 proxy = getip_fensheng(pro, city)
@@ -1991,8 +1996,8 @@ if __name__=='__main__':
 
     # query_order_appstore(ck, '', order_id, '200')
 
-    ck = 'TrackID=1Ch_o_eufm6-bZTFDZ4khNEA9ApRXKlXcST2TgyELeokJydjhqGRL9ehGASaV9nMBQRZ7rbA-0TbntTq7bac8cd9KUjE2qQIooadsECstsb8; thor=9E1A6B5B6B6CA1199FBBF462F08309C108AF0F96C74BB176C449248654AB6BC8633B9ABD4BFD8FD4520E037F7A6D7D5125808AA353FFC957564EB0D0018330D98B668A0D89AF3C6A2899952FAD7F0BF4B2AE83C6B4AB1F8E3B6A8C0CF90D0BA2A2D583DFECED97D56EA8E388F58E5A1CC9814253FBC47C7E2318020C41F930183BD84D9CDD95019E403BAF819E9C9C8A9392EFBA0A2FD78B98C9CF79BB8F7437; pinId=J01ORfU3pBtko7LQ3AFxXw; pin=jd_vJhWaUvUzDis; unick=jd_vJhWaUvUzDis; _tp=1qkT7wBJsXSken1vSZ1qBg%3D%3D; _pst=jd_vJhWaUvUzDis; upn=4[tc4cde44xC4nhP7XN84chB; pin=jd_vJhWaUvUzDis; wskey=AAJi1q7jAEAeZQYwnry859vA0FT-GcEce7csDvlu4-DBZW_hJd8OjQ8LcURTJK_BPVrc7Q4B7sUxV_Yb3To2XiMtYzSEK2jJ;'
-    print(get_real_url(ck, '249876538278#200', 'ios', ''))
+    ck = 'TrackID=1ReuYQbBaioEh8HKT9e1w4yNtbbfwBMLXJDxVMOdf9P5s3kMAX6ani-fBzsdUF1Lmhe8clBma2sBPYRUGEOldNw;thor=1CFF03477F2A42417BE908A50DA8B1FD6AF34D079E01D27C9FD9F89DB9FAF9F2FDA933A22219012809EEC876E176C874475D31B68A83D116A5D84DCF84C65EE355A1BD594FE7DA120DE5953CAAD64D08BBE687FCA77E5D5E2F690034DD73DC6975E46280E24FED0FE86A4B2707EFCBB64BA1BE1E265069A8524248625C8C9886B713A705A0A38B610FE16F4B1E2E9E39; pinId=4IFrZ05gKT9SgeCVsXZ0Jg; pin=jdEuqfw5195fK;unick=jdEuqfw5195fK; _tp=TIFW9TORxTa1uC9sJ%2BwpYQ%3D%3D; _pst=jdEuqfw5195fK; upn=4sJ{4X3Y44xC4MhK7[dn4cNi4chB;pin=jdEuqfw5195fK;wskey=AAJiZkgkAEAENu1m31TDm26heZCl9fTsUgK8S5-11fDnFo8NyI6OK9lNHpWDsdtzq4qEhTCjp7bKG5P872fff7ORKTIiTbFR;'
+    print(get_real_url(ck, '249857357421', '200', 'ios', '118.77.57.34'))
     # order_appstore(ck, '', '200')
     # order_qb(ck, '', '100', '')
     # order_no = '249418749004'
