@@ -166,7 +166,9 @@ def jdthired():
 
 @app.route('/jdFinish', methods=['POST'])
 def jdfinish():
+    result = {}
     param_json = flask.request.get_json()
+    print(param_json['clientRes'])
     ck = param_json['ck']
     if '交易受限' in param_json['clientRes']:
         result['next'] = 'error'
@@ -177,7 +179,6 @@ def jdfinish():
                 disable_ck(pin)
         return json.dumps(result)
     client_res = json.loads(param_json['clientRes'])
-    result = {}
     if client_res['code'] == '0':
         payinfo = {}
         for i in client_res['payInfo']:

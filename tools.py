@@ -172,6 +172,7 @@ def get_area(ck):
 def get_ip_info(ip):
     url = 'https://api.ip138.com/ip/?ip=' + ip + '&token=71d3346f13ec3cc6d6ff468e77055ce0'
     j = requests.get(url).json()
+    LOG_D(str(j))
     if j['ret'] == 'ok':
         return j['data'][1], j['data'][2]
     return None, None
@@ -221,11 +222,12 @@ def getip_fensheng(pro, city):
             if i[0] == 'zhima':
                 ip = get_zhima(pro_code, city_code)
                 if ip != None:
-                    LOG_D(ip)
+                    LOG_D(i[1] + i[3] + ' 分省zhima: ' + ip)
                     return ip
             if i[0] == 'liuguan':
                 ip = get_liuguan(pro_code, city_code)
                 if ip != None:
+                    LOG_D(i[1] + i[3] + ' 分省liuguan: ' + ip)
                     LOG_D(ip)
                     return ip
     for i in l:
@@ -234,13 +236,14 @@ def getip_fensheng(pro, city):
             if i[0] == 'zhima':
                 ip = get_zhima(pro_code)
                 if ip != None:
-                    LOG_D(ip)
+                    LOG_D(i[1] + ' 分省zhima: ' + ip)
                     return ip
             if i[0] == 'liuguan':
                 ip = get_liuguan(pro_code)
                 if ip != None:
-                    LOG_D(ip)
+                    LOG_D(i[1] + ' 分省liuguan: ' + ip)
                     return ip
+    LOG_D('未能获取分省ip')
     return None
 
 
