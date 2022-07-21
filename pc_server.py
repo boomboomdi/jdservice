@@ -103,7 +103,7 @@ def getRealurl():
     ck = ck.encode("utf-8").decode("latin1")
     pay_info = str(param.get('qr_url'))
     os = str(param.get('os'))
-    ip = str(param.get('ip'))
+    ip = str(param.get('user_ip'))
     if os == 'android':
         return get_real_url(ck, pay_info, amount, os, ip)
     elif os == 'ios':
