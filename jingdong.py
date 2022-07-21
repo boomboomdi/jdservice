@@ -263,11 +263,11 @@ class jd:
         body= '{"appId":"jd_android_app4","fk_aid":"","fk_appId":"com.jingdong.app.mall","fk_latitude":"",' + \
             '"fk_longtitude":"","fk_terminalType":"","fk_traceIp":"10.1.10.1","orderId":"' + order_id + '","orderType":"' + order_type + '",' + \
             '"orderTypeCode":"0","paySourceId":"0","payablePrice":"' + payable_price + '","paysign":"' + pay_sign + '","unJieSuan":"0"}'
-        print(body)
+        # print(body)
         uuid_str = hashlib.md5(str(int(time.time() * 1000)).encode()).hexdigest()[0:16]
         sign = f'functionId={function_id}&body={body}&uuid={uuid_str}&client={client}&clientVersion={client_version}&st={ts}&sv={sv}'
         sign = get_sign(sign)
-        print(sign)
+        # print(sign)
         url = 'https://api.m.jd.com/client.action?functionId=' + function_id
         params = f'&clientVersion={client_version}&build=92610&client={client}&uuid={uuid_str}&st={ts}&sign={sign}&sv={sv}'
         headers = {
@@ -370,7 +370,7 @@ class jd:
         uuid_str = hashlib.md5(str(int(time.time() * 1000)).encode()).hexdigest()[0:16]
         sign = f'functionId={function_id}&body={body}&uuid={uuid_str}&client={client}&clientVersion={client_version}&st={ts}&sv={sv}'
         sign = get_sign(sign)
-        print(sign)
+        # print(sign)
         url = 'https://api.m.jd.com/client.action?functionId=' + function_id
         params = f'&clientVersion={client_version}&build=92610&client={client}&uuid={uuid_str}&st={ts}&sign={sign}&sv={sv}'
         headers = {
@@ -380,7 +380,7 @@ class jd:
             'cookie': self.ck
         }
         body = 'body=' + quote(body)
-        print(body)
+        # print(body)
         try:
             resp = requests.post(url=url + params, data=body, headers=headers, proxies=self.proxy)
             if 'orderId' in resp.text:
@@ -950,7 +950,7 @@ class jd:
         uuid_str = hashlib.md5(str(int(time.time() * 1000)).encode()).hexdigest()[0:16]
         sign = f'functionId={function_id}&body={body}&uuid={uuid_str}&client={client}&clientVersion={client_version}&st={ts}&sv={sv}'
         sign = get_sign(sign)
-        print(sign)
+        # print(sign)
         url = 'https://api.m.jd.com/client.action?functionId=' + function_id
         params = f'&clientVersion={client_version}&build=92610&client={client}&uuid={uuid_str}&st={ts}&sign={sign}&sv={sv}'
         headers = {
@@ -960,7 +960,7 @@ class jd:
             'cookie': self.ck
         }
         body = 'body=' + quote(body)
-        print(body)
+        # print(body)
         try:
             resp = requests.post(url=url + params, data=body, headers=headers, proxies=self.proxy, timeout=4)
             print(resp.text)

@@ -297,7 +297,7 @@ class pc_jd():
             return NETWOTK_ERROR, None
         if res.status_code == 200:
             ret_json = res.json()
-            tools.LOG_D(res.text)
+            # tools.LOG_D(res.text)
             if ret_json['code'] == 200:
                 url = ret_json['url']
                 items = url.split('?')[1].split('&')
@@ -306,7 +306,7 @@ class pc_jd():
                         order_no = i.split('=')[1]
                         return SUCCESS, order_no
             elif ret_json['code'] == 31 or '销售火爆' in ret_json['msg'] or '请您改日再试' in ret_json['msg']:
-                tools.LOG_D(ret_json)
+                # tools.LOG_D(ret_json)
                 return CK_UNVALUE, None
             else:
                 tools.LOG_D(ret_json)
@@ -341,7 +341,7 @@ class pc_jd():
         }
         try:
             res = requests.get(url, headers=head, allow_redirects=False, proxies=self.proxy, timeout=5)
-            print(res.text)
+            # print(res.text)
         except Exception as e:
             tools.LOG_D(e)
             return NETWOTK_ERROR, None, None
@@ -753,7 +753,7 @@ class pc_jd():
         }
         try:
             res = requests.get(url, headers=head, proxies=self.proxy, allow_redirects=False)
-            print(res.text)
+            # print(res.text)
             if res.status_code == 302:
                 return SUCCESS, res.headers['Location']
         except Exception as e:
@@ -984,12 +984,12 @@ def create_order_appstore(ck, order_me, amount, proxy):
         return code, None
     if order_no == None:
         code, win_id = pc_client.order_place(APPSTORE_SKUIDS[amount])
-        tools.LOG_D(win_id)
+        # tools.LOG_D(win_id)
         if code != SUCCESS:
             return code, None
         sleep(3)
         code, order_no = pc_client.submit_order(APPSTORE_SKUIDS[amount], amount, win_id)
-        tools.LOG_D(order_no)
+        # tools.LOG_D(order_no)
         if code != SUCCESS:
             return code, None
     # check
@@ -1119,7 +1119,7 @@ def get_useful_unpay(ck, amount, proxy):
     return SUCCESS, None, None
 
 def get_useful_unpay_appstore(ck, amount, proxy):
-    tools.LOG_D('enter')
+    # tools.LOG_D('enter')
     pc_client = pc_jd(ck, proxy)
     code, orders =  pc_client.get_unpay_appstore()
     if code != SUCCESS:
@@ -1540,12 +1540,11 @@ def upload_callback_result(result):
     head = {
         'content-type': 'application/json'
     }
-    tools.LOG_D(result)
     res = requests.post(url, headers=head, data=result).json()
-    tools.LOG_D(str(result) + '\nret:' + json.dumps(res))
     if res['code'] == 0 or res['code'] == '0':
         return True
     else:
+        tools.LOG_D(str(result) + '\nret:' + json.dumps(res))
         return False
 
 def upload_order_result(order_me, order_no, img_url, amount, ck_status):
@@ -2009,8 +2008,8 @@ if __name__=='__main__':
     # query_order_appstore(ck, '', order_id, '200')
 
     ck = 'TrackID=1ReuYQbBaioEh8HKT9e1w4yNtbbfwBMLXJDxVMOdf9P5s3kMAX6ani-fBzsdUF1Lmhe8clBma2sBPYRUGEOldNw;thor=1CFF03477F2A42417BE908A50DA8B1FD6AF34D079E01D27C9FD9F89DB9FAF9F2FDA933A22219012809EEC876E176C874475D31B68A83D116A5D84DCF84C65EE355A1BD594FE7DA120DE5953CAAD64D08BBE687FCA77E5D5E2F690034DD73DC6975E46280E24FED0FE86A4B2707EFCBB64BA1BE1E265069A8524248625C8C9886B713A705A0A38B610FE16F4B1E2E9E39; pinId=4IFrZ05gKT9SgeCVsXZ0Jg; pin=jdEuqfw5195fK;unick=jdEuqfw5195fK; _tp=TIFW9TORxTa1uC9sJ%2BwpYQ%3D%3D; _pst=jdEuqfw5195fK; upn=4sJ{4X3Y44xC4MhK7[dn4cNi4chB;pin=jdEuqfw5195fK;wskey=AAJiZkgkAEAENu1m31TDm26heZCl9fTsUgK8S5-11fDnFo8NyI6OK9lNHpWDsdtzq4qEhTCjp7bKG5P872fff7ORKTIiTbFR;'
-    print(get_real_url(ck, '249857357421', '200', 'ios', '118.77.57.34'))
-    # order_appstore(ck, '', '200')
+    # print(get_real_url(ck, '249857357421', '200', 'ios', '118.77.57.34'))
+    order_appstore(ck, '', '50')
     # order_qb(ck, '', '100', '')
     # order_no = '249418749004'
     # print(query_order_qb(ck, '', order_no, '100'))
